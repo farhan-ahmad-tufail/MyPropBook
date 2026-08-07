@@ -86,10 +86,17 @@ alter table public.leases enable row level security;
 alter table public.bills enable row level security;
 alter table public.payments enable row level security;
 
--- Policies for Authenticated Users
-create policy "Allow owners full access to properties" on public.properties for all using (auth.uid() = owner_id);
-create policy "Allow owners full access to rooms" on public.rooms for all using (true);
-create policy "Allow owners full access to tenants" on public.tenants for all using (auth.uid() = owner_id);
-create policy "Allow owners full access to leases" on public.leases for all using (true);
-create policy "Allow owners full access to bills" on public.bills for all using (true);
-create policy "Allow owners full access to payments" on public.payments for all using (true);
+-- Policies for Authenticated Users (Full CRUD access)
+drop policy if exists "Allow owners full access to properties" on public.properties;
+drop policy if exists "Allow owners full access to rooms" on public.rooms;
+drop policy if exists "Allow owners full access to tenants" on public.tenants;
+drop policy if exists "Allow owners full access to leases" on public.leases;
+drop policy if exists "Allow owners full access to bills" on public.bills;
+drop policy if exists "Allow owners full access to payments" on public.payments;
+
+create policy "Allow owners full access to properties" on public.properties for all using (true) with check (true);
+create policy "Allow owners full access to rooms" on public.rooms for all using (true) with check (true);
+create policy "Allow owners full access to tenants" on public.tenants for all using (true) with check (true);
+create policy "Allow owners full access to leases" on public.leases for all using (true) with check (true);
+create policy "Allow owners full access to bills" on public.bills for all using (true) with check (true);
+create policy "Allow owners full access to payments" on public.payments for all using (true) with check (true);

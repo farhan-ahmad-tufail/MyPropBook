@@ -106,7 +106,7 @@ export default function Properties() {
       await fetchProperties();
     } catch (err) {
       console.error(err);
-      setError('Failed to save property');
+      setError(err.message || 'Failed to save property');
     }
   };
 
@@ -127,7 +127,7 @@ export default function Properties() {
       await fetchProperties();
     } catch (err) {
       console.error(err);
-      setError('Failed to delete property');
+      setError(err.message || 'Failed to delete property');
     }
   };
 
@@ -167,7 +167,7 @@ export default function Properties() {
       await fetchRooms(selectedPropertyId);
     } catch (err) {
       console.error(err);
-      setError('Failed to save room');
+      setError(err.message || 'Failed to save room');
     }
   };
 
