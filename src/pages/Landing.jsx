@@ -89,7 +89,7 @@ export default function Landing() {
           <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
             <Building2 size={16} className="text-white" />
           </div>
-          <span>RentCalc</span>
+          <span>BillRoom</span>
         </Link>
 
         <div className="flex items-center gap-3">
@@ -112,19 +112,18 @@ export default function Landing() {
       <section className="relative z-10 flex flex-col items-center text-center px-6 pt-24 pb-20">
         {/* Version badge */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 mb-8 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold tracking-wide">
-          <Star size={11} fill="currentColor" />
-          <span>Professional Property Management System</span>
+          <span>⚡ Property Management + Smart Billing</span>
         </div>
 
         <h1 className="max-w-4xl text-5xl sm:text-7xl font-black tracking-tight leading-[1.05] text-white">
-          Manage Rent &amp; Utility{' '}
+          Manage Every Property.{' '}
           <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">
-            Billing Like a Pro
+            Bill Every Room.
           </span>
         </h1>
 
         <p className="mt-6 max-w-2xl text-lg text-slate-400 leading-relaxed">
-          The all-in-one property operations tool for landlords. Automate electricity submeter calculations, track tenants, and generate instant shareable receipts.
+          Manage apartments, PGs, hostels, and rental properties from one dashboard. Automate electricity submeter billing, track tenants, collect payments, and generate professional receipts in seconds.
         </p>
 
         <div className="mt-10 flex flex-col sm:flex-row gap-4 items-center justify-center w-full">
@@ -154,6 +153,26 @@ export default function Landing() {
           </div>
           <div className="flex items-center gap-1.5">
             <CheckCircle size={14} className="text-emerald-400" /> Installable PWA
+          </div>
+        </div>
+      </section>
+      {/* ── Perfect For Strip ── */}
+      <section className="relative z-10 border-y border-slate-800/50 bg-slate-900/30 py-5 px-6">
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-8">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-widest shrink-0">Perfect for</span>
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-5">
+            {[
+              { emoji: '🏢', label: 'Apartments' },
+              { emoji: '🏠', label: 'Rental Buildings' },
+              { emoji: '🛏', label: 'PGs' },
+              { emoji: '🎓', label: 'Hostels' },
+              { emoji: '🏘', label: 'Societies' },
+            ].map(({ emoji, label }) => (
+              <div key={label} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800/60 border border-slate-700/50 text-slate-300 text-xs font-medium hover:border-blue-500/30 hover:text-blue-300 transition-colors">
+                <span>{emoji}</span>
+                <span>{label}</span>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -215,10 +234,10 @@ export default function Landing() {
       <section className="relative z-10 px-6 py-20 max-w-4xl mx-auto text-center">
         <div className="bg-gradient-to-br from-blue-600/20 via-indigo-600/10 to-purple-600/15 border border-blue-500/20 rounded-3xl p-12">
           <h2 className="text-3xl sm:text-4xl font-black text-white mb-4">
-            Replace your spreadsheets today
+            Upgrade from Notebooks to BillRoom
           </h2>
           <p className="text-slate-400 text-base mb-8 max-w-xl mx-auto">
-            Join property owners who automated their billing. Free forever with local storage, or connect Supabase for cloud backup.
+            Stop managing tenant records, rent collections, and utility bills in notebooks, spreadsheets, and WhatsApp chats. BillRoom brings everything together in one secure dashboard.
           </p>
 
           {user ? (
@@ -235,7 +254,7 @@ export default function Landing() {
 
       {/* ── Footer ── */}
       <footer className="border-t border-slate-800/60 px-6 py-8 text-center text-xs text-slate-600">
-        © 2026 RentCalc. Built with React + Supabase · PWA Installable
+        © 2026 BillRoom. Built with React + Supabase · PWA Installable
       </footer>
     </div>
   );

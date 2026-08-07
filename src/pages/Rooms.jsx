@@ -14,10 +14,6 @@ export default function Rooms() {
         submeterReading: ''
     });
 
-    useEffect(() => {
-        loadRooms();
-    }, []);
-
     const loadRooms = async () => {
         try {
             const data = await api.getRooms();
@@ -26,6 +22,11 @@ export default function Rooms() {
             console.error('Error loading rooms:', err);
         }
     };
+
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        loadRooms();
+    }, []);
 
     const handleEdit = (room) => {
         setEditingRoom(room);

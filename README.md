@@ -1,6 +1,6 @@
-# RentCalc - Professional Property & Submeter Bill Management System
+# BillRoom - Professional Property & Submeter Bill Management System
 
-RentCalc is a production-ready, resume-worthy **Progressive Web App (PWA)** built using **React (Vite) + Supabase**. It is designed for property owners to securely manage multiple properties, register tenants, allocate room leases, and automate monthly electricity and rent bill generation with a single click.
+BillRoom is a production-ready **Progressive Web App (PWA)** built using **React (Vite) + Supabase**. It is designed for property owners to securely manage multiple properties, register tenants, allocate room leases, and automate monthly electricity and rent bill generation with a single click.
 
 It features a robust **Local Offline Demo Mode** using local storage fallbacks. If Supabase configuration is missing or offline, the application seamlessly degrades to a standalone client-side database, allowing users (and potential recruiters) to fully try out the application instantly without setting up any cloud accounts.
 

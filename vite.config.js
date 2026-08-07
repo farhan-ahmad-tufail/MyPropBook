@@ -10,8 +10,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'RentManager QuickCalc',
-        short_name: 'RentCalc',
+        name: 'BillRoom - Property & Submeter Billing',
+        short_name: 'BillRoom',
         description: 'Instant electricity and rent bill calculator',
         theme_color: '#0f172a',
         background_color: '#0f172a',
@@ -38,4 +38,15 @@ export default defineConfig({
       }
     })
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          pdf: ['html2canvas', 'jspdf'],
+          icons: ['lucide-react']
+        }
+      }
+    }
+  }
 })

@@ -60,7 +60,7 @@ export default function Layout({ children }) {
             <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center flex-shrink-0">
               <Home size={15} className="text-white" />
             </div>
-            <span>RentCalc</span>
+            <span>BillRoom</span>
           </Link>
           <button
             onClick={() => setMobileOpen(false)}

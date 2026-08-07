@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
-import { Building, Home, Plus, Trash2, Edit2, MapPin, Check, X, ShieldAlert } from 'lucide-react';
+import { Building, Home, Plus, Trash2, Edit2, MapPin, ShieldAlert, Zap } from 'lucide-react';
 
 export default function Properties() {
   const { user } = useAuth();
@@ -9,8 +9,8 @@ export default function Properties() {
   // Data State
   const [properties, setProperties] = useState([]);
   const [rooms, setRooms] = useState([]);
-  const [selectedProperty, setSelectedProperty] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [selectedPropertyId, setSelectedPropertyId] = useState(null);
+  const [_loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   // Form State - Property
@@ -25,57 +25,61 @@ export default function Properties() {
   const [roomFloor, setRoomFloor] = useState('');
   const [roomType, setRoomType] = useState('Medium');
   const [roomRent, setRoomRent] = useState('');
+  const [hasSubmeter, setHasSubmeter] = useState(true);
   const [roomReading, setRoomReading] = useState('0');
   const [roomRate, setRoomRate] = useState('17');
   const [editingRoomId, setEditingRoomId] = useState(null);
 
-  useEffect(() => {
-    loadProperties();
-  }, [user]);
+  const selectedProperty = properties.find(p => p.id === selectedPropertyId) || null;
 
-  const loadProperties = async () => {
+  const fetchRooms = useCallback(async (propId) => {
+    if (!propId) {
+      setRooms([]);
+      return;
+    }
+    try {
+      const list = await api.getRooms(propId);
+      setRooms(list);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to fetch rooms for property');
+    }
+  }, []);
+
+  const fetchProperties = useCallback(async () => {
     try {
       setLoading(true);
       const ownerId = user?.id || 'mock_owner_id';
       const list = await api.getProperties(ownerId);
       setProperties(list);
       
-      if (list.length > 0) {
-        // Automatically select the first property if none selected
-        if (!selectedProperty) {
-          setSelectedProperty(list[0]);
-          loadRooms(list[0].id);
-        } else {
-          // Keep selection up-to-date
-          const updatedSelected = list.find(p => p.id === selectedProperty.id) || list[0];
-          setSelectedProperty(updatedSelected);
-          loadRooms(updatedSelected.id);
-        }
-      } else {
-        setSelectedProperty(null);
-        setRooms([]);
-      }
+      setSelectedPropertyId(prevId => {
+        if (!prevId && list.length > 0) return list[0].id;
+        if (prevId && !list.some(p => p.id === prevId)) return list.length > 0 ? list[0].id : null;
+        return prevId;
+      });
     } catch (err) {
       console.error(err);
       setError('Failed to fetch properties');
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
-  const loadRooms = async (propId) => {
-    try {
-      const list = await api.getRooms(propId);
-      setRooms(list);
-    } catch (err) {
-      console.error(err);
-      setError('Failed to fetch rooms');
+  useEffect(() => {
+    fetchProperties();
+  }, [fetchProperties]);
+
+  useEffect(() => {
+    if (selectedPropertyId) {
+      fetchRooms(selectedPropertyId);
+    } else {
+      setRooms([]);
     }
-  };
+  }, [selectedPropertyId, fetchRooms]);
 
   const handleSelectProperty = (prop) => {
-    setSelectedProperty(prop);
-    loadRooms(prop.id);
+    setSelectedPropertyId(prop.id);
     setShowRoomForm(false);
     setEditingRoomId(null);
   };
@@ -83,22 +87,25 @@ export default function Properties() {
   // Property Form CRUD handlers
   const handlePropSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     const ownerId = user?.id || 'mock_owner_id';
+    setError('');
 
     try {
       if (editingPropId) {
         await api.updateProperty(editingPropId, { name: propName, address: propAddress });
       } else {
-        const newProp = await api.createProperty(ownerId, { name: propName, address: propAddress });
-        setSelectedProperty(newProp);
+        const created = await api.createProperty(ownerId, { name: propName, address: propAddress });
+        if (created?.id) {
+          setSelectedPropertyId(created.id);
+        }
       }
       setPropName('');
       setPropAddress('');
       setShowPropForm(false);
       setEditingPropId(null);
-      await loadProperties();
+      await fetchProperties();
     } catch (err) {
+      console.error(err);
       setError('Failed to save property');
     }
   };
@@ -114,11 +121,12 @@ export default function Properties() {
     if (!window.confirm('Are you sure you want to delete this property? This will delete all rooms inside it.')) return;
     try {
       await api.deleteProperty(id);
-      if (selectedProperty?.id === id) {
-        setSelectedProperty(null);
+      if (selectedPropertyId === id) {
+        setSelectedPropertyId(null);
       }
-      await loadProperties();
+      await fetchProperties();
     } catch (err) {
+      console.error(err);
       setError('Failed to delete property');
     }
   };
@@ -126,7 +134,7 @@ export default function Properties() {
   // Room Form CRUD handlers
   const handleRoomSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedProperty) return;
+    if (!selectedPropertyId) return;
     setError('');
 
     try {
@@ -135,26 +143,30 @@ export default function Properties() {
         floor: roomFloor,
         room_type: roomType,
         base_rent: parseFloat(roomRent),
-        current_meter_reading: parseFloat(roomReading || 0),
-        rate_per_unit: parseFloat(roomRate || 17)
+        has_submeter: hasSubmeter,
+        elec_mode: hasSubmeter ? 'submeter' : 'direct',
+        current_meter_reading: hasSubmeter ? parseFloat(roomReading || 0) : 0,
+        rate_per_unit: hasSubmeter ? parseFloat(roomRate || 17) : 0
       };
 
       if (editingRoomId) {
         await api.updateRoom(editingRoomId, roomData);
       } else {
-        await api.createRoom(selectedProperty.id, roomData);
+        await api.createRoom(selectedPropertyId, roomData);
       }
 
       setRoomNumber('');
       setRoomFloor('');
       setRoomType('Medium');
       setRoomRent('');
+      setHasSubmeter(true);
       setRoomReading('0');
       setRoomRate('17');
       setShowRoomForm(false);
       setEditingRoomId(null);
-      await loadRooms(selectedProperty.id);
+      await fetchRooms(selectedPropertyId);
     } catch (err) {
+      console.error(err);
       setError('Failed to save room');
     }
   };
@@ -165,8 +177,9 @@ export default function Properties() {
     setRoomFloor(room.floor || '');
     setRoomType(room.room_type || 'Medium');
     setRoomRent(room.base_rent.toString());
-    setRoomReading(room.current_meter_reading.toString());
-    setRoomRate(room.rate_per_unit.toString());
+    setHasSubmeter(room.has_submeter !== false);
+    setRoomReading((room.current_meter_reading || 0).toString());
+    setRoomRate((room.rate_per_unit || 17).toString());
     setShowRoomForm(true);
   };
 
@@ -174,7 +187,7 @@ export default function Properties() {
     if (!window.confirm('Are you sure you want to delete this room?')) return;
     try {
       await api.deleteRoom(id);
-      await loadRooms(selectedProperty.id);
+      await fetchRooms(selectedPropertyId);
     } catch (err) {
       setError(err.message || 'Failed to delete room');
     }
@@ -221,7 +234,7 @@ export default function Properties() {
               <h3 className="font-semibold text-slate-200 mb-4 text-sm">
                 {editingPropId ? 'Edit Property Details' : 'Add New Property'}
               </h3>
-              <form onSubmit={propSubmit => handlePropSubmit(propSubmit)} className="space-y-4">
+              <form onSubmit={handlePropSubmit} className="space-y-4">
                 <div className="form-group">
                   <label className="input-label">Property Name</label>
                   <input
@@ -267,7 +280,7 @@ export default function Properties() {
           ) : (
             <div className="space-y-2.5">
               {properties.map(p => {
-                const isSelected = selectedProperty?.id === p.id;
+                const isSelected = selectedPropertyId === p.id;
                 return (
                   <div
                     key={p.id}
@@ -333,6 +346,7 @@ export default function Properties() {
                     setRoomFloor('');
                     setRoomType('Medium');
                     setRoomRent('');
+                    setHasSubmeter(true);
                     setRoomReading('0');
                     setRoomRate('17');
                     setShowRoomForm(true);
@@ -348,7 +362,7 @@ export default function Properties() {
                 <div className="card glass-card border-blue-500/20 p-6 bg-slate-900/40">
                   <h3 className="font-bold text-slate-200 mb-4 text-sm flex items-center gap-2">
                     <Home size={16} className="text-blue-400" />
-                    <span>{editingRoomId ? 'Edit Room Properties' : 'Register New Room'}</span>
+                    <span>{editingRoomId ? 'Edit Room Configuration' : 'Register New Room'}</span>
                   </h3>
                   <form onSubmit={handleRoomSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="form-group">
@@ -396,29 +410,80 @@ export default function Properties() {
                         onChange={e => setRoomRent(e.target.value)}
                       />
                     </div>
-                    <div className="form-group">
-                      <label className="input-label">Starting Electricity Reading</label>
-                      <input
-                        type="number"
-                        required
-                        placeholder="e.g. 235"
-                        className="form-input bg-slate-950"
-                        value={roomReading}
-                        disabled={!!editingRoomId} // Prevent editing readings here if already set (prevent history issues)
-                        onChange={e => setRoomReading(e.target.value)}
-                      />
+
+                    {/* Electricity Billing Choice */}
+                    <div className="form-group md:col-span-2">
+                      <label className="input-label flex items-center gap-1.5 font-bold text-slate-300">
+                        <Zap size={14} className="text-yellow-400" /> Electricity Billing Method
+                      </label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
+                        <button
+                          type="button"
+                          onClick={() => setHasSubmeter(true)}
+                          className={`p-3 rounded-xl border flex items-center gap-3 transition-all text-left ${
+                            hasSubmeter
+                              ? 'bg-blue-600/20 border-blue-500 text-slate-100 ring-1 ring-blue-500/30'
+                              : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                          }`}
+                        >
+                          <span className="text-xl">⚡</span>
+                          <div>
+                            <p className="font-bold text-xs">Submeter Reading</p>
+                            <p className="text-[10px] text-slate-400">Track meter units & per-unit rate</p>
+                          </div>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setHasSubmeter(false)}
+                          className={`p-3 rounded-xl border flex items-center gap-3 transition-all text-left ${
+                            !hasSubmeter
+                              ? 'bg-blue-600/20 border-blue-500 text-slate-100 ring-1 ring-blue-500/30'
+                              : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                          }`}
+                        >
+                          <span className="text-xl">📄</span>
+                          <div>
+                            <p className="font-bold text-xs">Direct Bill / Skip Submeter</p>
+                            <p className="text-[10px] text-slate-400">Bill amount added directly or included</p>
+                          </div>
+                        </button>
+                      </div>
                     </div>
-                    <div className="form-group">
-                      <label className="input-label">Electricity Unit Rate (₹/unit)</label>
-                      <input
-                        type="number"
-                        required
-                        placeholder="e.g. 17"
-                        className="form-input bg-slate-950"
-                        value={roomRate}
-                        onChange={e => setRoomRate(e.target.value)}
-                      />
-                    </div>
+
+                    {/* Conditional Submeter Fields */}
+                    {hasSubmeter ? (
+                      <>
+                        <div className="form-group">
+                          <label className="input-label">Starting Meter Reading (units)</label>
+                          <input
+                            type="number"
+                            required={hasSubmeter}
+                            placeholder="e.g. 235"
+                            className="form-input bg-slate-950 font-mono"
+                            value={roomReading}
+                            disabled={!!editingRoomId}
+                            onChange={e => setRoomReading(e.target.value)}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label className="input-label">Electricity Unit Rate (₹/unit)</label>
+                          <input
+                            type="number"
+                            required={hasSubmeter}
+                            placeholder="e.g. 17"
+                            className="form-input bg-slate-950"
+                            value={roomRate}
+                            onChange={e => setRoomRate(e.target.value)}
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <div className="md:col-span-2 p-3 bg-slate-950 border border-slate-800/80 rounded-xl text-xs text-slate-400 flex items-center gap-2">
+                        <span>💡</span>
+                        <span>Submeter tracking disabled for this room. You can enter electricity amounts directly or mark as included during monthly billing.</span>
+                      </div>
+                    )}
 
                     <div className="md:col-span-2 flex gap-3 pt-2">
                       <button type="submit" className="btn btn-primary py-2.5 px-4 rounded-xl flex-1 text-xs">
@@ -443,53 +508,60 @@ export default function Properties() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {rooms.map(room => (
-                    <div key={room.id} className="card glass-card p-5 border-slate-800 flex flex-col justify-between">
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold">
-                            {room.room_number}
+                  {rooms.map(room => {
+                    const isSubmeter = room.has_submeter !== false;
+                    return (
+                      <div key={room.id} className="card glass-card p-5 border-slate-800 flex flex-col justify-between">
+                        <div className="flex justify-between items-start">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold">
+                              {room.room_number}
+                            </div>
+                            <div>
+                              <h3 className="font-bold text-slate-200">Room {room.room_number}</h3>
+                              <span className="text-xs text-slate-500 capitalize">{room.room_type} Room • Floor {room.floor || 'G'}</span>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-1">
+                            <button 
+                              onClick={() => startEditRoom(room)}
+                              className="p-1.5 text-slate-500 hover:text-slate-200 hover:bg-slate-800 rounded"
+                              title="Edit Room"
+                            >
+                              <Edit2 size={13} />
+                            </button>
+                            <button 
+                              onClick={() => handleRoomDelete(room.id)}
+                              className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-slate-800 rounded"
+                              title="Delete Room"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="mt-5 pt-4 border-t border-slate-800/80 grid grid-cols-3 gap-2 text-center">
+                          <div>
+                            <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Base Rent</span>
+                            <p className="text-sm font-bold text-slate-200 mt-0.5">₹{room.base_rent}</p>
                           </div>
                           <div>
-                            <h3 className="font-bold text-slate-200">Room {room.room_number}</h3>
-                            <span className="text-xs text-slate-500 capitalize">{room.room_type} Room • Floor {room.floor || 'G'}</span>
+                            <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Submeter</span>
+                            <p className="text-sm font-bold text-slate-200 mt-0.5 font-mono">
+                              {isSubmeter ? `${room.current_meter_reading} u` : 'Skipped'}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Rate</span>
+                            <p className="text-sm font-bold text-slate-200 mt-0.5">
+                              {isSubmeter ? `₹${room.rate_per_unit}` : 'N/A'}
+                            </p>
                           </div>
                         </div>
-                        
-                        <div className="flex items-center gap-1">
-                          <button 
-                            onClick={() => startEditRoom(room)}
-                            className="p-1.5 text-slate-500 hover:text-slate-200 hover:bg-slate-800 rounded"
-                            title="Edit Room"
-                          >
-                            <Edit2 size={13} />
-                          </button>
-                          <button 
-                            onClick={() => handleRoomDelete(room.id)}
-                            className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-slate-800 rounded"
-                            title="Delete Room"
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        </div>
                       </div>
-
-                      <div className="mt-5 pt-4 border-t border-slate-800/80 grid grid-cols-3 gap-2 text-center">
-                        <div>
-                          <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Base Rent</span>
-                          <p className="text-sm font-bold text-slate-200 mt-0.5">₹{room.base_rent}</p>
-                        </div>
-                        <div>
-                          <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Submeter</span>
-                          <p className="text-sm font-bold text-slate-200 mt-0.5 font-mono">{room.current_meter_reading} u</p>
-                        </div>
-                        <div>
-                          <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Rate</span>
-                          <p className="text-sm font-bold text-slate-200 mt-0.5">₹{room.rate_per_unit}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </>

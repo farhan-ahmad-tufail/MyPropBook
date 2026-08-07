@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { 
   Calculator, 
   RefreshCw, 
@@ -72,7 +72,6 @@ const translations = {
 export default function SmartCalc() {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
 
   // Route URL Parameter support
   const urlRoomId = searchParams.get('roomId');
@@ -102,20 +101,15 @@ export default function SmartCalc() {
   const [currentReading, setCurrentReading] = useState('');
   const [otherCharges, setOtherCharges] = useState('');
 
+  // Electricity billing mode: 'submeter' | 'direct' | 'none'
+  const [elecMode, setElecMode] = useState('submeter');
+  const [directElecAmount, setDirectElecAmount] = useState('');
+
   // Result & UI State
   const [result, setResult] = useState(null);
   const [isSaved, setIsSaved] = useState(false);
-  const [language, setLanguage] = useState('en');
-  const [theme, setTheme] = useState('darkBlue');
+  const [language] = useState('en');
   const receiptRef = useRef(null);
-
-  const themeOptions = {
-    darkBlue: { bg: '#0f172a', text: 'white', icon: '#3b82f6', hex: '#0f172a' },
-    black: { bg: '#171717', text: 'white', icon: '#404040', hex: '#171717' },
-    indigo: { bg: '#4338ca', text: 'white', icon: '#6366f1', hex: '#4338ca' },
-    emerald: { bg: '#065f46', text: 'white', icon: '#10b981', hex: '#065f46' }
-  };
-  const currentTheme = themeOptions[theme] || themeOptions.darkBlue;
 
   const months = [
     "January", "February", "March", "April", "May", "June",
@@ -123,11 +117,7 @@ export default function SmartCalc() {
   ];
   const years = Array.from({ length: 5 }, (_, i) => currentDate.getFullYear() - 1 + i);
 
-  useEffect(() => {
-    loadAllData();
-  }, [user]);
-
-  const loadAllData = async () => {
+  const loadAllData = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -161,7 +151,11 @@ export default function SmartCalc() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, urlRoomId]);
+
+  useEffect(() => {
+    loadAllData();
+  }, [loadAllData]);
 
   // Triggered when selected room changes (Autofill execution)
   useEffect(() => {
@@ -196,6 +190,8 @@ export default function SmartCalc() {
     // Clear previous input results
     setCurrentReading('');
     setOtherCharges('');
+    setDirectElecAmount('');
+    setElecMode('submeter');
     setResult(null);
     setIsSaved(false);
   }, [selectedRoomId, rooms, leases, tenants, bills]);
@@ -210,24 +206,39 @@ export default function SmartCalc() {
       return;
     }
 
-    const prevReading = parseFloat(activeRoom.current_meter_reading) || 0;
-    const currReading = parseFloat(currentReading);
-    const rate = parseFloat(activeRoom.rate_per_unit) || 17;
-    const other = parseFloat(otherCharges) || 0;
-
-    if (isNaN(currReading)) {
-      setError('Please input a valid current meter reading');
-      return;
-    }
-
-    if (currReading < prevReading) {
-      setError(`Current meter reading cannot be less than the previous reading (${prevReading} units).`);
-      return;
-    }
-
-    const units = currReading - prevReading;
-    const elecAmount = units * rate;
     const rentAmount = parseFloat(activeRoom.base_rent) || 0;
+    const other = parseFloat(otherCharges) || 0;
+    let elecAmount = 0;
+    let prevReading = 0;
+    let currReading = 0;
+    let units = 0;
+    let rate = 0;
+
+    if (elecMode === 'submeter') {
+      prevReading = parseFloat(activeRoom.current_meter_reading) || 0;
+      currReading = parseFloat(currentReading);
+      rate = parseFloat(activeRoom.rate_per_unit) || 17;
+
+      if (isNaN(currReading)) {
+        setError('Please input a valid current meter reading');
+        return;
+      }
+      if (currReading < prevReading) {
+        setError(`Current meter reading cannot be less than the previous reading (${prevReading} units).`);
+        return;
+      }
+      units = currReading - prevReading;
+      elecAmount = units * rate;
+    } else if (elecMode === 'direct') {
+      const directAmt = parseFloat(directElecAmount);
+      if (isNaN(directAmt) || directAmt < 0) {
+        setError('Please enter a valid electricity bill amount');
+        return;
+      }
+      elecAmount = directAmt;
+    }
+    // elecMode === 'none' → elecAmount stays 0
+
     const total = elecAmount + rentAmount + calculatedArrears + other;
 
     const calculatedBill = {
@@ -239,10 +250,12 @@ export default function SmartCalc() {
       room_type: activeRoom.room_type,
       bill_month: billMonth,
       bill_year: billYear,
+      elec_mode: elecMode,
       previous_reading: prevReading,
       current_reading: currReading,
       units_consumed: units,
       rate_per_unit: rate,
+      elec_amount: elecAmount,
       rent_amount: rentAmount,
       arrears: calculatedArrears,
       other_charges: other,
@@ -302,7 +315,15 @@ export default function SmartCalc() {
     if (!result || !receiptRef.current) return;
 
     try {
-      const text = `*RENT RECEIPT*\nMonth: ${result.bill_month} ${result.bill_year}\nRoom: ${result.room_number} (${result.floor || 'G'} floor)\nTenant: ${result.tenant_name}\nRent: ₹${result.rent_amount}\nElectricity: ${result.units_consumed.toFixed(2)} units (Pre: ${result.previous_reading} -> Cur: ${result.current_reading}) @ ₹${result.rate_per_unit}/u = ₹${(result.units_consumed * result.rate_per_unit).toFixed(2)}\nArrears: ₹${result.arrears}\nOther Charges: ₹${result.other_charges}\n*Total Payable: ₹${result.total_payable.toFixed(2)}*\n\nPlease make your payment as soon as possible. Thank you!`;
+      let elecLine = '';
+      if (result.elec_mode === 'submeter') {
+        elecLine = `Electricity: ${result.units_consumed.toFixed(2)} units (Pre: ${result.previous_reading} -> Cur: ${result.current_reading}) @ ₹${result.rate_per_unit}/u = ₹${result.elec_amount.toFixed(2)}`;
+      } else if (result.elec_mode === 'direct') {
+        elecLine = `Electricity (Direct Bill): ₹${result.elec_amount.toFixed(2)}`;
+      } else {
+        elecLine = 'Electricity: Included in Rent';
+      }
+      const text = `*RENT RECEIPT*\nMonth: ${result.bill_month} ${result.bill_year}\nRoom: ${result.room_number} (${result.floor || 'G'} floor)\nTenant: ${result.tenant_name}\nRent: ₹${result.rent_amount}\n${elecLine}\nArrears: ₹${result.arrears}\nOther Charges: ₹${result.other_charges}\n*Total Payable: ₹${result.total_payable.toFixed(2)}*\n\nPlease make your payment as soon as possible. Thank you!`;
 
       // Web share api for mobile, otherwise standard WhatsApp redirect link
       const canvas = await html2canvas(receiptRef.current, { scale: 2, backgroundColor: '#ffffff' });
@@ -463,8 +484,35 @@ export default function SmartCalc() {
                 </div>
               )}
 
-              {/* Reading Inputs */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Electricity Billing Mode Toggle */}
+              <div className="form-group">
+                <label className="input-label flex items-center gap-1.5"><Zap size={13} className="text-yellow-400" /> Electricity Billing Mode</label>
+                <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-950 rounded-xl border border-slate-800">
+                  {[
+                    { id: 'submeter', icon: '⚡', label: 'Submeter' },
+                    { id: 'direct',   icon: '📄', label: 'Direct Amount' },
+                    { id: 'none',     icon: '🚫', label: 'Not Included' },
+                  ].map(({ id, icon, label }) => (
+                    <button
+                      key={id}
+                      type="button"
+                      disabled={!selectedRoomId}
+                      onClick={() => setElecMode(id)}
+                      className={`py-2 px-2 rounded-lg text-xs font-semibold transition-all flex flex-col items-center gap-0.5 ${
+                        elecMode === id
+                          ? 'bg-blue-600 text-white shadow'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      <span>{icon}</span>
+                      <span>{label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Electricity Input — conditional on mode */}
+              {elecMode === 'submeter' && (
                 <div className="form-group">
                   <label className="input-label">Current Meter Reading</label>
                   <input
@@ -472,23 +520,50 @@ export default function SmartCalc() {
                     required
                     disabled={!selectedRoomId}
                     placeholder="e.g. 500"
-                    className="form-input bg-slate-950"
+                    className="form-input bg-slate-950 font-mono"
                     value={currentReading}
                     onChange={e => setCurrentReading(e.target.value)}
                   />
+                  {activeRoom && (
+                    <p className="text-xs text-slate-500 mt-1">Previous reading: <span className="font-mono text-blue-400">{activeRoom.current_meter_reading} units</span></p>
+                  )}
                 </div>
+              )}
 
+              {elecMode === 'direct' && (
                 <div className="form-group">
-                  <label className="input-label">Other charges / Fees (₹)</label>
+                  <label className="input-label">Electricity Bill Amount (₹)</label>
                   <input
                     type="number"
+                    required
                     disabled={!selectedRoomId}
-                    placeholder="e.g. 100"
+                    placeholder="e.g. 450"
                     className="form-input bg-slate-950"
-                    value={otherCharges}
-                    onChange={e => setOtherCharges(e.target.value)}
+                    value={directElecAmount}
+                    onChange={e => setDirectElecAmount(e.target.value)}
                   />
+                  <p className="text-xs text-slate-500 mt-1">Enter the amount from your electricity provider's bill directly.</p>
                 </div>
+              )}
+
+              {elecMode === 'none' && (
+                <div className="flex items-center gap-2 px-3 py-2.5 bg-slate-900 border border-slate-800 rounded-xl">
+                  <span className="text-lg">🚫</span>
+                  <span className="text-xs text-slate-400">No electricity charge — already included in the monthly rent.</span>
+                </div>
+              )}
+
+              {/* Other Charges */}
+              <div className="form-group">
+                <label className="input-label">Other charges / Fees (₹)</label>
+                <input
+                  type="number"
+                  disabled={!selectedRoomId}
+                  placeholder="e.g. 100"
+                  className="form-input bg-slate-950"
+                  value={otherCharges}
+                  onChange={e => setOtherCharges(e.target.value)}
+                />
               </div>
 
               {/* Month Selector dropdowns */}
@@ -583,22 +658,38 @@ export default function SmartCalc() {
                             <span>Base Monthly Rent:</span>
                             <span className="font-semibold text-slate-800">₹{result.rent_amount.toFixed(2)}</span>
                           </div>
-                          <div className="flex justify-between">
-                            <span>Electricity Readings:</span>
-                            <span className="font-semibold text-slate-800">{result.current_reading} - {result.previous_reading}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Units Consumed:</span>
-                            <span className="font-semibold text-slate-800">{result.units_consumed.toFixed(2)} units</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Utility Rate Per Unit:</span>
-                            <span className="font-semibold text-slate-800">₹{result.rate_per_unit}/unit</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Electricity Charges:</span>
-                            <span className="font-bold text-slate-950">₹{(result.units_consumed * result.rate_per_unit).toFixed(2)}</span>
-                          </div>
+                          {result.elec_mode === 'submeter' && (
+                            <>
+                              <div className="flex justify-between">
+                                <span>Electricity Readings:</span>
+                                <span className="font-semibold text-slate-800">{result.current_reading} - {result.previous_reading}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Units Consumed:</span>
+                                <span className="font-semibold text-slate-800">{result.units_consumed.toFixed(2)} units</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Utility Rate Per Unit:</span>
+                                <span className="font-semibold text-slate-800">₹{result.rate_per_unit}/unit</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Electricity Charges:</span>
+                                <span className="font-bold text-slate-950">₹{result.elec_amount.toFixed(2)}</span>
+                              </div>
+                            </>
+                          )}
+                          {result.elec_mode === 'direct' && (
+                            <div className="flex justify-between">
+                              <span>Electricity Bill (Direct):</span>
+                              <span className="font-bold text-slate-950">₹{result.elec_amount.toFixed(2)}</span>
+                            </div>
+                          )}
+                          {result.elec_mode === 'none' && (
+                            <div className="flex justify-between text-slate-400">
+                              <span>Electricity:</span>
+                              <span className="font-medium italic">Included in Rent</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -609,10 +700,12 @@ export default function SmartCalc() {
                         <span className="text-slate-600 font-semibold">{translations[language].totalRent}</span>
                         <span className="font-semibold text-slate-800">₹{result.rent_amount.toFixed(2)}</span>
                       </div>
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-slate-600 font-semibold">{translations[language].totalElectricity}</span>
-                        <span className="font-semibold text-slate-800">₹{(result.units_consumed * result.rate_per_unit).toFixed(2)}</span>
-                      </div>
+                      {result.elec_mode !== 'none' && (
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-slate-600 font-semibold">{translations[language].totalElectricity}</span>
+                          <span className="font-semibold text-slate-800">₹{result.elec_amount.toFixed(2)}</span>
+                        </div>
+                      )}
                       {result.other_charges > 0 && (
                         <div className="flex justify-between items-center text-xs">
                           <span className="text-slate-600 font-semibold">{translations[language].otherCharges}</span>

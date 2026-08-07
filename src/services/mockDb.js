@@ -23,6 +23,7 @@ export const mockDb = {
       setStore('mock_users', users);
       return { user: newUser, session: { access_token: 'mock_token' } };
     },
+    // eslint-disable-next-line no-unused-vars
     signIn: async (email, password) => {
       const users = getStore('mock_users');
       const user = users.find(u => u.email === email);
@@ -93,8 +94,10 @@ export const mockDb = {
       floor: data.floor,
       room_type: data.room_type || 'Medium',
       base_rent: parseFloat(data.base_rent) || 0,
-      current_meter_reading: parseFloat(data.current_meter_reading) || 0,
-      rate_per_unit: parseFloat(data.rate_per_unit) || 17,
+      has_submeter: data.has_submeter !== false,
+      elec_mode: data.elec_mode || (data.has_submeter !== false ? 'submeter' : 'direct'),
+      current_meter_reading: data.has_submeter !== false ? (parseFloat(data.current_meter_reading) || 0) : 0,
+      rate_per_unit: data.has_submeter !== false ? (parseFloat(data.rate_per_unit) || 17) : 0,
       created_at: new Date().toISOString()
     };
     list.push(newRoom);
@@ -111,6 +114,8 @@ export const mockDb = {
       base_rent: data.base_rent !== undefined ? parseFloat(data.base_rent) : list[index].base_rent,
       current_meter_reading: data.current_meter_reading !== undefined ? parseFloat(data.current_meter_reading) : list[index].current_meter_reading,
       rate_per_unit: data.rate_per_unit !== undefined ? parseFloat(data.rate_per_unit) : list[index].rate_per_unit,
+      has_submeter: data.has_submeter !== undefined ? data.has_submeter : list[index].has_submeter,
+      elec_mode: data.elec_mode !== undefined ? data.elec_mode : list[index].elec_mode,
     };
     setStore('mock_rooms', list);
     return list[index];

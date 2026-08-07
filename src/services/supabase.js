@@ -78,6 +78,8 @@ export const supabaseDb = {
         floor: roomData.floor,
         room_type: roomData.room_type,
         base_rent: parseFloat(roomData.base_rent),
+        has_submeter: roomData.has_submeter !== false,
+        elec_mode: roomData.elec_mode || (roomData.has_submeter !== false ? 'submeter' : 'direct'),
         current_meter_reading: parseFloat(roomData.current_meter_reading || 0),
         rate_per_unit: parseFloat(roomData.rate_per_unit || 17)
       }])
@@ -94,6 +96,8 @@ export const supabaseDb = {
         floor: roomData.floor,
         room_type: roomData.room_type,
         base_rent: parseFloat(roomData.base_rent),
+        has_submeter: roomData.has_submeter !== false,
+        elec_mode: roomData.elec_mode,
         current_meter_reading: parseFloat(roomData.current_meter_reading),
         rate_per_unit: parseFloat(roomData.rate_per_unit)
       })

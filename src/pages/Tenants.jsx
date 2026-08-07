@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import { Users, UserPlus, Key, Trash2, Edit2, Link2, Check, X, ShieldAlert } from 'lucide-react';
@@ -33,11 +33,7 @@ export default function Tenants() {
   const [leaseStartDate, setLeaseStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [leaseEndDate, setLeaseEndDate] = useState('');
 
-  useEffect(() => {
-    loadAllData();
-  }, [user]);
-
-  const loadAllData = async () => {
+  const loadAllData = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -60,7 +56,11 @@ export default function Tenants() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    loadAllData();
+  }, [loadAllData]);
 
   // Tenant Submit (Create/Update)
   const handleTenantSubmit = async (e) => {
@@ -90,6 +90,7 @@ export default function Tenants() {
       setEditingTenantId(null);
       await loadAllData();
     } catch (err) {
+      console.error(err);
       setError('Failed to save tenant');
     }
   };
@@ -109,6 +110,7 @@ export default function Tenants() {
       await api.deleteTenant(id);
       await loadAllData();
     } catch (err) {
+      console.error(err);
       setError('Failed to delete tenant');
     }
   };
@@ -136,6 +138,7 @@ export default function Tenants() {
       setShowLeaseForm(false);
       await loadAllData();
     } catch (err) {
+      console.error(err);
       setError('Failed to allocate lease');
     }
   };
@@ -146,6 +149,7 @@ export default function Tenants() {
       await api.deactivateLease(leaseId);
       await loadAllData();
     } catch (err) {
+      console.error(err);
       setError('Failed to terminate lease');
     }
   };

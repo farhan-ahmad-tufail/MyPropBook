@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { Calculator, RefreshCw, Printer, AlertTriangle, Zap, Home, User, Layers, ArrowRight, Calendar, Download, History, Save, Share2, Trash2, X } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
@@ -60,12 +60,12 @@ export default function QuickCalc() {
         otherCharges: ''
     });
 
-    const defaultRoom = { floor: '', roomType: 'Medium', rent: '', prevReading: '', currReading: '', ratePerUnit: 17 };
-    const [rooms, setRooms] = useState([{ ...defaultRoom, id: Date.now() }]);
+    const defaultRoom = { floor: '', roomType: 'Medium', rent: '', prevReading: '', currReading: '', ratePerUnit: 17, elecMode: 'submeter', directAmount: '' };
+    const [rooms, setRooms] = useState(() => [{ ...defaultRoom, id: Date.now() }]);
 
     const [result, setResult] = useState(null);
     const [error, setError] = useState('');
-    const [animate, setAnimate] = useState(false);
+    const [animate] = useState(true);
     const receiptRef = useRef(null);
 
     // Prevent up/down arrows from changing number inputs
@@ -76,8 +76,14 @@ export default function QuickCalc() {
     };
 
     // New State for History & Profiles
-    const [history, setHistory] = useState([]);
-    const [profiles, setProfiles] = useState([]);
+    const [history, setHistory] = useState(() => {
+        const savedHistory = localStorage.getItem('billHistory');
+        return savedHistory ? JSON.parse(savedHistory) : [];
+    });
+    const [profiles, setProfiles] = useState(() => {
+        const savedProfiles = localStorage.getItem('tenantProfiles');
+        return savedProfiles ? JSON.parse(savedProfiles) : [];
+    });
     const [showHistory, setShowHistory] = useState(false);
     const [language, setLanguage] = useState('en');
     const [theme, setTheme] = useState('darkBlue');
@@ -89,16 +95,6 @@ export default function QuickCalc() {
         emerald: { bg: '#065f46', text: 'white', icon: '#10b981', hex: '#065f46' }
     };
     const currentTheme = themeOptions[theme] || themeOptions.darkBlue;
-
-    useEffect(() => {
-        setAnimate(true);
-        // Load from Local Storage
-        const savedHistory = localStorage.getItem('billHistory');
-        if (savedHistory) setHistory(JSON.parse(savedHistory));
-
-        const savedProfiles = localStorage.getItem('tenantProfiles');
-        if (savedProfiles) setProfiles(JSON.parse(savedProfiles));
-    }, []);
 
     const months = [
         "January", "February", "March", "April", "May", "June",
@@ -122,17 +118,24 @@ export default function QuickCalc() {
         for (let i = 0; i < rooms.length; i++) {
             const r = rooms[i];
             const rRent = parseFloat(r.rent) || 0;
-            const prev = parseFloat(r.prevReading) || 0;
-            const curr = parseFloat(r.currReading) || 0;
-            const rate = parseFloat(r.ratePerUnit) || 0;
+            let elecAmount = 0;
+            let units = 0;
 
-            if (curr < prev && r.currReading !== '') {
-                setError(`Current reading cannot be less than previous reading in Room ${i + 1}.`);
-                return;
+            if (r.elecMode === 'submeter') {
+                const prev = parseFloat(r.prevReading) || 0;
+                const curr = parseFloat(r.currReading) || 0;
+                const rate = parseFloat(r.ratePerUnit) || 0;
+
+                if (curr < prev && r.currReading !== '') {
+                    setError(`Current reading cannot be less than previous reading in Room ${i + 1}.`);
+                    return;
+                }
+                units = curr - prev;
+                elecAmount = units * rate;
+            } else if (r.elecMode === 'direct') {
+                elecAmount = parseFloat(r.directAmount) || 0;
             }
-
-            const units = curr - prev;
-            const elecAmount = units * rate;
+            // elecMode === 'none' → elecAmount stays 0
 
             totalRent += rRent;
             totalElec += elecAmount;
@@ -484,54 +487,119 @@ export default function QuickCalc() {
                                             </div>
                                         </div>
 
+                                        {/* Electricity Billing Mode Toggle */}
                                         <div className="flex items-center justify-between mt-6 mb-2">
                                             <div className="flex items-center gap-2">
                                                 <div className="icon-badge warning"><Zap size={14} /></div>
-                                                <span className="text-sm font-bold text-primary">Electricity Readings</span>
+                                                <span className="text-sm font-bold text-primary">Electricity Billing</span>
                                             </div>
-                                            {((parseFloat(room.currReading) || 0) - (parseFloat(room.prevReading) || 0) > 0) && (
-                                                <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', backgroundColor: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', border: '1px solid rgba(34, 197, 94, 0.2)' }}>
-                                                    Units: {((parseFloat(room.currReading) || 0) - (parseFloat(room.prevReading) || 0)).toFixed(2)}
-                                                </span>
-                                            )}
                                         </div>
-                                        <div className="grid-2 relative" style={{ gap: '2.5rem' }}>
+                                        {/* Mode selector buttons */}
+                                        <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-900/80 rounded-xl border border-slate-700/50 mb-4">
+                                            {[
+                                                { id: 'submeter', icon: '⚡', label: 'Submeter' },
+                                                { id: 'direct',   icon: '📄', label: 'Direct Amt' },
+                                                { id: 'none',     icon: '🚫', label: 'Not Incl.' },
+                                            ].map(({ id, icon, label }) => (
+                                                <button
+                                                    key={id}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const newRooms = [...rooms];
+                                                        newRooms[index].elecMode = id;
+                                                        setRooms(newRooms);
+                                                    }}
+                                                    className={`py-2 px-1 rounded-lg text-xs font-semibold transition-all flex flex-col items-center gap-0.5 ${
+                                                        room.elecMode === id
+                                                            ? 'bg-blue-600 text-white shadow'
+                                                            : 'text-slate-400 hover:text-slate-200'
+                                                    }`}
+                                                >
+                                                    <span>{icon}</span>
+                                                    <span>{label}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+
+                                        {/* Submeter inputs */}
+                                        {room.elecMode === 'submeter' && (
+                                            <>
+                                                {((parseFloat(room.currReading) || 0) - (parseFloat(room.prevReading) || 0) > 0) && (
+                                                    <div className="text-right mb-2">
+                                                        <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', backgroundColor: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', border: '1px solid rgba(34, 197, 94, 0.2)' }}>
+                                                            Units: {((parseFloat(room.currReading) || 0) - (parseFloat(room.prevReading) || 0)).toFixed(2)}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                <div className="grid-2 relative" style={{ gap: '2.5rem' }}>
+                                                    <div className="form-group">
+                                                        <label className="input-label">Previous</label>
+                                                        <input
+                                                            type="number"
+                                                            onKeyDown={blockNativeNumberScroll}
+                                                            onWheel={(e) => e.target.blur()}
+                                                            className="form-input font-mono"
+                                                            value={room.prevReading}
+                                                            onChange={e => {
+                                                                const newRooms = [...rooms];
+                                                                newRooms[index].prevReading = e.target.value;
+                                                                setRooms(newRooms);
+                                                            }}
+                                                            placeholder="0000"
+                                                            required
+                                                        />
+                                                    </div>
+                                                    <div className="arrow-icon"><ArrowRight size={16} /></div>
+                                                    <div className="form-group">
+                                                        <label className="input-label">Current</label>
+                                                        <input
+                                                            type="number"
+                                                            onKeyDown={blockNativeNumberScroll}
+                                                            onWheel={(e) => e.target.blur()}
+                                                            className="form-input font-mono"
+                                                            value={room.currReading}
+                                                            onChange={e => {
+                                                                const newRooms = [...rooms];
+                                                                newRooms[index].currReading = e.target.value;
+                                                                setRooms(newRooms);
+                                                            }}
+                                                            placeholder="0000"
+                                                            required
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+
+                                        {/* Direct amount input */}
+                                        {room.elecMode === 'direct' && (
                                             <div className="form-group">
-                                                <label className="input-label">Previous</label>
+                                                <label className="input-label">Electricity Bill Amount (₹)</label>
                                                 <input
                                                     type="number"
                                                     onKeyDown={blockNativeNumberScroll}
                                                     onWheel={(e) => e.target.blur()}
-                                                    className="form-input font-mono"
-                                                    value={room.prevReading}
+                                                    className="form-input"
+                                                    value={room.directAmount}
                                                     onChange={e => {
                                                         const newRooms = [...rooms];
-                                                        newRooms[index].prevReading = e.target.value;
+                                                        newRooms[index].directAmount = e.target.value;
                                                         setRooms(newRooms);
                                                     }}
-                                                    placeholder="0000"
+                                                    placeholder="e.g. 450"
                                                     required
                                                 />
+                                                <p className="text-xs text-slate-500 mt-1">Enter the amount from your electricity provider's bill.</p>
                                             </div>
-                                            <div className="arrow-icon"><ArrowRight size={16} /></div>
-                                            <div className="form-group">
-                                                <label className="input-label">Current</label>
-                                                <input
-                                                    type="number"
-                                                    onKeyDown={blockNativeNumberScroll}
-                                                    onWheel={(e) => e.target.blur()}
-                                                    className="form-input font-mono"
-                                                    value={room.currReading}
-                                                    onChange={e => {
-                                                        const newRooms = [...rooms];
-                                                        newRooms[index].currReading = e.target.value;
-                                                        setRooms(newRooms);
-                                                    }}
-                                                    placeholder="0000"
-                                                    required
-                                                />
+                                        )}
+
+                                        {/* None badge */}
+                                        {room.elecMode === 'none' && (
+                                            <div className="flex items-center gap-2 px-3 py-2.5 bg-slate-900/60 border border-slate-700/50 rounded-xl">
+                                                <span className="text-base">🚫</span>
+                                                <span className="text-xs text-slate-400">No electricity charge — included in rent.</span>
                                             </div>
-                                        </div>
+                                        )}
                                     </div>
                                 ))}
 
@@ -661,30 +729,55 @@ export default function QuickCalc() {
                                                     </div>
                                                 </div>
                                                 <div className="p-4 pt-3">
-                                                    {/* Mobile-Friendly Grid for Readings and Rent */}
-                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'space-between', fontSize: '0.875rem', marginTop: '0.25rem', width: '100%' }}>
-                                                        <div>
-                                                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{translations[language].readings}</div>
-                                                            <div className="text-xs text-slate-600 mb-1">{translations[language].cur}: <span className="font-mono font-bold text-slate-800">{room.currReading}</span></div>
-                                                            <div className="text-xs text-slate-600">{translations[language].pre}: <span className="font-mono font-bold text-slate-800">{room.prevReading}</span></div>
+                                                    {/* Electricity details — varies by mode */}
+                                                    {room.elecMode === 'submeter' ? (
+                                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'space-between', fontSize: '0.875rem', marginTop: '0.25rem', width: '100%' }}>
+                                                            <div>
+                                                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{translations[language].readings}</div>
+                                                                <div className="text-xs text-slate-600 mb-1">{translations[language].cur}: <span className="font-mono font-bold text-slate-800">{room.currReading}</span></div>
+                                                                <div className="text-xs text-slate-600">{translations[language].pre}: <span className="font-mono font-bold text-slate-800">{room.prevReading}</span></div>
+                                                            </div>
+                                                            <div className="sm:text-center">
+                                                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{translations[language].units}</div>
+                                                                <div className="font-mono font-bold text-slate-800 mt-3">{parseFloat(room.units || 0).toFixed(2)}</div>
+                                                            </div>
+                                                            <div className="sm:text-center">
+                                                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{translations[language].rate}</div>
+                                                                <div className="font-mono text-slate-600 text-xs mt-3">₹{room.ratePerUnit}</div>
+                                                            </div>
+                                                            <div className="sm:text-center">
+                                                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{translations[language].elec}</div>
+                                                                <div className="font-mono font-bold text-slate-800 mt-3">₹{parseFloat(room.elecAmount || 0).toFixed(2)}</div>
+                                                            </div>
+                                                            <div className="sm:text-right">
+                                                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{translations[language].rent}</div>
+                                                                <div className="font-mono font-bold text-slate-800 mt-3 text-base">₹{parseFloat(room.rent || 0).toFixed(2)}</div>
+                                                            </div>
                                                         </div>
-                                                        <div className="sm:text-center">
-                                                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{translations[language].units}</div>
-                                                            <div className="font-mono font-bold text-slate-800 mt-3">{parseFloat(room.units || 0).toFixed(2)}</div>
+                                                    ) : room.elecMode === 'direct' ? (
+                                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'space-between', fontSize: '0.875rem', marginTop: '0.25rem', width: '100%' }}>
+                                                            <div>
+                                                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">ELECTRICITY</div>
+                                                                <div className="text-xs text-slate-500 italic">Direct bill amount</div>
+                                                                <div className="font-mono font-bold text-slate-800 mt-1">₹{parseFloat(room.elecAmount || 0).toFixed(2)}</div>
+                                                            </div>
+                                                            <div className="sm:text-right">
+                                                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{translations[language].rent}</div>
+                                                                <div className="font-mono font-bold text-slate-800 mt-3 text-base">₹{parseFloat(room.rent || 0).toFixed(2)}</div>
+                                                            </div>
                                                         </div>
-                                                        <div className="sm:text-center">
-                                                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{translations[language].rate}</div>
-                                                            <div className="font-mono text-slate-600 text-xs mt-3">₹{room.ratePerUnit}</div>
+                                                    ) : (
+                                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'space-between', fontSize: '0.875rem', marginTop: '0.25rem', width: '100%' }}>
+                                                            <div>
+                                                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">ELECTRICITY</div>
+                                                                <div className="text-xs text-slate-400 italic">Included in rent</div>
+                                                            </div>
+                                                            <div className="sm:text-right">
+                                                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{translations[language].rent}</div>
+                                                                <div className="font-mono font-bold text-slate-800 mt-3 text-base">₹{parseFloat(room.rent || 0).toFixed(2)}</div>
+                                                            </div>
                                                         </div>
-                                                        <div className="sm:text-center">
-                                                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{translations[language].elec}</div>
-                                                            <div className="font-mono font-bold text-slate-800 mt-3">₹{parseFloat(room.elecAmount || 0).toFixed(2)}</div>
-                                                        </div>
-                                                        <div className="sm:text-right">
-                                                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{translations[language].rent}</div>
-                                                            <div className="font-mono font-bold text-slate-800 mt-3 text-base">₹{parseFloat(room.rent || 0).toFixed(2)}</div>
-                                                        </div>
-                                                    </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         ))}
@@ -741,12 +834,15 @@ export default function QuickCalc() {
                                         </div>
                                     </div>
 
-                                    <div className="mt-8 grid grid-cols-2 gap-6">
-                                        <button onClick={handleShareWhatsapp} className="btn bg-green-500 hover:bg-green-600 text-white shadow-lg justify-center py-4 text-lg font-bold rounded-xl transition-transform hover:scale-[1.02] flex items-center">
-                                            <Share2 size={24} className="mr-3" /> WhatsApp
+                                    <div className="mt-8 grid grid-cols-3 gap-4">
+                                        <button onClick={handleShareWhatsapp} className="btn bg-green-500 hover:bg-green-600 text-white shadow-lg justify-center py-4 text-base font-bold rounded-xl transition-transform hover:scale-[1.02] flex items-center">
+                                            <Share2 size={20} className="mr-2" /> WhatsApp
                                         </button>
-                                        <button onClick={handleDownloadPDF} className="btn bg-blue-600 hover:bg-blue-500 text-white shadow-lg justify-center py-4 text-lg font-bold rounded-xl transition-transform hover:scale-[1.02] flex items-center">
-                                            <Download size={24} className="mr-3" /> Download PDF
+                                        <button onClick={handleDownloadPDF} className="btn bg-blue-600 hover:bg-blue-500 text-white shadow-lg justify-center py-4 text-base font-bold rounded-xl transition-transform hover:scale-[1.02] flex items-center">
+                                            <Download size={20} className="mr-2" /> Download PDF
+                                        </button>
+                                        <button onClick={handlePrint} className="btn bg-slate-700 hover:bg-slate-600 text-white shadow-lg justify-center py-4 text-base font-bold rounded-xl transition-transform hover:scale-[1.02] flex items-center">
+                                            <Printer size={20} className="mr-2" /> Print
                                         </button>
                                     </div>
                                 </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import { Receipt, DollarSign, Eye, ShieldAlert, Check, X, Filter, Printer, Download } from 'lucide-react';
@@ -27,11 +27,7 @@ export default function Billing() {
 
   const receiptRef = useRef(null);
 
-  useEffect(() => {
-    loadBillingData();
-  }, [user]);
-
-  const loadBillingData = async () => {
+  const loadBillingData = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -52,7 +48,12 @@ export default function Billing() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    loadBillingData();
+  }, [loadBillingData]);
+
 
   const handleOpenPayModal = async (bill) => {
     setSelectedBill(bill);
