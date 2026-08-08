@@ -221,6 +221,7 @@ export const supabaseDb = {
         arrears: parseFloat(billData.arrears || 0),
         other_charges: parseFloat(billData.other_charges || 0),
         total_payable: parseFloat(billData.total_payable),
+        amount_paid: 0,
         payment_status: billData.payment_status || 'Unpaid'
       }])
       .select()
@@ -301,7 +302,7 @@ export const supabaseDb = {
 
     await supabase
       .from('bills')
-      .update({ payment_status: status })
+      .update({ payment_status: status, amount_paid: totalPaid })
       .eq('id', billId);
 
     return payment;

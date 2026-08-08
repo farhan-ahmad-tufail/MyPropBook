@@ -177,10 +177,10 @@ export default function SmartCalc() {
       const tenantObj = tenants.find(t => t.id === activeLease.tenant_id);
       setActiveTenant(tenantObj);
 
-      // Automatically calculate arrears (sum of total_payable of Unpaid/Partially Paid bills)
+      // Automatically calculate arrears (remaining balance of Unpaid/Partially Paid bills)
       const roomArrears = bills
         .filter(b => b.room_id === selectedRoomId && b.tenant_id === tenantObj.id && (b.payment_status === 'Unpaid' || b.payment_status === 'Partially Paid'))
-        .reduce((sum, b) => sum + parseFloat(b.total_payable || 0), 0);
+        .reduce((sum, b) => sum + (parseFloat(b.total_payable || 0) - parseFloat(b.amount_paid || 0)), 0);
       setCalculatedArrears(roomArrears);
     } else {
       setActiveTenant(null);
@@ -372,8 +372,8 @@ export default function SmartCalc() {
     <div className="space-y-8 fade-in-up active">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-extrabold text-slate-100">Smart Bill Calculator</h1>
-        <p className="text-slate-400 mt-1">Select a property and room to dynamically compute tenant bills.</p>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-100">Smart Bill Calculator</h1>
+        <p className="text-slate-400 mt-1 text-sm">Select a property and room to dynamically compute tenant bills.</p>
       </div>
 
       {error && (

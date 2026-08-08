@@ -147,7 +147,7 @@ export default function Layout({ children }) {
             <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center">
               <Home size={13} className="text-white" />
             </div>
-            RentCalc
+            BillRoom
           </Link>
           <button
             onClick={() => setMobileOpen(true)}

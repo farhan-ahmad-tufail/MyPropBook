@@ -183,8 +183,8 @@ export default function Tenants() {
       {/* Header and Toggle Tabs */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-100">Tenants & Leases</h1>
-          <p className="text-slate-400 mt-1">Register tenants and allocate rooms to them.</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-100">Tenants & Leases</h1>
+          <p className="text-slate-400 mt-1 text-sm">Register tenants and allocate rooms to them.</p>
         </div>
 
         {/* Tab Selection buttons */}

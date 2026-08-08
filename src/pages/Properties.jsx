@@ -198,8 +198,8 @@ export default function Properties() {
       {/* Header banner */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-100">Properties & Rooms</h1>
-          <p className="text-slate-400 mt-1">Configure your locations and room metrics.</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-100">Properties & Rooms</h1>
+          <p className="text-slate-400 mt-1 text-sm">Configure your locations and room metrics.</p>
         </div>
         <button 
           onClick={() => {

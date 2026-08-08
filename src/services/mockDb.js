@@ -10,6 +10,26 @@ const setStore = (key, data) => {
   localStorage.setItem(key, JSON.stringify(data));
 };
 
+// One-time migration: backfill amount_paid on existing bills from payments
+(function migrateAmountPaid() {
+  if (localStorage.getItem('_migration_amount_paid_done')) return;
+  const bills = getStore('mock_bills');
+  const payments = getStore('mock_payments');
+  if (bills.length === 0) return;
+  let changed = false;
+  bills.forEach(bill => {
+    if (bill.amount_paid === undefined || bill.amount_paid === null) {
+      const billPayments = payments.filter(p => p.bill_id === bill.id);
+      bill.amount_paid = billPayments.reduce((sum, p) => sum + parseFloat(p.amount_paid || 0), 0);
+      changed = true;
+    }
+  });
+  if (changed) {
+    setStore('mock_bills', bills);
+  }
+  localStorage.setItem('_migration_amount_paid_done', '1');
+})();
+
 export const mockDb = {
   // Authentication Mock
   auth: {
@@ -228,6 +248,7 @@ export const mockDb = {
       arrears: parseFloat(data.arrears || 0),
       other_charges: parseFloat(data.other_charges || 0),
       total_payable: parseFloat(data.total_payable),
+      amount_paid: 0,
       payment_status: data.payment_status || 'Unpaid',
       generated_at: new Date().toISOString()
     };
@@ -270,7 +291,7 @@ export const mockDb = {
     payments.push(newPayment);
     setStore('mock_payments', payments);
 
-    // Update Bill Payment Status
+    // Update Bill Payment Status and cumulative amount_paid
     const bills = getStore('mock_bills');
     const billIdx = bills.findIndex(b => b.id === billId);
     if (billIdx !== -1) {
@@ -278,6 +299,7 @@ export const mockDb = {
       const billPayments = payments.filter(p => p.bill_id === billId);
       const totalPaid = billPayments.reduce((sum, p) => sum + p.amount_paid, 0);
 
+      bill.amount_paid = totalPaid;
       if (totalPaid >= bill.total_payable) {
         bill.payment_status = 'Paid';
       } else if (totalPaid > 0) {
