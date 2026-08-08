@@ -85,8 +85,9 @@ export default function Landing() {
 
       {/* ── Navbar ── */}
       <nav className="sticky top-0 z-30 flex items-center justify-between px-6 py-4 bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/60">
-        <Link to="/" className="flex items-center">
-          <img src="/logo.png" alt="BillRoom" className="h-10 w-auto object-contain max-w-[200px]" />
+        <Link to="/" className="flex items-center gap-2.5 font-extrabold text-xl text-white tracking-tight">
+          <img src="/logo.png" alt="BillRoom Logo" className="h-9 w-auto object-contain" />
+          <span>BillRoom</span>
         </Link>
 
         <div className="flex items-center gap-3">

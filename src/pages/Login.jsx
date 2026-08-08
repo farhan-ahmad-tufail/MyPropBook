@@ -49,7 +49,7 @@ export default function Login() {
           {/* Brand Logo Header */}
           <div className="flex flex-col items-center mb-8 text-center">
             <Link to="/" className="mb-4">
-              <img src="/logo.png" alt="BillRoom" className="h-14 w-auto object-contain" />
+              <img src="/logo.png" alt="BillRoom Logo" className="h-14 w-auto object-contain" />
             </Link>
             <h2 className="text-2xl font-bold text-slate-100">
               {isSignUpMode ? 'Create your Account' : 'Welcome Back'}

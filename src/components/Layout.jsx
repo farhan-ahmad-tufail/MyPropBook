@@ -57,9 +57,10 @@ export default function Layout({ children }) {
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0
       `}>
         {/* Logo */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800/60">
-          <Link to="/" className="flex items-center">
-            <img src="/logo.png" alt="BillRoom" className="h-10 w-auto object-contain max-w-[180px]" />
+        <div className="flex items-center justify-between px-5 py-5 border-b border-slate-800/60">
+          <Link to="/" className="flex items-center gap-2.5 font-extrabold text-lg text-white tracking-tight">
+            <img src="/logo.png" alt="BillRoom Logo" className="h-8 w-auto object-contain" />
+            <span>BillRoom</span>
           </Link>
           <button
             onClick={() => setMobileOpen(false)}
@@ -141,9 +142,10 @@ export default function Layout({ children }) {
       {/* ── Main Area ── */}
       <div className="flex-1 flex flex-col min-h-screen lg:ml-64">
         {/* Mobile Top Bar */}
-        <header className="lg:hidden sticky top-0 z-30 flex items-center justify-between px-5 py-3 bg-slate-950/90 backdrop-blur border-b border-slate-800/60">
-          <Link to="/" className="flex items-center">
-            <img src="/logo.png" alt="BillRoom" className="h-8 w-auto object-contain" />
+        <header className="lg:hidden sticky top-0 z-30 flex items-center justify-between px-5 py-4 bg-slate-950/90 backdrop-blur border-b border-slate-800/60">
+          <Link to="/" className="flex items-center gap-2 font-extrabold text-lg text-white">
+            <img src="/logo.png" alt="BillRoom Logo" className="h-7 w-auto object-contain" />
+            BillRoom
           </Link>
           <button
             onClick={() => setMobileOpen(true)}
