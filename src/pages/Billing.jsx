@@ -124,10 +124,7 @@ export default function Billing() {
 
     try {
       const tenantName = getTenantName(selectedBill.tenant_id);
-      const roomNum = getRoomNumber(selectedBill.room_id);
-      const elecAmount = (parseFloat(selectedBill.units_consumed) * parseFloat(selectedBill.rate_per_unit)).toFixed(2);
-      
-      const text = `*RENT & UTILITY BILL*\nTenant: ${tenantName}\nRoom: ${roomNum}\nMonth: ${selectedBill.bill_month} ${selectedBill.bill_year}\nBase Rent: ₹${selectedBill.rent_amount}\nElectricity: ₹${elecAmount} (${selectedBill.units_consumed} units)\nTotal Amount: ₹${selectedBill.total_payable}\nStatus: ${selectedBill.payment_status}\n\nThank you!`;
+      const text = `*RENT RECEIPT*\nMonth: ${selectedBill.bill_month} ${selectedBill.bill_year}\nTenant: ${tenantName}\nTotal: ₹${parseFloat(selectedBill.total_payable).toFixed(2)}`;
 
       const canvas = await html2canvas(receiptRef.current, { scale: 2, backgroundColor: '#ffffff' });
       const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));

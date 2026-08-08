@@ -324,15 +324,7 @@ export default function SmartCalc() {
     if (!result || !receiptRef.current) return;
 
     try {
-      let elecLine = '';
-      if (result.elec_mode === 'submeter') {
-        elecLine = `Electricity: ${result.units_consumed.toFixed(2)} units (Pre: ${result.previous_reading} -> Cur: ${result.current_reading}) @ ₹${result.rate_per_unit}/u = ₹${result.elec_amount.toFixed(2)}`;
-      } else if (result.elec_mode === 'direct') {
-        elecLine = `Electricity (Direct Bill): ₹${result.elec_amount.toFixed(2)}`;
-      } else {
-        elecLine = 'Electricity: Included in Rent';
-      }
-      const text = `*RENT RECEIPT*\nMonth: ${result.bill_month} ${result.bill_year}\nRoom: ${result.room_number} (${result.floor || 'G'} floor)\nTenant: ${result.tenant_name}\nRent: ₹${result.rent_amount}\n${elecLine}\nArrears: ₹${result.arrears}\nOther Charges: ₹${result.other_charges}\n*Total Payable: ₹${result.total_payable.toFixed(2)}*\n\nPlease make your payment as soon as possible. Thank you!`;
+      const text = `*RENT RECEIPT*\nMonth: ${result.bill_month} ${result.bill_year}\nTenant: ${result.tenant_name}\nTotal: ₹${result.total_payable.toFixed(2)}`;
 
       // Web share api for mobile, otherwise standard WhatsApp redirect link
       const canvas = await html2canvas(receiptRef.current, { scale: 2, backgroundColor: '#ffffff' });
