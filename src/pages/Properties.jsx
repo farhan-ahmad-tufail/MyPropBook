@@ -378,6 +378,12 @@ export default function Properties() {
       if (successCount > 0) {
         toast(`✅ ${successCount} bills generated successfully for ${bulkMonth} ${bulkYear}`, 'success');
         await loadData();
+        // Reset input fields so the table reflects the new state (prev reading updated)
+        const resetReadings = {};
+        occupiedRoomsForBulk.forEach(r => {
+          resetReadings[r.id] = { currentReading: '', otherCharges: '' };
+        });
+        setBulkReadings(resetReadings);
       }
       if (results.some(r => !r.success)) {
         toast(`⚠️ Some bills failed to generate. Check the results below.`, 'warning');
