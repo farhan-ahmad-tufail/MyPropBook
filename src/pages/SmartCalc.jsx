@@ -108,8 +108,16 @@ export default function SmartCalc() {
   // Result & UI State
   const [result, setResult] = useState(null);
   const [isSaved, setIsSaved] = useState(false);
-  const [language] = useState('en');
+  const [language, setLanguage] = useState('en');
+  const [theme, setTheme] = useState('default');
   const receiptRef = useRef(null);
+
+  const themeOptions = {
+    default: { primary: '#2563eb', bg: '#f8fafc', text: '#0f172a', border: '#e2e8f0', hex: '#2563eb', label: 'Dark Blue' },
+    dark: { primary: '#0f172a', bg: '#f1f5f9', text: '#020617', border: '#cbd5e1', hex: '#0f172a', label: 'Black' },
+    indigo: { primary: '#4f46e5', bg: '#eef2ff', text: '#1e1b4b', border: '#c7d2fe', hex: '#4f46e5', label: 'Indigo' },
+    emerald: { primary: '#059669', bg: '#ecfdf5', text: '#064e3b', border: '#a7f3d0', hex: '#059669', label: 'Emerald' }
+  };
 
   const months = [
     "January", "February", "March", "April", "May", "June",
@@ -626,7 +634,39 @@ export default function SmartCalc() {
                 </div>
 
                 {/* Print Paper Receipt Visual */}
-                <div className="p-6 bg-slate-900/10 flex justify-center bg-pattern">
+                <div className="p-6 bg-slate-900/10 flex flex-col items-center bg-pattern">
+                  {/* Settings Row: Language & Theme */}
+                  <div className="mb-5 flex flex-col sm:flex-row gap-3 w-full max-w-lg">
+                    <div className="flex bg-slate-800/80 p-1 rounded-xl flex-1 border border-slate-700/50">
+                      <button
+                        type="button"
+                        className={`flex-1 px-3 py-1.5 rounded-lg font-semibold text-xs transition-all ${language === 'en' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'}`}
+                        onClick={() => setLanguage('en')}
+                      >
+                        English
+                      </button>
+                      <button
+                        type="button"
+                        className={`flex-1 px-3 py-1.5 rounded-lg font-semibold text-xs transition-all ${language === 'hi' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'}`}
+                        onClick={() => setLanguage('hi')}
+                      >
+                        हिंदी
+                      </button>
+                    </div>
+                    <div className="flex bg-slate-800/80 p-1 rounded-xl flex-1 justify-around items-center px-3 border border-slate-700/50">
+                      {Object.entries(themeOptions).map(([key, t]) => (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => setTheme(key)}
+                          className={`w-5 h-5 rounded-full transition-transform hover:scale-110 ${theme === key ? 'ring-2 ring-offset-2 ring-blue-500 scale-110' : ''}`}
+                          style={{ backgroundColor: t.hex }}
+                          title={`Theme: ${t.label}`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
                   <div ref={receiptRef} className="receipt-paper w-full max-w-lg" style={{ padding: '30px' }}>
                     <div className="text-center mb-6">
                       <div className="text-2xl font-bold uppercase tracking-wider text-slate-800">{translations[language].receiptTitle}</div>
