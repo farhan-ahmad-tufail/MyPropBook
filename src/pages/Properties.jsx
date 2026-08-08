@@ -24,13 +24,20 @@ import {
   Archive,
   ChevronRight,
   Layers,
-  X
+  X,
+  PlayCircle,
+  ListChecks,
+  Receipt,
+  Bolt,
+  CheckCheck,
+  Share2
 } from 'lucide-react';
 import { useConfirm, useToast } from '../components/Toast';
 import { formatINR, formatINRShort } from '../utils/formatters';
 import RoomDrawer from '../components/RoomDrawer';
 import CreateRoomTypeModal from '../components/CreateRoomTypeModal';
 import RoomDetailsModal from '../components/RoomDetailsModal';
+import BillReceiptModal from '../components/BillReceiptModal';
 
 export default function Properties() {
   const { user } = useAuth();
@@ -71,6 +78,18 @@ export default function Properties() {
   const [inspectRoom, setInspectRoom] = useState(null);
   const [showCreateTypeModal, setShowCreateTypeModal] = useState(false);
   const [activeMenuRoomId, setActiveMenuRoomId] = useState(null);
+
+  // Bulk Billing State
+  const [activeTab, setActiveTab] = useState('rooms'); // 'rooms' | 'bulkbill'
+  const [bulkMonth, setBulkMonth] = useState(() => {
+    const now = new Date();
+    return now.toLocaleString('default', { month: 'long' });
+  });
+  const [bulkYear, setBulkYear] = useState(() => new Date().getFullYear().toString());
+  const [bulkReadings, setBulkReadings] = useState({}); // { [roomId]: { currentReading, otherCharges } }
+  const [bulkRunning, setBulkRunning] = useState(false);
+  const [bulkResults, setBulkResults] = useState([]); // generated bill results
+  const [viewingReceipt, setViewingReceipt] = useState(null); // { bill, room, tenant }
 
   const selectedProperty = properties.find(p => p.id === selectedPropertyId) || null;
 
@@ -311,6 +330,66 @@ export default function Properties() {
     }
   };
 
+  // Occupied rooms for bulk billing (only for selected property)
+  const occupiedRoomsForBulk = useMemo(() => {
+    return rooms.filter(r => {
+      const isOccupied = r.status === 'Occupied' || leases.some(l => l.room_id === r.id && l.is_active);
+      return isOccupied;
+    });
+  }, [rooms, leases]);
+
+  // Initialize bulk readings when rooms or tab changes
+  useEffect(() => {
+    if (activeTab === 'bulkbill') {
+      setBulkReadings(prev => {
+        const initial = { ...prev };
+        occupiedRoomsForBulk.forEach(r => {
+          if (!initial[r.id]) {
+            initial[r.id] = {
+              currentReading: '',
+              otherCharges: ''
+            };
+          }
+        });
+        return initial;
+      });
+      // Do not clear bulkResults here, so they persist across data load reloads.
+    }
+  }, [activeTab, selectedPropertyId]);
+
+  const handleBulkReadingChange = (roomId, field, value) => {
+    setBulkReadings(prev => ({
+      ...prev,
+      [roomId]: { ...prev[roomId], [field]: value }
+    }));
+  };
+
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  const handleBulkGenerate = async () => {
+    if (!selectedPropertyId) return;
+    setBulkRunning(true);
+    setBulkResults([]);
+    try {
+      const ownerId = user?.id || 'mock_owner_id';
+      const results = await import('../services/billing').then(m => m.generateBulkBills(selectedPropertyId, occupiedRoomsForBulk, bulkReadings, bulkMonth, bulkYear, ownerId));
+      setBulkResults(results);
+      const successCount = results.filter(r => r.success).length;
+      if (successCount > 0) {
+        toast(`✅ ${successCount} bills generated successfully for ${bulkMonth} ${bulkYear}`, 'success');
+        await loadData();
+      }
+      if (results.some(r => !r.success)) {
+        toast(`⚠️ Some bills failed to generate. Check the results below.`, 'warning');
+      }
+    } catch (err) {
+      console.error(err);
+      toast('Bulk billing failed.', 'error');
+    } finally {
+      setBulkRunning(false);
+    }
+  };
+
   if (loading && properties.length === 0) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
@@ -514,291 +593,619 @@ export default function Properties() {
             </div>
           </div>
 
-          {/* Rooms Filter & Search Toolbar */}
-          <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
-            {/* Status Filter Pills */}
-            <div className="flex items-center gap-1.5 bg-slate-900/80 p-1 border border-slate-800 rounded-xl">
-              {['All', 'Occupied', 'Vacant', 'Maintenance'].map((st) => (
-                <button
-                  key={st}
-                  onClick={() => setRoomStatusFilter(st)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                    roomStatusFilter === st
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-                  }`}
-                >
-                  {st}
-                </button>
-              ))}
-            </div>
-
-            {/* Room Search */}
-            <div className="relative w-full sm:w-64">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-              <input
-                type="text"
-                placeholder="Search Room No. or Tenant..."
-                value={roomSearchQuery}
-                onChange={(e) => setRoomSearchQuery(e.target.value)}
-                className="form-input bg-slate-900 border-slate-800 pl-9 py-2 text-xs rounded-xl"
-              />
-            </div>
+          {/* ── TAB SWITCHER: Rooms List / Bulk Billing ── */}
+          <div className="flex items-center gap-1 bg-slate-900/80 p-1 border border-slate-800 rounded-xl w-fit">
+            <button
+              onClick={() => setActiveTab('rooms')}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'rooms'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+              }`}
+            >
+              <Home size={13} /> Rooms List
+            </button>
+            <button
+              onClick={() => setActiveTab('bulkbill')}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'bulkbill'
+                  ? 'bg-violet-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+              }`}
+            >
+              <Bolt size={13} /> Bulk Billing
+              {occupiedRoomsForBulk.length > 0 && (
+                <span className="bg-violet-500/30 text-violet-300 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full">
+                  {occupiedRoomsForBulk.length}
+                </span>
+              )}
+            </button>
           </div>
 
-          {/* ROOMS LIST - DESKTOP TABLE & MOBILE CARDS */}
-          {filteredRooms.length === 0 ? (
-            <div className="card glass-card p-12 text-center text-slate-500 text-sm flex flex-col items-center justify-center">
-              <Home size={44} className="text-slate-700 mb-3" />
-              <p className="font-semibold text-slate-300">No rooms found</p>
-              <p className="text-xs text-slate-500 mt-1 max-w-sm">
-                {roomSearchQuery || roomStatusFilter !== 'All' 
-                  ? 'No room matches your filter or search query.' 
-                  : 'Add your first room to start managing tenants, rent, and electricity billing.'}
-              </p>
-              <button
-                onClick={() => {
-                  setEditingRoom(null);
-                  setShowRoomDrawer(true);
-                }}
-                className="btn btn-primary text-xs px-4 py-2 mt-4 rounded-xl font-semibold shadow-glow"
-              >
-                + Add Room
-              </button>
-            </div>
-          ) : (
-            <>
-              {/* DESKTOP ROOMS TABLE */}
-              <div className="hidden md:block card glass-card border-slate-800">
-                <div className="overflow-visible">
-                  <table className="table w-full text-left">
-                    <thead>
-                      <tr className="bg-slate-900/60 border-b border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-400">
-                        <th className="px-6 py-4">Room</th>
-                        <th className="px-6 py-4">Type</th>
-                        <th className="px-6 py-4">Tenant</th>
-                        <th className="px-6 py-4">Monthly Rent</th>
-                        <th className="px-6 py-4">Electricity</th>
-                        <th className="px-6 py-4">Status</th>
-                        <th className="px-6 py-4 text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredRooms.map(room => {
-                        const tenant = getRoomTenant(room.id);
-                        const isOccupied = room.status === 'Occupied' || !!tenant;
-                        const elecMode = room.elec_mode || (room.has_submeter !== false ? 'submeter' : 'direct');
+          {/* ── BULK BILLING PANEL ── */}
+          {activeTab === 'bulkbill' && (
+            <div className="space-y-5">
 
-                        return (
-                          <tr key={room.id} className="border-b border-slate-850 hover:bg-slate-900/30 transition-colors">
-                            <td className="px-6 py-4">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-blue-600/10 text-blue-400 flex items-center justify-center font-bold text-xs border border-blue-500/20">
-                                  {room.room_number}
-                                </div>
-                                <span className="font-bold text-slate-200">Room {room.room_number}</span>
-                              </div>
-                            </td>
-
-                            <td className="px-6 py-4 text-slate-300 text-xs font-medium">
-                              {room.room_type || 'Single Room'}
-                            </td>
-
-                            <td className="px-6 py-4 text-xs font-medium">
-                              {tenant ? (
-                                <span className="text-slate-200 font-semibold">{tenant.name}</span>
-                              ) : (
-                                <span className="text-slate-500 italic">— Vacant —</span>
-                              )}
-                            </td>
-
-                            <td className="px-6 py-4 font-bold text-slate-100 font-mono">
-                              {formatINR(room.base_rent)}
-                            </td>
-
-                            <td className="px-6 py-4 text-xs">
-                              {elecMode === 'submeter' && (
-                                <span className="inline-flex items-center gap-1 text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20 font-medium">
-                                  ⚡ Submeter
-                                </span>
-                              )}
-                              {elecMode === 'direct' && (
-                                <span className="inline-flex items-center gap-1 text-purple-400 bg-purple-500/10 px-2.5 py-0.5 rounded-full border border-purple-500/20 font-medium">
-                                  📄 Direct Bill
-                                </span>
-                              )}
-                              {elecMode === 'fixed' && (
-                                <span className="inline-flex items-center gap-1 text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 font-medium">
-                                  🏷️ Fixed
-                                </span>
-                              )}
-                              {elecMode === 'shared' && (
-                                <span className="inline-flex items-center gap-1 text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20 font-medium">
-                                  🤝 Shared
-                                </span>
-                              )}
-                              {elecMode === 'none' && (
-                                <span className="inline-flex items-center gap-1 text-slate-400 bg-slate-800 px-2.5 py-0.5 rounded-full font-medium">
-                                  🚫 None
-                                </span>
-                              )}
-                            </td>
-
-                            <td className="px-6 py-4">
-                              <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                                isOccupied 
-                                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
-                                  : room.status === 'Maintenance' 
-                                  ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' 
-                                  : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                              }`}>
-                                {isOccupied ? 'Occupied' : room.status || 'Vacant'}
-                              </span>
-                            </td>
-
-                            <td className="px-6 py-4 text-right relative">
-                              <div className="inline-block text-left" onClick={e => e.stopPropagation()}>
-                                <button
-                                  onClick={() => setActiveMenuRoomId(activeMenuRoomId === room.id ? null : room.id)}
-                                  className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
-                                  title="Actions"
-                                >
-                                  <MoreVertical size={16} />
-                                </button>
-
-                                {/* Contextual Action Menu Dropdown */}
-                                {activeMenuRoomId === room.id && (
-                                  <div className="absolute right-0 bottom-full mb-1 w-48 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 py-1.5 text-xs text-slate-200 animate-fade-in">
-                                    <button
-                                      onClick={() => {
-                                        setActiveMenuRoomId(null);
-                                        setInspectRoom(room);
-                                      }}
-                                      className="w-full px-4 py-2 text-left hover:bg-slate-800 flex items-center gap-2"
-                                    >
-                                      <Eye size={13} className="text-blue-400" /> View Room Details
-                                    </button>
-
-                                    <button
-                                      onClick={() => {
-                                        setActiveMenuRoomId(null);
-                                        setEditingRoom(room);
-                                        setShowRoomDrawer(true);
-                                      }}
-                                      className="w-full px-4 py-2 text-left hover:bg-slate-800 flex items-center gap-2"
-                                    >
-                                      <Edit2 size={13} className="text-slate-400" /> Edit Room Config
-                                    </button>
-
-                                    <button
-                                      onClick={() => {
-                                        setActiveMenuRoomId(null);
-                                        navigate('/tenants');
-                                      }}
-                                      className="w-full px-4 py-2 text-left hover:bg-slate-800 flex items-center gap-2"
-                                    >
-                                      <User size={13} className="text-emerald-400" /> {tenant ? 'View Tenant' : 'Add Tenant'}
-                                    </button>
-
-                                    <button
-                                      onClick={() => {
-                                        setActiveMenuRoomId(null);
-                                        navigate(`/smart-calc?roomId=${room.id}`);
-                                      }}
-                                      className="w-full px-4 py-2 text-left hover:bg-slate-800 flex items-center gap-2"
-                                    >
-                                      <Calculator size={13} className="text-amber-400" /> Generate Bill
-                                    </button>
-
-                                    <div className="border-t border-slate-800 my-1" />
-
-                                    <button
-                                      onClick={(e) => {
-                                        setActiveMenuRoomId(null);
-                                        handleRoomDelete(room, e);
-                                      }}
-                                      className="w-full px-4 py-2 text-left hover:bg-red-500/10 text-red-400 flex items-center gap-2"
-                                    >
-                                      <Archive size={13} /> Archive Room
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+              {/* Intro Banner */}
+              <div className="bg-violet-600/10 border border-violet-500/20 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-violet-600/20 text-violet-400 flex items-center justify-center flex-shrink-0 border border-violet-500/30">
+                  <Bolt size={20} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-violet-300 text-sm">Bulk Billing Run — {selectedProperty.name}</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Generate monthly rent &amp; utility bills for all <strong className="text-violet-300">{occupiedRoomsForBulk.length} occupied rooms</strong> in one click. Enter meter readings for submeter rooms, then hit Generate.
+                  </p>
                 </div>
               </div>
 
-              {/* MOBILE ROOMS CARDS */}
-              <div className="md:hidden space-y-3">
-                {filteredRooms.map(room => {
-                  const tenant = getRoomTenant(room.id);
-                  const isOccupied = room.status === 'Occupied' || !!tenant;
-                  const elecMode = room.elec_mode || (room.has_submeter !== false ? 'submeter' : 'direct');
+              {/* Month & Year Selector */}
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2">
+                  <Receipt size={13} className="text-slate-400" />
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Bill Month</span>
+                  <select
+                    value={bulkMonth}
+                    onChange={e => setBulkMonth(e.target.value)}
+                    className="bg-transparent text-xs font-bold text-slate-200 focus:outline-none cursor-pointer"
+                  >
+                    {MONTHS.map(m => <option key={m} value={m} className="bg-slate-900">{m}</option>)}
+                  </select>
+                </div>
+                <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2">
+                  <Receipt size={13} className="text-slate-400" />
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Year</span>
+                  <select
+                    value={bulkYear}
+                    onChange={e => setBulkYear(e.target.value)}
+                    className="bg-transparent text-xs font-bold text-slate-200 focus:outline-none cursor-pointer"
+                  >
+                    {[2023,2024,2025,2026,2027].map(y => <option key={y} value={y} className="bg-slate-900">{y}</option>)}
+                  </select>
+                </div>
+              </div>
 
-                  return (
-                    <div key={room.id} className="card glass-card p-4 space-y-3 border-slate-800 relative">
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-blue-600/10 text-blue-400 flex items-center justify-center font-bold text-sm border border-blue-500/20">
-                            {room.room_number}
-                          </div>
-                          <div>
-                            <h3 className="font-bold text-slate-100 text-sm">Room {room.room_number}</h3>
-                            <p className="text-xs text-slate-400">{room.room_type || 'Single Room'} • Floor {room.floor || 'G'}</p>
-                          </div>
-                        </div>
+              {occupiedRoomsForBulk.length === 0 ? (
+                <div className="card glass-card p-10 text-center text-slate-500 text-sm">
+                  <Home size={36} className="mx-auto mb-3 text-slate-700" />
+                  <p className="font-semibold text-slate-300">No occupied rooms</p>
+                  <p className="text-xs mt-1">Add tenants and mark rooms as occupied to use bulk billing.</p>
+                </div>
+              ) : (
+                <>
+                  {/* Bulk Billing Table */}
+                  <div className="card glass-card overflow-hidden border-slate-800">
+                    {/* Desktop Table */}
+                    <div className="hidden md:block overflow-x-auto">
+                      <table className="table w-full text-left">
+                        <thead>
+                          <tr className="bg-slate-950/40 border-b border-slate-800 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                            <th className="px-4 py-3.5">Room</th>
+                            <th className="px-4 py-3.5">Tenant</th>
+                            <th className="px-4 py-3.5">Base Rent</th>
+                            <th className="px-4 py-3.5">Previous Reading</th>
+                            <th className="px-4 py-3.5">Current Reading (Input)</th>
+                            <th className="px-4 py-3.5">Electricity Charges</th>
+                            <th className="px-4 py-3.5">Other Charges</th>
+                            <th className="px-4 py-3.5 text-right">Total Payable</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {occupiedRoomsForBulk.map(room => {
+                            const tenant = getRoomTenant(room.id);
+                            const readings = bulkReadings[room.id] || {};
+                            const prevReading = parseFloat(room.current_meter_reading || 0);
+                            const rawCurr = readings.currentReading;
+                            const currReading = (rawCurr !== '' && rawCurr !== null && rawCurr !== undefined && !isNaN(rawCurr))
+                              ? parseFloat(rawCurr)
+                              : prevReading;
+                            const units = Math.max(0, currReading - prevReading);
+                            const rate = parseFloat(room.rate_per_unit ?? room.elec_rate ?? 17);
+                            const rent = parseFloat(room.base_rent || 0);
+                            const other = parseFloat(readings.otherCharges || 0);
 
-                        <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
-                          isOccupied ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'
-                        }`}>
-                          {isOccupied ? 'Occupied' : room.status || 'Vacant'}
+                            let elec = 0;
+                            let elecLabel = '';
+                            if (room.elec_mode === 'submeter') { elec = units * rate; elecLabel = `${units.toFixed(1)} units × ₹${rate}/unit`; }
+                            else if (room.elec_mode === 'direct') { elec = parseFloat(room.direct_elec_amount || 0); elecLabel = 'Direct Amount'; }
+                            else if (room.elec_mode === 'fixed') { elec = parseFloat(room.fixed_elec_amount || 0); elecLabel = 'Fixed Charge'; }
+                            else elecLabel = 'None';
+
+                            const total = rent + elec + other;
+
+                            return (
+                              <tr key={room.id} className="border-b border-slate-800/60 hover:bg-slate-900/30 transition-colors">
+                                <td className="px-4 py-3">
+                                  <div className="font-bold text-sm text-slate-200">Room {room.room_number}</div>
+                                  <div className="text-[10px] text-slate-500">{room.room_type || 'Room'}</div>
+                                </td>
+                                <td className="px-4 py-3">
+                                  <div className="text-xs font-semibold text-slate-300">{tenant?.name || <span className="italic text-slate-600">No Tenant</span>}</div>
+                                </td>
+                                <td className="px-4 py-3 font-semibold text-sm text-slate-200">{formatINR(rent)}</td>
+                                <td className="px-4 py-3">
+                                  {room.elec_mode === 'submeter' ? (
+                                    <div className="text-xs font-mono font-bold text-blue-400">{prevReading} <span className="text-[10px] text-slate-500 font-normal">units</span></div>
+                                  ) : (
+                                    <span className="text-xs text-slate-500">N/A</span>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3">
+                                  {room.elec_mode === 'submeter' ? (
+                                    <input
+                                      type="number"
+                                      min={prevReading}
+                                      placeholder={`Enter ≥ ${prevReading}`}
+                                      value={readings.currentReading}
+                                      onChange={e => handleBulkReadingChange(room.id, 'currentReading', e.target.value)}
+                                      className="form-input bg-slate-950 border-slate-700 py-1.5 px-2 text-xs rounded-lg w-32 focus:border-violet-500 font-mono"
+                                    />
+                                  ) : (
+                                    <span className="text-xs text-slate-500">N/A ({room.elec_mode || 'direct'})</span>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3">
+                                  <div className="text-xs font-semibold text-slate-300">{elecLabel}</div>
+                                  <div className="text-xs font-bold text-blue-400 mt-0.5">{formatINR(elec)}</div>
+                                </td>
+                                <td className="px-4 py-3">
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    placeholder="₹0"
+                                    value={readings.otherCharges}
+                                    onChange={e => handleBulkReadingChange(room.id, 'otherCharges', e.target.value)}
+                                    className="form-input bg-slate-950 border-slate-700 py-1.5 px-2 text-xs rounded-lg w-24"
+                                  />
+                                </td>
+                                <td className="px-4 py-3 text-right">
+                                  <span className="font-extrabold text-sm text-emerald-400">{formatINR(total)}</span>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Mobile Cards */}
+                    <div className="md:hidden divide-y divide-slate-800">
+                      {occupiedRoomsForBulk.map(room => {
+                        const tenant = getRoomTenant(room.id);
+                        const readings = bulkReadings[room.id] || {};
+                        const prevReading = parseFloat(room.current_meter_reading || 0);
+                        const currReading = parseFloat(readings.currentReading || prevReading);
+                        const units = Math.max(0, currReading - prevReading);
+                        const rate = parseFloat(room.rate_per_unit ?? room.elec_rate ?? 17);
+                        const rent = parseFloat(room.base_rent || 0);
+                        const other = parseFloat(readings.otherCharges || 0);
+                        let elec = 0;
+                        if (room.elec_mode === 'submeter') elec = units * rate;
+                        else if (room.elec_mode === 'direct') elec = parseFloat(room.direct_elec_amount || 0);
+                        else if (room.elec_mode === 'fixed') elec = parseFloat(room.fixed_elec_amount || 0);
+                        const total = rent + elec + other;
+
+                        return (
+                          <div key={room.id} className="p-4 space-y-3">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <div className="font-bold text-slate-200">{room.room_number}</div>
+                                <div className="text-xs text-slate-400">{tenant?.name || 'No Tenant'}</div>
+                              </div>
+                              <span className="font-extrabold text-emerald-400">{formatINR(total)}</span>
+                            </div>
+                            {room.elec_mode === 'submeter' && (
+                              <div className="flex gap-2">
+                                <div className="flex-1">
+                                  <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Current Reading</label>
+                                  <input
+                                    type="number"
+                                    min={prevReading}
+                                    placeholder={`Prev: ${prevReading}`}
+                                    value={readings.currentReading}
+                                    onChange={e => handleBulkReadingChange(room.id, 'currentReading', e.target.value)}
+                                    className="form-input bg-slate-950 border-slate-700 py-1.5 px-2 text-xs rounded-lg w-full mt-1"
+                                  />
+                                </div>
+                                <div className="flex-1">
+                                  <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Other Charges</label>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    placeholder="₹0"
+                                    value={readings.otherCharges}
+                                    onChange={e => handleBulkReadingChange(room.id, 'otherCharges', e.target.value)}
+                                    className="form-input bg-slate-950 border-slate-700 py-1.5 px-2 text-xs rounded-lg w-full mt-1"
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Generate Button */}
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleBulkGenerate}
+                      disabled={bulkRunning}
+                      className="btn flex items-center gap-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-xl px-6 py-3 text-sm font-bold shadow-glow transition-all"
+                    >
+                      {bulkRunning ? (
+                        <><div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" /> Generating Bills...</>
+                      ) : (
+                        <><PlayCircle size={16} /> Generate {occupiedRoomsForBulk.length} Bills for {bulkMonth} {bulkYear}</>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Results Section */}
+                  {bulkResults.length > 0 && (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <CheckCheck size={16} className="text-emerald-400" />
+                        <h3 className="text-sm font-bold text-slate-200">Billing Run Results — {bulkMonth} {bulkYear}</h3>
+                        <span className="bg-emerald-600/20 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
+                          {bulkResults.filter(r => r.success).length}/{bulkResults.length} Generated
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-slate-850">
-                        <div>
-                          <span className="text-[10px] font-semibold text-slate-500 uppercase">Tenant</span>
-                          <p className="font-medium text-slate-200 truncate">{tenant ? tenant.name : '— Vacant —'}</p>
-                        </div>
-                        <div>
-                          <span className="text-[10px] font-semibold text-slate-500 uppercase">Monthly Rent</span>
-                          <p className="font-bold text-slate-100 font-mono">{formatINR(room.base_rent)}</p>
-                        </div>
-                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                        {bulkResults.map((item, idx) => {
+                          const itemRoom = item.room || {};
+                          const tenant = getRoomTenant(itemRoom.id);
+                          const isSuccess = item.success;
 
-                      <div className="flex items-center justify-between pt-2 border-t border-slate-850 text-xs">
-                        <span className="text-slate-400">
-                          Elec: <strong className="text-blue-400 font-semibold">{elecMode}</strong>
-                        </span>
-
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => setInspectRoom(room)}
-                            className="btn btn-secondary px-2.5 py-1 text-xs"
-                          >
-                            View
-                          </button>
-                          <button
-                            onClick={() => {
-                              setEditingRoom(room);
-                              setShowRoomDrawer(true);
-                            }}
-                            className="btn btn-secondary px-2.5 py-1 text-xs"
-                          >
-                            Edit
-                          </button>
-                        </div>
+                          return (
+                            <div
+                              key={itemRoom.id || idx}
+                              className={`rounded-xl border p-4 text-xs space-y-2 ${
+                                isSuccess
+                                  ? 'bg-emerald-600/5 border-emerald-500/20'
+                                  : 'bg-red-600/5 border-red-500/20'
+                              }`}
+                            >
+                              <div className="flex justify-between items-center">
+                                <span className="font-bold text-slate-200">Room {itemRoom.room_number || 'Room'}</span>
+                                {isSuccess ? (
+                                  <span className="flex items-center gap-1 text-emerald-400 font-semibold"><CheckCircle2 size={12} /> Generated</span>
+                                ) : (
+                                  <span className="flex items-center gap-1 text-red-400 font-semibold"><AlertCircle size={12} /> Failed</span>
+                                )}
+                              </div>
+                              
+                              <div className="text-slate-400 font-medium">{tenant?.name || 'No Tenant'}</div>
+                              
+                              {isSuccess ? (
+                                <div className="flex items-center justify-between pt-1 border-t border-slate-800/60">
+                                  <div className="font-extrabold text-emerald-400 text-sm">{(() => {
+                                    const raw = item.totalPayable ?? item.createdBill?.total_payable ?? 0;
+                                    const val = parseFloat(raw);
+                                    if (!isNaN(val) && val > 0) return formatINR(val);
+                                    // Fallback: compute from line items
+                                    const b = item.createdBill || {};
+                                    const r = parseFloat(b.rent_amount || 0);
+                                    const e = parseFloat(b.units_consumed || 0) * parseFloat(b.rate_per_unit || 0);
+                                    const o = parseFloat(b.other_charges || 0) || 0;
+                                    return formatINR(r + e + o);
+                                  })()}</div>
+                                  <button
+                                    onClick={() => setViewingReceipt({
+                                      bill: item.createdBill,
+                                      room: itemRoom,
+                                      tenant: tenant
+                                    })}
+                                    className="btn bg-violet-600/20 hover:bg-violet-600 text-violet-300 hover:text-white border border-violet-500/30 px-2.5 py-1 text-[11px] font-bold rounded-lg flex items-center gap-1 transition-all"
+                                  >
+                                    <Receipt size={12} /> View &amp; WhatsApp
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="text-red-400">{item.error}</div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
-                  );
-                })}
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
+          {/* ── ROOMS LIST TAB ── */}
+          {activeTab === 'rooms' && (
+            <div className="space-y-6">
+              {/* Rooms Filter & Search Toolbar */}
+              <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
+                {/* Status Filter Pills */}
+                <div className="flex items-center gap-1.5 bg-slate-900/80 p-1 border border-slate-800 rounded-xl">
+                  {['All', 'Occupied', 'Vacant', 'Maintenance'].map((st) => (
+                    <button
+                      key={st}
+                      onClick={() => setRoomStatusFilter(st)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        roomStatusFilter === st
+                          ? 'bg-blue-600 text-white shadow-sm'
+                          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                      }`}
+                    >
+                      {st}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Room Search */}
+                <div className="relative w-full sm:w-64">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                  <input
+                    type="text"
+                    placeholder="Search Room No. or Tenant..."
+                    value={roomSearchQuery}
+                    onChange={(e) => setRoomSearchQuery(e.target.value)}
+                    className="form-input bg-slate-900 border-slate-800 pl-9 py-2 text-xs rounded-xl"
+                  />
+                </div>
               </div>
-            </>
+
+              {/* ROOMS LIST - DESKTOP TABLE & MOBILE CARDS */}
+              {filteredRooms.length === 0 ? (
+                <div className="card glass-card p-12 text-center text-slate-500 text-sm flex flex-col items-center justify-center">
+                  <Home size={44} className="text-slate-700 mb-3" />
+                  <p className="font-semibold text-slate-300">No rooms found</p>
+                  <p className="text-xs text-slate-500 mt-1 max-w-sm">
+                    {roomSearchQuery || roomStatusFilter !== 'All' 
+                      ? 'No room matches your filter or search query.' 
+                      : 'Add your first room to start managing tenants, rent, and electricity billing.'}
+                  </p>
+                  <button
+                    onClick={() => {
+                      setEditingRoom(null);
+                      setShowRoomDrawer(true);
+                    }}
+                    className="btn btn-primary text-xs px-4 py-2 mt-4 rounded-xl font-semibold shadow-glow"
+                  >
+                    + Add Room
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {/* DESKTOP ROOMS TABLE */}
+                  <div className="hidden md:block card glass-card border-slate-800">
+                    <div className="overflow-visible">
+                      <table className="table w-full text-left">
+                        <thead>
+                          <tr className="bg-slate-900/60 border-b border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                            <th className="px-6 py-4">Room</th>
+                            <th className="px-6 py-4">Type</th>
+                            <th className="px-6 py-4">Tenant</th>
+                            <th className="px-6 py-4">Monthly Rent</th>
+                            <th className="px-6 py-4">Electricity</th>
+                            <th className="px-6 py-4">Status</th>
+                            <th className="px-6 py-4 text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredRooms.map(room => {
+                            const tenant = getRoomTenant(room.id);
+                            const isOccupied = room.status === 'Occupied' || !!tenant;
+                            const elecMode = room.elec_mode || (room.has_submeter !== false ? 'submeter' : 'direct');
+
+                            return (
+                              <tr key={room.id} className="border-b border-slate-850 hover:bg-slate-900/30 transition-colors">
+                                <td className="px-6 py-4">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-blue-600/10 text-blue-400 flex items-center justify-center font-bold text-xs border border-blue-500/20">
+                                      {room.room_number}
+                                    </div>
+                                    <span className="font-bold text-slate-200">Room {room.room_number}</span>
+                                  </div>
+                                </td>
+
+                                <td className="px-6 py-4 text-slate-300 text-xs font-medium">
+                                  {room.room_type || 'Single Room'}
+                                </td>
+
+                                <td className="px-6 py-4 text-xs font-medium">
+                                  {tenant ? (
+                                    <span className="text-slate-200 font-semibold">{tenant.name}</span>
+                                  ) : (
+                                    <span className="text-slate-500 italic">— Vacant —</span>
+                                  )}
+                                </td>
+
+                                <td className="px-6 py-4 font-bold text-slate-100 font-mono">
+                                  {formatINR(room.base_rent)}
+                                </td>
+
+                                <td className="px-6 py-4 text-xs">
+                                  {elecMode === 'submeter' && (
+                                    <span className="inline-flex items-center gap-1 text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20 font-medium">
+                                      ⚡ Submeter
+                                    </span>
+                                  )}
+                                  {elecMode === 'direct' && (
+                                    <span className="inline-flex items-center gap-1 text-purple-400 bg-purple-500/10 px-2.5 py-0.5 rounded-full border border-purple-500/20 font-medium">
+                                      📄 Direct Bill
+                                    </span>
+                                  )}
+                                  {elecMode === 'fixed' && (
+                                    <span className="inline-flex items-center gap-1 text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 font-medium">
+                                      🏷️ Fixed
+                                    </span>
+                                  )}
+                                  {elecMode === 'shared' && (
+                                    <span className="inline-flex items-center gap-1 text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20 font-medium">
+                                      🤝 Shared
+                                    </span>
+                                  )}
+                                  {elecMode === 'none' && (
+                                    <span className="inline-flex items-center gap-1 text-slate-400 bg-slate-800 px-2.5 py-0.5 rounded-full font-medium">
+                                      🚫 None
+                                    </span>
+                                  )}
+                                </td>
+
+                                <td className="px-6 py-4">
+                                  <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                                    isOccupied 
+                                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                                      : room.status === 'Maintenance' 
+                                      ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' 
+                                      : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                  }`}>
+                                    {isOccupied ? 'Occupied' : room.status || 'Vacant'}
+                                  </span>
+                                </td>
+
+                                <td className="px-6 py-4 text-right relative">
+                                  <div className="inline-block text-left" onClick={e => e.stopPropagation()}>
+                                    <button
+                                      onClick={() => setActiveMenuRoomId(activeMenuRoomId === room.id ? null : room.id)}
+                                      className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+                                      title="Actions"
+                                    >
+                                      <MoreVertical size={16} />
+                                    </button>
+
+                                    {/* Contextual Action Menu Dropdown */}
+                                    {activeMenuRoomId === room.id && (
+                                      <div className="absolute right-0 bottom-full mb-1 w-48 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 py-1.5 text-xs text-slate-200 animate-fade-in">
+                                        <button
+                                          onClick={() => {
+                                            setActiveMenuRoomId(null);
+                                            setInspectRoom(room);
+                                          }}
+                                          className="w-full px-4 py-2 text-left hover:bg-slate-800 flex items-center gap-2"
+                                        >
+                                          <Eye size={13} className="text-blue-400" /> View Room Details
+                                        </button>
+
+                                        <button
+                                          onClick={() => {
+                                            setActiveMenuRoomId(null);
+                                            setEditingRoom(room);
+                                            setShowRoomDrawer(true);
+                                          }}
+                                          className="w-full px-4 py-2 text-left hover:bg-slate-800 flex items-center gap-2"
+                                        >
+                                          <Edit2 size={13} className="text-slate-400" /> Edit Room Config
+                                        </button>
+
+                                        <button
+                                          onClick={() => {
+                                            setActiveMenuRoomId(null);
+                                            navigate('/tenants');
+                                          }}
+                                          className="w-full px-4 py-2 text-left hover:bg-slate-800 flex items-center gap-2"
+                                        >
+                                          <User size={13} className="text-emerald-400" /> {tenant ? 'View Tenant' : 'Add Tenant'}
+                                        </button>
+
+                                        <button
+                                          onClick={() => {
+                                            setActiveMenuRoomId(null);
+                                            navigate(`/smart-calc?roomId=${room.id}`);
+                                          }}
+                                          className="w-full px-4 py-2 text-left hover:bg-slate-800 flex items-center gap-2"
+                                        >
+                                          <Calculator size={13} className="text-amber-400" /> Generate Bill
+                                        </button>
+
+                                        <div className="border-t border-slate-800 my-1" />
+
+                                        <button
+                                          onClick={(e) => {
+                                            setActiveMenuRoomId(null);
+                                            handleRoomDelete(room, e);
+                                          }}
+                                          className="w-full px-4 py-2 text-left hover:bg-red-500/10 text-red-400 flex items-center gap-2"
+                                        >
+                                          <Archive size={13} /> Archive Room
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* MOBILE ROOMS CARDS */}
+                  <div className="md:hidden space-y-3">
+                    {filteredRooms.map(room => {
+                      const tenant = getRoomTenant(room.id);
+                      const isOccupied = room.status === 'Occupied' || !!tenant;
+                      const elecMode = room.elec_mode || (room.has_submeter !== false ? 'submeter' : 'direct');
+
+                      return (
+                        <div key={room.id} className="card glass-card p-4 space-y-3 border-slate-800 relative">
+                          <div className="flex justify-between items-start">
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-xl bg-blue-600/10 text-blue-400 flex items-center justify-center font-bold text-sm border border-blue-500/20">
+                                {room.room_number}
+                              </div>
+                              <div>
+                                <h3 className="font-bold text-slate-100 text-sm">Room {room.room_number}</h3>
+                                <p className="text-xs text-slate-400">{room.room_type || 'Single Room'} • Floor {room.floor || 'G'}</p>
+                              </div>
+                            </div>
+
+                            <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
+                              isOccupied ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'
+                            }`}>
+                              {isOccupied ? 'Occupied' : room.status || 'Vacant'}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-slate-850">
+                            <div>
+                              <span className="text-[10px] font-semibold text-slate-500 uppercase">Tenant</span>
+                              <p className="font-medium text-slate-200 truncate">{tenant ? tenant.name : '— Vacant —'}</p>
+                            </div>
+                            <div>
+                              <span className="text-[10px] font-semibold text-slate-500 uppercase">Monthly Rent</span>
+                              <p className="font-bold text-slate-100 font-mono">{formatINR(room.base_rent)}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between pt-2 border-t border-slate-850 text-xs">
+                            <span className="text-slate-400">
+                              Elec: <strong className="text-blue-400 font-semibold">{elecMode}</strong>
+                            </span>
+
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => setInspectRoom(room)}
+                                className="btn btn-secondary px-2.5 py-1 text-xs"
+                              >
+                                View
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setEditingRoom(room);
+                                  setShowRoomDrawer(true);
+                                }}
+                                className="btn btn-secondary px-2.5 py-1 text-xs"
+                              >
+                                Edit
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
           )}
 
         </div>
@@ -899,6 +1306,19 @@ export default function Properties() {
             setEditingRoom(roomToEdit);
             setShowRoomDrawer(true);
           }}
+        />,
+        document.body
+      )}
+
+      {/* ── BILL RECEIPT MODAL ── */}
+      {viewingReceipt && createPortal(
+        <BillReceiptModal
+          isOpen={!!viewingReceipt}
+          onClose={() => setViewingReceipt(null)}
+          bill={viewingReceipt.bill}
+          room={viewingReceipt.room}
+          tenant={viewingReceipt.tenant}
+          property={selectedProperty}
         />,
         document.body
       )}

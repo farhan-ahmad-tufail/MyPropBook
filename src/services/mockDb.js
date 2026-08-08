@@ -302,7 +302,7 @@ export const mockDb = {
   // Payments
   getPayments: async (billId) => {
     const list = getStore('mock_payments');
-    return list.filter(p => p.bill_id === billId);
+    return list.filter(p => String(p.bill_id) === String(billId));
   },
   recordPayment: async (billId, amount, method) => {
     const payments = getStore('mock_payments');
@@ -318,11 +318,11 @@ export const mockDb = {
 
     // Update Bill Payment Status and cumulative amount_paid
     const bills = getStore('mock_bills');
-    const billIdx = bills.findIndex(b => b.id === billId);
+    const billIdx = bills.findIndex(b => String(b.id) === String(billId));
     if (billIdx !== -1) {
       const bill = bills[billIdx];
-      const billPayments = payments.filter(p => p.bill_id === billId);
-      const totalPaid = billPayments.reduce((sum, p) => sum + p.amount_paid, 0);
+      const billPayments = payments.filter(p => String(p.bill_id) === String(billId));
+      const totalPaid = billPayments.reduce((sum, p) => sum + parseFloat(p.amount_paid || 0), 0);
 
       bill.amount_paid = totalPaid;
       if (totalPaid >= bill.total_payable) {

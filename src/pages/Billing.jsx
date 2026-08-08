@@ -48,21 +48,25 @@ export default function Billing() {
 
   const receiptRef = useRef(null);
 
+  const [leases, setLeases] = useState([]);
+
   const loadBillingData = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
       const ownerId = user?.id || 'mock_owner_id';
 
-      const [billsList, tenantsList, roomsList] = await Promise.all([
+      const [billsList, tenantsList, roomsList, leasesList] = await Promise.all([
         api.getBills(ownerId),
         api.getTenants(ownerId),
-        api.getAllRooms(ownerId)
+        api.getAllRooms(ownerId),
+        api.getLeases ? api.getLeases(ownerId) : Promise.resolve([])
       ]);
 
       setBills(billsList);
       setTenants(tenantsList);
       setRooms(roomsList);
+      setLeases(leasesList || []);
     } catch (err) {
       console.error(err);
       setError('Failed to fetch billing history');
@@ -158,9 +162,20 @@ export default function Billing() {
     }
   };
 
-  const getTenantName = (tenantId) => {
-    const t = tenants.find(ten => ten.id === tenantId);
-    return t ? t.name : 'Unknown Tenant';
+  const getTenantName = (bill) => {
+    if (!bill) return 'Unknown Tenant';
+    let t = tenants.find(ten => String(ten.id) === String(bill.tenant_id));
+    if (t) return t.name;
+
+    // Fallback: Check active or historical lease for this room
+    if (bill.room_id) {
+      const lease = leases.find(l => String(l.room_id) === String(bill.room_id));
+      if (lease) {
+        t = tenants.find(ten => String(ten.id) === String(lease.tenant_id));
+        if (t) return t.name;
+      }
+    }
+    return 'Unknown Tenant';
   };
 
   const getRoomNumber = (roomId) => {
@@ -291,7 +306,7 @@ export default function Billing() {
 
                   return (
                     <tr key={bill.id} className="border-b border-slate-850 hover:bg-slate-900/20 last:border-0 transition-colors">
-                      <td className="px-6 py-4 font-semibold text-slate-200">{getTenantName(bill.tenant_id)}</td>
+                      <td className="px-6 py-4 font-semibold text-slate-200">{getTenantName(bill)}</td>
                       <td className="px-6 py-4 text-slate-300 font-medium">{getRoomNumber(bill.room_id)}</td>
                       <td className="px-6 py-4 text-slate-400">{bill.bill_month} {bill.bill_year}</td>
                       <td className="px-6 py-4 font-bold text-slate-200">₹{total.toLocaleString()}</td>
@@ -511,7 +526,7 @@ export default function Billing() {
                   <CreditCard size={18} className="text-blue-400" />
                   <span>Record Payment</span>
                 </h3>
-                <p className="text-xs text-slate-400">Receive payment for {getTenantName(selectedBill.tenant_id)}'s invoice.</p>
+                <p className="text-xs text-slate-400">Receive payment for {getTenantName(selectedBill)}'s invoice.</p>
               </div>
 
               {/* Outstanding Balance Breakdown Card */}
