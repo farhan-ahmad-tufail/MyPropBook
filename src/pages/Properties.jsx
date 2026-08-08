@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
@@ -810,7 +811,7 @@ export default function Properties() {
       )}
 
       {/* ── NEW / EDIT PROPERTY MODAL ── */}
-      {showPropModal && (
+      {showPropModal && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
           <div className="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden my-auto">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950/40">
@@ -857,40 +858,50 @@ export default function Properties() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── ROOM DRAWER (SIDE DRAWER / MOBILE SHEET) ── */}
-      <RoomDrawer
-        isOpen={showRoomDrawer}
-        onClose={() => {
-          setShowRoomDrawer(false);
-          setEditingRoom(null);
-        }}
-        onSubmit={handleRoomSubmit}
-        editingRoom={editingRoom}
-        customRoomTypes={customRoomTypes}
-        onOpenCreateTypeModal={() => setShowCreateTypeModal(true)}
-      />
+      {showRoomDrawer && createPortal(
+        <RoomDrawer
+          isOpen={showRoomDrawer}
+          onClose={() => {
+            setShowRoomDrawer(false);
+            setEditingRoom(null);
+          }}
+          onSubmit={handleRoomSubmit}
+          editingRoom={editingRoom}
+          customRoomTypes={customRoomTypes}
+          onOpenCreateTypeModal={() => setShowCreateTypeModal(true)}
+        />,
+        document.body
+      )}
 
       {/* ── CREATE CUSTOM ROOM TYPE MODAL ── */}
-      <CreateRoomTypeModal
-        isOpen={showCreateTypeModal}
-        onClose={() => setShowCreateTypeModal(false)}
-        onCreate={handleCreateCustomRoomType}
-      />
+      {showCreateTypeModal && createPortal(
+        <CreateRoomTypeModal
+          isOpen={showCreateTypeModal}
+          onClose={() => setShowCreateTypeModal(false)}
+          onCreate={handleCreateCustomRoomType}
+        />,
+        document.body
+      )}
 
       {/* ── ROOM DETAILS INSPECTION MODAL ── */}
-      <RoomDetailsModal
-        isOpen={!!inspectRoom}
-        onClose={() => setInspectRoom(null)}
-        room={inspectRoom}
-        tenant={inspectRoom ? getRoomTenant(inspectRoom.id) : null}
-        onEdit={(roomToEdit) => {
-          setEditingRoom(roomToEdit);
-          setShowRoomDrawer(true);
-        }}
-      />
+      {inspectRoom && createPortal(
+        <RoomDetailsModal
+          isOpen={!!inspectRoom}
+          onClose={() => setInspectRoom(null)}
+          room={inspectRoom}
+          tenant={inspectRoom ? getRoomTenant(inspectRoom.id) : null}
+          onEdit={(roomToEdit) => {
+            setEditingRoom(roomToEdit);
+            setShowRoomDrawer(true);
+          }}
+        />,
+        document.body
+      )}
 
     </div>
   );
