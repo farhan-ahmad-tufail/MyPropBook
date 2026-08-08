@@ -59,9 +59,7 @@ export default function Layout({ children }) {
         {/* Logo */}
         <div className="flex items-center justify-between px-5 py-5 border-b border-slate-800/60">
           <Link to="/" className="flex items-center gap-2.5 font-extrabold text-lg text-white tracking-tight">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center flex-shrink-0">
-              <Home size={15} className="text-white" />
-            </div>
+            <img src="/logo.png" alt="BillRoom Logo" className="w-8 h-8 rounded-lg object-contain flex-shrink-0" />
             <span>BillRoom</span>
           </Link>
           <button
@@ -146,9 +144,7 @@ export default function Layout({ children }) {
         {/* Mobile Top Bar */}
         <header className="lg:hidden sticky top-0 z-30 flex items-center justify-between px-5 py-4 bg-slate-950/90 backdrop-blur border-b border-slate-800/60">
           <Link to="/" className="flex items-center gap-2 font-extrabold text-lg text-white">
-            <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center">
-              <Home size={13} className="text-white" />
-            </div>
+            <img src="/logo.png" alt="BillRoom Logo" className="w-7 h-7 rounded-lg object-contain" />
             BillRoom
           </Link>
           <button

@@ -48,8 +48,8 @@ export default function Login() {
         <div className="p-8">
           {/* Brand Logo Header */}
           <div className="flex flex-col items-center mb-8 text-center">
-            <Link to="/" className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center mb-4 border border-blue-500/20">
-              <Home size={24} />
+            <Link to="/" className="mb-4">
+              <img src="/logo.png" alt="BillRoom Logo" className="w-16 h-16 object-contain" />
             </Link>
             <h2 className="text-2xl font-bold text-slate-100">
               {isSignUpMode ? 'Create your Account' : 'Welcome Back'}
