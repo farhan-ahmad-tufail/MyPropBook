@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../services/api';
 import { Plus, Home, Tag, IndianRupee, Zap, X, Layers, Trash2, Edit2 } from 'lucide-react';
+import { useToast, useConfirm } from '../components/Toast';
 
 export default function Rooms() {
     const [rooms, setRooms] = useState([]);
+    const toast = useToast();
+    const confirm = useConfirm();
     const [showForm, setShowForm] = useState(false);
     const [editingRoom, setEditingRoom] = useState(null);
     const [formData, setFormData] = useState({
@@ -41,13 +44,14 @@ export default function Rooms() {
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to delete this room? This cannot be undone.')) {
+        const yes = await confirm({ title: 'Delete Room', message: 'Are you sure you want to delete this room? This cannot be undone.', confirmText: 'Delete', type: 'error' });
+        if (yes) {
             try {
                 await api.deleteRoom(id);
                 loadRooms();
             } catch (err) {
                 console.error('Error deleting room:', err);
-                alert(`Failed to delete room: ${err.message}`);
+                toast(`Failed to delete room: ${err.message}`, 'error');
             }
         }
     };
@@ -66,7 +70,7 @@ export default function Rooms() {
             loadRooms();
         } catch (err) {
             console.error('Error saving room:', err);
-            alert(`Failed to save room: ${err.message || 'Unknown error'}`);
+            toast(`Failed to save room: ${err.message || 'Unknown error'}`, 'error');
         }
     };
 

@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Calculator, RefreshCw, Printer, AlertTriangle, Zap, Home, User, Layers, ArrowRight, Calendar, Download, History, Save, Share2, Trash2, X } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import { useToast, useConfirm } from '../components/Toast';
 
 const translations = {
     en: {
@@ -51,6 +52,8 @@ const translations = {
 };
 
 export default function QuickCalc() {
+    const toast = useToast();
+    const confirm = useConfirm();
     const currentDate = new Date();
     const [formData, setFormData] = useState({
         name: '',
@@ -180,7 +183,7 @@ export default function QuickCalc() {
 
         setProfiles(updatedProfiles);
         localStorage.setItem('tenantProfiles', JSON.stringify(updatedProfiles));
-        alert('Profile saved!');
+        toast('Profile saved!', 'success');
     };
 
     const handleLoadProfile = (e) => {
@@ -280,7 +283,7 @@ export default function QuickCalc() {
                 pdf.save(`Bill_${result.name || 'Tenant'}_${result.billMonth}.pdf`);
             } catch (err) {
                 console.error("Failed to generate PDF", err);
-                alert("Failed to download PDF. Please try again.");
+                toast('Failed to download PDF. Please try again.', 'error');
             }
         }
     };
@@ -927,8 +930,9 @@ export default function QuickCalc() {
                         {history.length > 0 && (
                             <div className="p-6 border-t border-slate-800 bg-slate-900">
                                 <button
-                                    onClick={() => {
-                                        if (confirm('Are you sure you want to delete all history?')) {
+                                    onClick={async () => {
+                                        const yes = await confirm({ title: 'Clear All History', message: 'Are you sure you want to delete all history? This cannot be undone.', confirmText: 'Delete All', type: 'error' });
+                                        if (yes) {
                                             setHistory([]);
                                             localStorage.removeItem('billHistory');
                                         }

@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import { useToast } from '../components/Toast';
 
 const translations = {
   en: {
@@ -71,6 +72,7 @@ const translations = {
 
 export default function SmartCalc() {
   const { user } = useAuth();
+  const toast = useToast();
   const [searchParams] = useSearchParams();
 
   // Route URL Parameter support
@@ -286,7 +288,7 @@ export default function SmartCalc() {
       // Reload calculations data to update previous reading values and totals in cache
       await loadAllData();
       
-      alert('Bill successfully saved to the database history!');
+      toast('Bill successfully saved to the database history!', 'success');
     } catch (err) {
       console.error('Error saving bill:', err);
       setError('Failed to save bill to database.');

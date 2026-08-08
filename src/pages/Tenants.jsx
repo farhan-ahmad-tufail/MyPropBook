@@ -2,9 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import { Users, UserPlus, Key, Trash2, Edit2, Link2, Check, X, ShieldAlert } from 'lucide-react';
+import { useConfirm } from '../components/Toast';
 
 export default function Tenants() {
   const { user } = useAuth();
+  const confirm = useConfirm();
   
   // Data lists
   const [tenants, setTenants] = useState([]);
@@ -105,7 +107,8 @@ export default function Tenants() {
   };
 
   const handleTenantDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this tenant? All lease contracts for this tenant will also be removed.')) return;
+    const yes = await confirm({ title: 'Delete Tenant', message: 'Are you sure you want to delete this tenant? All lease contracts for this tenant will also be removed.', confirmText: 'Delete', type: 'error' });
+    if (!yes) return;
     try {
       await api.deleteTenant(id);
       await loadAllData();
@@ -144,7 +147,8 @@ export default function Tenants() {
   };
 
   const handleDeactivateLease = async (leaseId) => {
-    if (!window.confirm('Are you sure you want to terminate this lease? The room will become vacant.')) return;
+    const yes = await confirm({ title: 'Terminate Lease', message: 'Are you sure you want to terminate this lease? The room will become vacant.', confirmText: 'Terminate', type: 'warning' });
+    if (!yes) return;
     try {
       await api.deactivateLease(leaseId);
       await loadAllData();

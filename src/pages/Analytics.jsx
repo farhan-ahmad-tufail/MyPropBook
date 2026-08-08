@@ -13,9 +13,11 @@ import {
   ArrowUpRight,
   PieChart
 } from 'lucide-react';
+import { useToast } from '../components/Toast';
 
 export default function Analytics() {
   const { user } = useAuth();
+  const toast = useToast();
   const [bills, setBills] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -75,7 +77,7 @@ export default function Analytics() {
   // Export CSV function for Tax/Accounting
   const handleExportCSV = () => {
     if (yearBills.length === 0) {
-      alert('No bill records available for the selected year.');
+      toast('No bill records available for the selected year.', 'warning');
       return;
     }
 

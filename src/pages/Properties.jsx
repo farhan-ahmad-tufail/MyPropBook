@@ -2,9 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import { Building, Home, Plus, Trash2, Edit2, MapPin, ShieldAlert, Zap } from 'lucide-react';
+import { useConfirm } from '../components/Toast';
 
 export default function Properties() {
   const { user } = useAuth();
+  const confirm = useConfirm();
   
   // Data State
   const [properties, setProperties] = useState([]);
@@ -118,7 +120,8 @@ export default function Properties() {
   };
 
   const handlePropDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this property? This will delete all rooms inside it.')) return;
+    const yes = await confirm({ title: 'Delete Property', message: 'Are you sure you want to delete this property? This will delete all rooms inside it.', confirmText: 'Delete', type: 'error' });
+    if (!yes) return;
     try {
       await api.deleteProperty(id);
       if (selectedPropertyId === id) {
@@ -184,7 +187,8 @@ export default function Properties() {
   };
 
   const handleRoomDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this room?')) return;
+    const yes = await confirm({ title: 'Delete Room', message: 'Are you sure you want to delete this room?', confirmText: 'Delete', type: 'error' });
+    if (!yes) return;
     try {
       await api.deleteRoom(id);
       await fetchRooms(selectedPropertyId);

@@ -5,9 +5,11 @@ import { api } from '../services/api';
 import { Receipt, DollarSign, Eye, ShieldAlert, Check, X, Filter, Printer, Download, Share2 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import { useToast } from '../components/Toast';
 
 export default function Billing() {
   const { user } = useAuth();
+  const toast = useToast();
 
   // Database lists
   const [bills, setBills] = useState([]);
@@ -83,7 +85,7 @@ export default function Billing() {
       setShowPayModal(false);
       setSelectedBill(null);
       await loadBillingData();
-      alert('Payment successfully recorded!');
+      toast('Payment successfully recorded!', 'success');
     } catch (err) {
       console.error(err);
       setError('Failed to record payment');
