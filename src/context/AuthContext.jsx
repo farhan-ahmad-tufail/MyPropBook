@@ -103,12 +103,33 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const signInWithGoogle = async () => {
+    if (isLocalMode()) {
+      // In local mode, simulate a Google sign-in
+      const mockUser = { id: 'google_mock_id', email: 'google@demo.com', fullName: 'Google Demo User' };
+      setUser(mockUser);
+      localStorage.setItem('mock_token', 'mock_token_value');
+      localStorage.setItem('mock_users', JSON.stringify([mockUser]));
+      window.dispatchEvent(new Event('storage'));
+      return mockUser;
+    }
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + '/dashboard'
+      }
+    });
+    if (error) throw error;
+  };
+
   const value = {
     user,
     loading,
     signIn,
     signUp,
     signOut,
+    signInWithGoogle,
     isLocal: isLocalMode()
   };
 
