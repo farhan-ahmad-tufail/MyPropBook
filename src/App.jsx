@@ -10,6 +10,7 @@ import Properties from './pages/Properties';
 import Tenants from './pages/Tenants';
 import SmartCalc from './pages/SmartCalc';
 import Billing from './pages/Billing';
+import Analytics from './pages/Analytics';
 import QuickCalc from './pages/QuickCalc';
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
             <Route path="/tenants" element={<ProtectedRoute><Tenants /></ProtectedRoute>} />
             <Route path="/smart-calc" element={<ProtectedRoute><SmartCalc /></ProtectedRoute>} />
             <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
+            <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
             <Route path="/quick-calc" element={<QuickCalc />} />
           </Routes>
         </Layout>

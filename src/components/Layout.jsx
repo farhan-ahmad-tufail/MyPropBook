@@ -13,7 +13,8 @@ import {
   Home,
   Zap,
   ShieldAlert,
-  ChevronRight
+  ChevronRight,
+  BarChart3
 } from 'lucide-react';
 
 const navItems = [
@@ -22,6 +23,7 @@ const navItems = [
   { to: '/tenants', icon: Users, label: 'Tenants & Leases', protected: true },
   { to: '/smart-calc', icon: Zap, label: 'Smart Calculator', protected: true },
   { to: '/billing', icon: Receipt, label: 'Billing Records', protected: true },
+  { to: '/analytics', icon: BarChart3, label: 'Financial Analytics', protected: true },
   { to: '/quick-calc', icon: Calculator, label: 'Quick Calculator', protected: false },
 ];
 
