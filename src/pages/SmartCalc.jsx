@@ -113,11 +113,12 @@ export default function SmartCalc() {
   const receiptRef = useRef(null);
 
   const themeOptions = {
-    default: { primary: '#2563eb', bg: '#f8fafc', text: '#0f172a', border: '#e2e8f0', hex: '#2563eb', label: 'Dark Blue' },
-    dark: { primary: '#0f172a', bg: '#f1f5f9', text: '#020617', border: '#cbd5e1', hex: '#0f172a', label: 'Black' },
-    indigo: { primary: '#4f46e5', bg: '#eef2ff', text: '#1e1b4b', border: '#c7d2fe', hex: '#4f46e5', label: 'Indigo' },
-    emerald: { primary: '#059669', bg: '#ecfdf5', text: '#064e3b', border: '#a7f3d0', hex: '#059669', label: 'Emerald' }
+    default: { primary: '#2563eb', bg: '#064e3b', text: '#ffffff', border: '#e2e8f0', hex: '#2563eb', label: 'Dark Blue', icon: '#2563eb' },
+    dark: { primary: '#0f172a', bg: '#0f172a', text: '#ffffff', border: '#cbd5e1', hex: '#0f172a', label: 'Black', icon: '#0f172a' },
+    indigo: { primary: '#4f46e5', bg: '#312e81', text: '#ffffff', border: '#c7d2fe', hex: '#4f46e5', label: 'Indigo', icon: '#4f46e5' },
+    emerald: { primary: '#059669', bg: '#064e3b', text: '#ffffff', border: '#a7f3d0', hex: '#059669', label: 'Emerald', icon: '#059669' }
   };
+  const currentTheme = themeOptions[theme] || themeOptions.default;
 
   const months = [
     "January", "February", "March", "April", "May", "June",
@@ -287,8 +288,8 @@ export default function SmartCalc() {
       
       alert('Bill successfully saved to the database history!');
     } catch (err) {
-      console.error(err);
-      setError('Failed to save bill record');
+      console.error('Error saving bill:', err);
+      setError('Failed to save bill to database.');
     }
   };
 
@@ -674,100 +675,124 @@ export default function SmartCalc() {
                       <div style={{ borderBottom: '2px solid #cbd5e1', margin: '15px auto', width: '100%' }}></div>
                     </div>
 
-                    <div className="flex justify-between items-start gap-4 mb-6 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                    {/* Tenant details row */}
+                    <div className="flex justify-between items-start gap-4 mb-6 p-3.5 bg-slate-50 rounded-lg border border-slate-100">
                       <div>
-                        <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">{translations[language].tenant}</div>
-                        <div className="text-lg font-bold text-slate-900 leading-tight">{result.tenant_name}</div>
+                        <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">{translations[language].tenant}</div>
+                        <div className="text-xl font-bold text-slate-900 leading-tight">{result.tenant_name}</div>
                       </div>
                       <div className="text-right">
-                        <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">ROOM</div>
+                        <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">ROOM</div>
                         <div className="text-base font-bold text-slate-800">Room {result.room_number}</div>
                         <span className="text-[10px] text-slate-500 capitalize">{formatFloor(result.floor)}</span>
                       </div>
                     </div>
 
-                    {/* Rent details breakdown */}
-                    <div className="mb-4 border border-slate-200 rounded-lg overflow-hidden bg-white">
-                      <div className="p-3">
-                        <div className="flex justify-between items-center text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-                          <span>Details</span>
-                          <span>Value / Units</span>
+                    {/* Room details box matching QuickCalc */}
+                    <div className="mb-6 border border-slate-200 rounded-lg overflow-hidden bg-white">
+                      <div className="flex justify-between items-center py-2 px-4 bg-slate-50 border-b border-slate-200">
+                        <div className="font-bold text-slate-800 flex items-center gap-2 text-xs">
+                          <Home size={14} color={currentTheme.icon} /> Room {result.room_number} <span className="text-[10px] text-slate-500 font-normal capitalize">({formatFloor(result.floor)})</span>
                         </div>
-                        <div className="space-y-1.5 text-xs text-slate-600">
-                          <div className="flex justify-between">
-                            <span>Base Monthly Rent:</span>
-                            <span className="font-semibold text-slate-800">₹{result.rent_amount.toFixed(2)}</span>
+                      </div>
+                      <div className="p-4 pt-3">
+                        {result.elec_mode === 'submeter' ? (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', justifyContent: 'space-between', fontSize: '0.85rem', width: '100%' }}>
+                            <div>
+                              <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{translations[language].readings}</div>
+                              <div className="text-xs text-slate-600 mb-0.5">{translations[language].cur}: <span className="font-mono font-bold text-slate-800">{result.current_reading}</span></div>
+                              <div className="text-xs text-slate-600">{translations[language].pre}: <span className="font-mono font-bold text-slate-800">{result.previous_reading}</span></div>
+                            </div>
+                            <div className="sm:text-center">
+                              <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{translations[language].units}</div>
+                              <div className="font-mono font-bold text-slate-800 mt-2">{parseFloat(result.units_consumed || 0).toFixed(2)}</div>
+                            </div>
+                            <div className="sm:text-center">
+                              <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{translations[language].rate}</div>
+                              <div className="font-mono text-slate-600 text-xs mt-2">₹{result.rate_per_unit}</div>
+                            </div>
+                            <div className="sm:text-center">
+                              <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{translations[language].elec}</div>
+                              <div className="font-mono font-bold text-slate-800 mt-2">₹{parseFloat(result.elec_amount || 0).toFixed(2)}</div>
+                            </div>
+                            <div className="sm:text-right">
+                              <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{translations[language].rent}</div>
+                              <div className="font-mono font-bold text-slate-800 mt-2 text-sm">₹{parseFloat(result.rent_amount || 0).toFixed(2)}</div>
+                            </div>
                           </div>
-                          {result.elec_mode === 'submeter' && (
-                            <>
-                              <div className="flex justify-between">
-                                <span>Electricity Readings:</span>
-                                <span className="font-semibold text-slate-800">{result.current_reading} - {result.previous_reading}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span>Units Consumed:</span>
-                                <span className="font-semibold text-slate-800">{result.units_consumed.toFixed(2)} units</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span>Utility Rate Per Unit:</span>
-                                <span className="font-semibold text-slate-800">₹{result.rate_per_unit}/unit</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span>Electricity Charges:</span>
-                                <span className="font-bold text-slate-950">₹{result.elec_amount.toFixed(2)}</span>
-                              </div>
-                            </>
-                          )}
-                          {result.elec_mode === 'direct' && (
-                            <div className="flex justify-between">
-                              <span>Electricity Bill (Direct):</span>
-                              <span className="font-bold text-slate-950">₹{result.elec_amount.toFixed(2)}</span>
+                        ) : result.elec_mode === 'direct' ? (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', justifyContent: 'space-between', fontSize: '0.85rem', width: '100%' }}>
+                            <div>
+                              <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">ELECTRICITY</div>
+                              <div className="text-xs text-slate-500 italic">Direct bill amount</div>
+                              <div className="font-mono font-bold text-slate-800 mt-1">₹{parseFloat(result.elec_amount || 0).toFixed(2)}</div>
                             </div>
-                          )}
-                          {result.elec_mode === 'none' && (
-                            <div className="flex justify-between text-slate-400">
-                              <span>Electricity:</span>
-                              <span className="font-medium italic">Included in Rent</span>
+                            <div className="sm:text-right">
+                              <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{translations[language].rent}</div>
+                              <div className="font-mono font-bold text-slate-800 mt-2 text-sm">₹{parseFloat(result.rent_amount || 0).toFixed(2)}</div>
                             </div>
-                          )}
-                        </div>
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', justifyContent: 'space-between', fontSize: '0.85rem', width: '100%' }}>
+                            <div>
+                              <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">ELECTRICITY</div>
+                              <div className="text-xs text-slate-400 italic">Included in rent</div>
+                            </div>
+                            <div className="sm:text-right">
+                              <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{translations[language].rent}</div>
+                              <div className="font-mono font-bold text-slate-800 mt-2 text-sm">₹{parseFloat(result.rent_amount || 0).toFixed(2)}</div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
 
-                    {/* Totals box */}
-                    <div className="space-y-2 mb-6 bg-slate-50 p-3.5 rounded-lg border border-slate-100">
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-slate-600 font-semibold">{translations[language].totalRent}</span>
-                        <span className="font-semibold text-slate-800">₹{result.rent_amount.toFixed(2)}</span>
+                    {/* Main Summary Box */}
+                    <div className="space-y-2.5 mb-6 bg-slate-50 p-4 rounded-lg">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-600 font-medium text-sm">{translations[language].totalRent}</span>
+                        <span className="font-mono font-bold text-slate-800 text-sm">₹{parseFloat(result.rent_amount || 0).toFixed(2)}</span>
                       </div>
-                      {result.elec_mode !== 'none' && (
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-slate-600 font-semibold">{translations[language].totalElectricity}</span>
-                          <span className="font-semibold text-slate-800">₹{result.elec_amount.toFixed(2)}</span>
-                        </div>
-                      )}
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-600 font-medium text-sm">{translations[language].totalElectricity}</span>
+                        <span className="font-mono font-bold text-slate-800 text-sm">₹{parseFloat(result.elec_amount || 0).toFixed(2)}</span>
+                      </div>
                       {result.other_charges > 0 && (
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-slate-600 font-semibold">{translations[language].otherCharges}</span>
-                          <span className="font-semibold text-slate-800">₹{result.other_charges.toFixed(2)}</span>
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-slate-600 font-medium text-sm">{translations[language].otherCharges}</span>
+                          <span className="font-mono font-bold text-slate-800 text-sm">₹{parseFloat(result.other_charges || 0).toFixed(2)}</span>
                         </div>
                       )}
+
+                      <div style={{ borderBottom: '2px dashed #cbd5e1', margin: '12px 0' }}></div>
+
+                      <div className="flex justify-between items-center">
+                        <span className="text-base font-bold text-slate-900">{translations[language].currentMonth}</span>
+                        <span className="text-base font-bold text-slate-900">
+                          ₹{(parseFloat(result.rent_amount || 0) + parseFloat(result.elec_amount || 0) + parseFloat(result.other_charges || 0)).toFixed(2)}
+                        </span>
+                      </div>
+
                       {result.arrears > 0 && (
-                        <div className="flex justify-between items-center text-xs text-red-500">
-                          <span className="font-semibold">{translations[language].oldPendingBalance}</span>
-                          <span className="font-bold">₹{result.arrears.toFixed(2)}</span>
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-slate-600 font-medium text-base">{translations[language].oldPendingBalance}</span>
+                          <span className="font-mono font-bold text-slate-800 text-base">₹{parseFloat(result.arrears).toFixed(2)}</span>
                         </div>
                       )}
-                      
-                      <div style={{ borderBottom: '1px dashed #cbd5e1', margin: '10px 0' }}></div>
-                      
-                      <div className="flex justify-between items-center text-sm font-bold text-slate-900">
-                        <span>{translations[language].totalPayable}</span>
-                        <span className="text-base text-blue-600">₹{result.total_payable.toFixed(2)}</span>
+                    </div>
+
+                    {/* Grand Total Green/Theme Banner */}
+                    <div style={{ backgroundColor: currentTheme.bg, color: currentTheme.text, padding: '1.25rem', borderRadius: '0.75rem', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', itemsCenter: 'center', gap: '0.75rem', marginTop: '1rem', transition: 'background-color 0.3s' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8' }}>{translations[language].totalPayable}</span>
+                        <span style={{ fontSize: '0.70rem', color: '#cbd5e1', marginTop: '2px' }}>{translations[language].payByDueDate}</span>
+                      </div>
+                      <div style={{ fontSize: '1.85rem', fontWeight: 'bold', letterSpacing: '-0.03em', backgroundColor: 'rgba(255,255,255,0.1)', padding: '0.4rem 0.8rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.15)' }}>
+                        ₹{result.total_payable.toFixed(2)}
                       </div>
                     </div>
 
-                    <div className="text-center text-[10px] text-slate-400 font-medium">
+                    <div className="mt-8 pt-4 text-center text-slate-400 text-xs">
                       <p>{translations[language].thankYou}</p>
                       <p className="mt-1">{translations[language].generatedOn} {new Date().toLocaleDateString()}</p>
                     </div>
