@@ -64,6 +64,7 @@ create table if not exists public.bills (
     arrears numeric(10, 2) default 0.00,
     other_charges numeric(10, 2) default 0.00,
     total_payable numeric(10, 2) default 0.00 not null,
+    amount_paid numeric(10, 2) default 0.00 not null,
     payment_status text default 'Unpaid' check (payment_status in ('Paid', 'Partially Paid', 'Unpaid')),
     generated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
