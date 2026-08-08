@@ -1,92 +1,202 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
-import { Building, Home, Plus, Trash2, Edit2, MapPin, ShieldAlert, Zap } from 'lucide-react';
-import { useConfirm } from '../components/Toast';
+import { 
+  Building, 
+  Home, 
+  Plus, 
+  Trash2, 
+  Edit2, 
+  MapPin, 
+  ShieldAlert, 
+  Zap, 
+  Search, 
+  Filter, 
+  MoreVertical, 
+  Eye, 
+  User, 
+  Calculator, 
+  Tag,
+  CheckCircle2,
+  AlertCircle,
+  Archive,
+  ChevronRight,
+  Layers,
+  X
+} from 'lucide-react';
+import { useConfirm, useToast } from '../components/Toast';
+import { formatINR, formatINRShort } from '../utils/formatters';
+import RoomDrawer from '../components/RoomDrawer';
+import CreateRoomTypeModal from '../components/CreateRoomTypeModal';
+import RoomDetailsModal from '../components/RoomDetailsModal';
 
 export default function Properties() {
   const { user } = useAuth();
   const confirm = useConfirm();
+  const toast = useToast();
+  const navigate = useNavigate();
   
   // Data State
   const [properties, setProperties] = useState([]);
-  const [rooms, setRooms] = useState([]);
+  const [allRooms, setAllRooms] = useState([]);
+  const [tenants, setTenants] = useState([]);
+  const [leases, setLeases] = useState([]);
+  const [customRoomTypes, setCustomRoomTypes] = useState([]);
   const [selectedPropertyId, setSelectedPropertyId] = useState(null);
-  const [_loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Form State - Property
-  const [showPropForm, setShowPropForm] = useState(false);
+  // Active rooms for selected property
+  const rooms = useMemo(() => {
+    if (!selectedPropertyId) return [];
+    return allRooms.filter(r => r.property_id === selectedPropertyId);
+  }, [allRooms, selectedPropertyId]);
+
+  // Search & Filter state
+  const [propertySearchQuery, setPropertySearchQuery] = useState('');
+  const [roomSearchQuery, setRoomSearchQuery] = useState('');
+  const [roomStatusFilter, setRoomStatusFilter] = useState('All');
+
+  // Property Modal / Form State
+  const [showPropModal, setShowPropModal] = useState(false);
   const [propName, setPropName] = useState('');
   const [propAddress, setPropAddress] = useState('');
   const [editingPropId, setEditingPropId] = useState(null);
 
-  // Form State - Room
-  const [showRoomForm, setShowRoomForm] = useState(false);
-  const [roomNumber, setRoomNumber] = useState('');
-  const [roomFloor, setRoomFloor] = useState('');
-  const [roomType, setRoomType] = useState('Medium');
-  const [roomRent, setRoomRent] = useState('');
-  const [hasSubmeter, setHasSubmeter] = useState(true);
-  const [roomReading, setRoomReading] = useState('0');
-  const [roomRate, setRoomRate] = useState('17');
-  const [editingRoomId, setEditingRoomId] = useState(null);
+  // Room Drawer & Modals State
+  const [showRoomDrawer, setShowRoomDrawer] = useState(false);
+  const [editingRoom, setEditingRoom] = useState(null);
+  const [inspectRoom, setInspectRoom] = useState(null);
+  const [showCreateTypeModal, setShowCreateTypeModal] = useState(false);
+  const [activeMenuRoomId, setActiveMenuRoomId] = useState(null);
 
   const selectedProperty = properties.find(p => p.id === selectedPropertyId) || null;
 
-  const fetchRooms = useCallback(async (propId) => {
-    if (!propId) {
-      setRooms([]);
-      return;
-    }
-    try {
-      const list = await api.getRooms(propId);
-      setRooms(list);
-    } catch (err) {
-      console.error(err);
-      setError('Failed to fetch rooms for property');
-    }
-  }, []);
-
-  const fetchProperties = useCallback(async () => {
+  // Fetching data
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
+      setError('');
       const ownerId = user?.id || 'mock_owner_id';
-      const list = await api.getProperties(ownerId);
-      setProperties(list);
+
+      const [propsList, tenantsList, leasesList, roomsList] = await Promise.all([
+        api.getProperties(ownerId),
+        api.getTenants(ownerId),
+        api.getLeases(ownerId),
+        api.getAllRooms(ownerId)
+      ]);
+
+      setProperties(propsList);
+      setTenants(tenantsList);
+      setLeases(leasesList);
+      setAllRooms(roomsList || []);
       
       setSelectedPropertyId(prevId => {
-        if (!prevId && list.length > 0) return list[0].id;
-        if (prevId && !list.some(p => p.id === prevId)) return list.length > 0 ? list[0].id : null;
+        if (!prevId && propsList.length > 0) return propsList[0].id;
+        if (prevId && !propsList.some(p => p.id === prevId)) return propsList.length > 0 ? propsList[0].id : null;
         return prevId;
       });
     } catch (err) {
-      console.error(err);
-      setError('Failed to fetch properties');
+      console.error('Error fetching properties data', err);
+      setError('Failed to load properties. Please try refreshing.');
     } finally {
       setLoading(false);
     }
   }, [user]);
 
+  const loadPropertyRooms = useCallback(async (propId) => {
+    if (!propId) {
+      setCustomRoomTypes([]);
+      return;
+    }
+    try {
+      const typesList = await (api.getRoomTypes ? api.getRoomTypes(propId) : Promise.resolve([]));
+      setCustomRoomTypes(typesList || []);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to fetch room types for selected property');
+    }
+  }, []);
+
   useEffect(() => {
-    fetchProperties();
-  }, [fetchProperties]);
+    loadData();
+  }, [loadData]);
 
   useEffect(() => {
     if (selectedPropertyId) {
-      fetchRooms(selectedPropertyId);
-    } else {
-      setRooms([]);
+      loadPropertyRooms(selectedPropertyId);
     }
-  }, [selectedPropertyId, fetchRooms]);
+  }, [selectedPropertyId, loadPropertyRooms]);
 
-  const handleSelectProperty = (prop) => {
-    setSelectedPropertyId(prop.id);
-    setShowRoomForm(false);
-    setEditingRoomId(null);
+  // Click outside listener for room three-dot contextual action menu
+  useEffect(() => {
+    const handleClickOutside = () => setActiveMenuRoomId(null);
+    window.addEventListener('click', handleClickOutside);
+    return () => window.removeEventListener('click', handleClickOutside);
+  }, []);
+
+  // Filtered properties based on search query
+  const filteredProperties = useMemo(() => {
+    if (!propertySearchQuery.trim()) return properties;
+    const q = propertySearchQuery.toLowerCase();
+    return properties.filter(p => 
+      p.name.toLowerCase().includes(q) || 
+      (p.address && p.address.toLowerCase().includes(q))
+    );
+  }, [properties, propertySearchQuery]);
+
+  // Map room to tenant & active lease
+  const getRoomTenant = (roomId) => {
+    const activeLease = leases.find(l => l.room_id === roomId && l.is_active);
+    if (!activeLease) return null;
+    return tenants.find(t => t.id === activeLease.tenant_id) || null;
   };
 
-  // Property Form CRUD handlers
+  // Property calculation stats
+  const selectedPropertyStats = useMemo(() => {
+    if (!selectedProperty) return { totalRooms: 0, occupied: 0, vacant: 0, expectedRent: 0 };
+
+    const totalRooms = rooms.length;
+    let occupied = 0;
+    let expectedRent = 0;
+
+    rooms.forEach(r => {
+      const isRoomOccupied = r.status === 'Occupied' || leases.some(l => l.room_id === r.id && l.is_active);
+      if (isRoomOccupied) occupied++;
+      expectedRent += parseFloat(r.base_rent || 0);
+    });
+
+    const vacant = Math.max(0, totalRooms - occupied);
+
+    return { totalRooms, occupied, vacant, expectedRent };
+  }, [selectedProperty, rooms, leases]);
+
+  // Filtered rooms based on status & search
+  const filteredRooms = useMemo(() => {
+    return rooms.filter(r => {
+      const tenant = getRoomTenant(r.id);
+      const isOccupied = r.status === 'Occupied' || !!tenant;
+
+      // Status filter check
+      if (roomStatusFilter === 'Occupied' && !isOccupied) return false;
+      if (roomStatusFilter === 'Vacant' && isOccupied) return false;
+      if (roomStatusFilter === 'Maintenance' && r.status !== 'Maintenance') return false;
+
+      // Search query check
+      if (roomSearchQuery.trim()) {
+        const q = roomSearchQuery.toLowerCase();
+        const roomNumMatch = r.room_number.toLowerCase().includes(q);
+        const tenantMatch = tenant && tenant.name.toLowerCase().includes(q);
+        const typeMatch = r.room_type && r.room_type.toLowerCase().includes(q);
+        return roomNumMatch || tenantMatch || typeMatch;
+      }
+
+      return true;
+    });
+  }, [rooms, roomStatusFilter, roomSearchQuery, leases, tenants]);
+
+  // Property CRUD Handlers
   const handlePropSubmit = async (e) => {
     e.preventDefault();
     const ownerId = user?.id || 'mock_owner_id';
@@ -95,129 +205,143 @@ export default function Properties() {
     try {
       if (editingPropId) {
         await api.updateProperty(editingPropId, { name: propName, address: propAddress });
+        toast('Property updated successfully', 'success');
       } else {
         const created = await api.createProperty(ownerId, { name: propName, address: propAddress });
         if (created?.id) {
           setSelectedPropertyId(created.id);
         }
+        toast('Property created successfully', 'success');
       }
       setPropName('');
       setPropAddress('');
-      setShowPropForm(false);
+      setShowPropModal(false);
       setEditingPropId(null);
-      await fetchProperties();
+      await loadData();
     } catch (err) {
       console.error(err);
       setError(err.message || 'Failed to save property');
     }
   };
 
-  const startEditProperty = (prop) => {
-    setEditingPropId(prop.id);
-    setPropName(prop.name);
-    setPropAddress(prop.address || '');
-    setShowPropForm(true);
+  const startEditProperty = (p, e) => {
+    e.stopPropagation();
+    setEditingPropId(p.id);
+    setPropName(p.name);
+    setPropAddress(p.address || '');
+    setShowPropModal(true);
   };
 
-  const handlePropDelete = async (id) => {
-    const yes = await confirm({ title: 'Delete Property', message: 'Are you sure you want to delete this property? This will delete all rooms inside it.', confirmText: 'Delete', type: 'error' });
+  const handlePropDelete = async (id, e) => {
+    e.stopPropagation();
+    const yes = await confirm({ 
+      title: 'Delete Property', 
+      message: 'Are you sure you want to delete this property? All associated rooms will also be deleted.', 
+      confirmText: 'Delete Property', 
+      type: 'error' 
+    });
     if (!yes) return;
+
     try {
       await api.deleteProperty(id);
       if (selectedPropertyId === id) {
         setSelectedPropertyId(null);
       }
-      await fetchProperties();
+      await loadData();
+      toast('Property deleted', 'info');
     } catch (err) {
       console.error(err);
       setError(err.message || 'Failed to delete property');
     }
   };
 
-  // Room Form CRUD handlers
-  const handleRoomSubmit = async (e) => {
-    e.preventDefault();
+  // Room CRUD Handlers
+  const handleRoomSubmit = async (roomData) => {
     if (!selectedPropertyId) return;
     setError('');
 
     try {
-      const roomData = {
-        room_number: roomNumber,
-        floor: roomFloor,
-        room_type: roomType,
-        base_rent: parseFloat(roomRent),
-        has_submeter: hasSubmeter,
-        elec_mode: hasSubmeter ? 'submeter' : 'direct',
-        current_meter_reading: hasSubmeter ? parseFloat(roomReading || 0) : 0,
-        rate_per_unit: hasSubmeter ? parseFloat(roomRate || 17) : 0
-      };
-
-      if (editingRoomId) {
-        await api.updateRoom(editingRoomId, roomData);
+      if (editingRoom) {
+        await api.updateRoom(editingRoom.id, roomData);
+        toast(`Room ${roomData.room_number} updated successfully`, 'success');
       } else {
         await api.createRoom(selectedPropertyId, roomData);
+        toast(`Room ${roomData.room_number} added successfully`, 'success');
       }
 
-      setRoomNumber('');
-      setRoomFloor('');
-      setRoomType('Medium');
-      setRoomRent('');
-      setHasSubmeter(true);
-      setRoomReading('0');
-      setRoomRate('17');
-      setShowRoomForm(false);
-      setEditingRoomId(null);
-      await fetchRooms(selectedPropertyId);
+      setShowRoomDrawer(false);
+      setEditingRoom(null);
+      await loadData();
     } catch (err) {
       console.error(err);
-      setError(err.message || 'Failed to save room');
+      setError(err.message || 'Failed to save room details');
     }
   };
 
-  const startEditRoom = (room) => {
-    setEditingRoomId(room.id);
-    setRoomNumber(room.room_number);
-    setRoomFloor(room.floor || '');
-    setRoomType(room.room_type || 'Medium');
-    setRoomRent(room.base_rent.toString());
-    setHasSubmeter(room.has_submeter !== false);
-    setRoomReading((room.current_meter_reading || 0).toString());
-    setRoomRate((room.rate_per_unit || 17).toString());
-    setShowRoomForm(true);
-  };
-
-  const handleRoomDelete = async (id) => {
-    const yes = await confirm({ title: 'Delete Room', message: 'Are you sure you want to delete this room?', confirmText: 'Delete', type: 'error' });
+  const handleRoomDelete = async (room, e) => {
+    if (e) e.stopPropagation();
+    const yes = await confirm({ 
+      title: 'Archive Room', 
+      message: `Are you sure you want to archive Room ${room.room_number}? This room will be removed from active lists.`, 
+      confirmText: 'Archive Room', 
+      type: 'error' 
+    });
     if (!yes) return;
+
     try {
-      await api.deleteRoom(id);
-      await fetchRooms(selectedPropertyId);
+      await api.deleteRoom(room.id);
+      await loadData();
+      toast(`Room ${room.room_number} archived`, 'info');
     } catch (err) {
-      setError(err.message || 'Failed to delete room');
+      console.error(err);
+      setError(err.message || 'Failed to archive room');
     }
   };
+
+  const handleCreateCustomRoomType = async (typeData) => {
+    if (!selectedPropertyId) return;
+    try {
+      const created = await api.createRoomType(selectedPropertyId, typeData);
+      setCustomRoomTypes(prev => [...prev, created]);
+      toast(`Custom Room Type "${typeData.name}" created`, 'success');
+    } catch (err) {
+      console.error(err);
+      toast('Failed to create custom room type', 'error');
+    }
+  };
+
+  if (loading && properties.length === 0) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <div className="w-10 h-10 rounded-full border-4 border-slate-800 border-t-blue-500 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 fade-in-up active">
-      {/* Header banner */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      
+      {/* ── TOP HEADER BAR ── */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800/80 pb-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-100">Properties & Rooms</h1>
-          <p className="text-slate-400 mt-1 text-sm">Configure your locations and room metrics.</p>
+          <p className="text-slate-400 mt-1 text-sm">Manage your properties, rooms, rent, and billing settings.</p>
         </div>
+        
         <button 
           onClick={() => {
             setEditingPropId(null);
             setPropName('');
             setPropAddress('');
-            setShowPropForm(true);
+            setShowPropModal(true);
           }} 
-          className="btn btn-primary shadow-glow px-5 py-2.5 rounded-xl flex items-center gap-2"
+          className="btn btn-primary shadow-glow px-5 py-2.5 rounded-xl flex items-center gap-2 text-sm font-bold cursor-pointer"
         >
-          <Plus size={18} /> New Property
+          <Plus size={18} /> + New Property
         </button>
       </div>
 
+      {/* Error Notification */}
       {error && (
         <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-sm flex items-center gap-2">
           <ShieldAlert size={18} />
@@ -225,360 +349,549 @@ export default function Properties() {
         </div>
       )}
 
-      {/* Two Pane Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        
-        {/* Left Pane: Properties List */}
-        <div className="lg:col-span-4 space-y-4">
-          <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Your Properties</h2>
-          
-          {/* Property Form */}
-          {showPropForm && (
-            <div className="card glass-card border-blue-500/30 p-5 bg-slate-900/50">
-              <h3 className="font-semibold text-slate-200 mb-4 text-sm">
-                {editingPropId ? 'Edit Property Details' : 'Add New Property'}
-              </h3>
-              <form onSubmit={handlePropSubmit} className="space-y-4">
-                <div className="form-group">
-                  <label className="input-label">Property Name</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Royal Heights"
-                    className="form-input bg-slate-950"
-                    value={propName}
-                    onChange={e => setPropName(e.target.value)}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="input-label">Address</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Street 4, London"
-                    className="form-input bg-slate-950"
-                    value={propAddress}
-                    onChange={e => setPropAddress(e.target.value)}
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <button type="submit" className="btn btn-primary py-2 px-4 rounded-lg flex-1 text-xs">
-                    Save Property
-                  </button>
-                  <button 
-                    type="button" 
-                    onClick={() => setShowPropForm(false)} 
-                    className="btn btn-secondary py-2 px-3 rounded-lg text-xs"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
+      {/* ── PROPERTIES SELECTOR SECTION ── */}
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Building size={16} className="text-blue-400" />
+            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Your Properties</h2>
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
+              {properties.length}
+            </span>
+          </div>
+
+          {/* Lightweight Property Search */}
+          {properties.length > 2 && (
+            <div className="relative w-full sm:w-64">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+              <input
+                type="text"
+                placeholder="Search properties..."
+                value={propertySearchQuery}
+                onChange={(e) => setPropertySearchQuery(e.target.value)}
+                className="form-input bg-slate-900 border-slate-800 pl-9 py-1.5 text-xs rounded-xl"
+              />
             </div>
           )}
+        </div>
 
-          {/* List items */}
-          {properties.length === 0 ? (
-            <div className="card glass-card p-6 text-center text-slate-500 text-sm">
-              No properties registered yet. Click "New Property" to start.
-            </div>
-          ) : (
-            <div className="space-y-2.5">
-              {properties.map(p => {
-                const isSelected = selectedPropertyId === p.id;
-                return (
-                  <div
-                    key={p.id}
-                    onClick={() => handleSelectProperty(p)}
-                    className={`card glass-card p-4 flex justify-between items-center cursor-pointer transition-all duration-200 ${
-                      isSelected 
-                        ? 'border-blue-500 bg-blue-500/5 ring-1 ring-blue-500/30' 
-                        : 'border-slate-800 hover:border-slate-700 hover:bg-slate-900/10'
-                    }`}
-                  >
+        {/* Properties List Grid */}
+        {filteredProperties.length === 0 ? (
+          <div className="card glass-card p-8 text-center text-slate-500 text-sm flex flex-col items-center justify-center">
+            <Building size={40} className="text-slate-700 mb-3" />
+            <p className="font-semibold text-slate-300">No properties found</p>
+            <p className="text-xs text-slate-500 mt-1 max-w-sm">
+              {propertySearchQuery ? 'No property matches your search criteria.' : 'Add your first property to start managing rooms, tenants, and bills.'}
+            </p>
+            {!propertySearchQuery && (
+              <button
+                onClick={() => {
+                  setEditingPropId(null);
+                  setPropName('');
+                  setPropAddress('');
+                  setShowPropModal(true);
+                }}
+                className="btn btn-primary text-xs px-4 py-2 mt-4 rounded-xl"
+              >
+                + Add Property
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredProperties.map(p => {
+              const isSelected = selectedPropertyId === p.id;
+              
+              // Calculate property statistics
+              const propRooms = allRooms.filter(r => r.property_id === p.id);
+              const roomCount = propRooms.length;
+              let occCount = 0;
+              let propExpectedRent = 0;
+
+              propRooms.forEach(r => {
+                const isOccupied = r.status === 'Occupied' || leases.some(l => l.room_id === r.id && l.is_active);
+                if (isOccupied) occCount++;
+                propExpectedRent += parseFloat(r.base_rent || 0);
+              });
+
+              return (
+                <div
+                  key={p.id}
+                  onClick={() => setSelectedPropertyId(p.id)}
+                  className={`card glass-card p-4 flex flex-col justify-between cursor-pointer transition-all duration-200 relative group ${
+                    isSelected 
+                      ? 'border-blue-500 bg-blue-600/10 ring-1 ring-blue-500/40 shadow-lg' 
+                      : 'border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/40'
+                  }`}
+                >
+                  <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
-                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
-                        isSelected ? 'bg-blue-600/20 text-blue-400' : 'bg-slate-900 text-slate-500'
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${
+                        isSelected ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-900 text-slate-400 border border-slate-800'
                       }`}>
-                        <Building size={16} />
+                        <Building size={18} />
                       </div>
-                      <div className="overflow-hidden">
-                        <h3 className="font-bold text-sm text-slate-200 truncate">{p.name}</h3>
-                        <span className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5 truncate">
-                          <MapPin size={10} /> {p.address || 'No address'}
-                        </span>
+                      <div className="min-w-0">
+                        <h3 className="font-bold text-sm text-slate-100 truncate">{p.name}</h3>
+                        <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5 truncate">
+                          <MapPin size={11} className="text-slate-500" />
+                          <span>{p.address || 'No location set'}</span>
+                        </p>
                       </div>
                     </div>
-                    
-                    {/* Actions */}
-                    <div className="flex items-center gap-1.5 ml-2" onClick={e => e.stopPropagation()}>
-                      <button 
-                        onClick={() => startEditProperty(p)}
-                        className="p-1.5 text-slate-500 hover:text-slate-200 hover:bg-slate-800 rounded"
+
+                    <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+                      <button
+                        onClick={(e) => startEditProperty(p, e)}
+                        className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
                         title="Edit Property"
                       >
                         <Edit2 size={13} />
                       </button>
-                      <button 
-                        onClick={() => handlePropDelete(p.id)}
-                        className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-slate-800 rounded"
+                      <button
+                        onClick={(e) => handlePropDelete(p.id, e)}
+                        className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition-colors"
                         title="Delete Property"
                       >
                         <Trash2 size={13} />
                       </button>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
 
-        {/* Right Pane: Rooms Grid */}
-        <div className="lg:col-span-8 space-y-4">
-          {selectedProperty ? (
-            <>
-              <div className="flex justify-between items-center">
-                <div>
-                  <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest">
-                    Rooms in {selectedProperty.name}
-                  </h2>
+                  <div className="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs">
+                    <span className="text-slate-400 font-medium">
+                      {roomCount} Rooms • <strong className="text-emerald-400 font-semibold">{occCount} Occupied</strong>
+                    </span>
+
+                    <span className="font-bold text-slate-200 font-mono">
+                      {formatINR(propExpectedRent)}
+                    </span>
+                  </div>
                 </div>
-                <button 
-                  onClick={() => {
-                    setEditingRoomId(null);
-                    setRoomNumber('');
-                    setRoomFloor('');
-                    setRoomType('Medium');
-                    setRoomRent('');
-                    setHasSubmeter(true);
-                    setRoomReading('0');
-                    setRoomRate('17');
-                    setShowRoomForm(true);
-                  }}
-                  className="btn btn-secondary px-3.5 py-1.5 text-xs rounded-lg flex items-center gap-1.5"
-                >
-                  <Plus size={14} /> Add Room
-                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* ── SELECTED PROPERTY ROOMS SECTION ── */}
+      {selectedProperty ? (
+        <div className="space-y-6 pt-4 border-t border-slate-800/80">
+          
+          {/* Selected Property Header Banner */}
+          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 sm:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl sm:text-2xl font-extrabold text-white">
+                  Rooms in {selectedProperty.name}
+                </h2>
+                <span className="text-xs text-slate-400 bg-slate-800 px-2.5 py-1 rounded-full border border-slate-700">
+                  {selectedProperty.address || 'Active Property'}
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-1">
+                {selectedPropertyStats.totalRooms} rooms · {selectedPropertyStats.occupied} occupied · {selectedPropertyStats.vacant} vacant
+              </p>
+            </div>
+
+            {/* Quick Stats Pills */}
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="bg-slate-950 px-3.5 py-2 rounded-xl border border-slate-800 text-center">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Expected Rent</span>
+                <span className="text-sm font-extrabold text-emerald-400">{formatINR(selectedPropertyStats.expectedRent)}</span>
               </div>
 
-              {/* Room Form */}
-              {showRoomForm && (
-                <div className="card glass-card border-blue-500/20 p-6 bg-slate-900/40">
-                  <h3 className="font-bold text-slate-200 mb-4 text-sm flex items-center gap-2">
-                    <Home size={16} className="text-blue-400" />
-                    <span>{editingRoomId ? 'Edit Room Configuration' : 'Register New Room'}</span>
-                  </h3>
-                  <form onSubmit={handleRoomSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="form-group">
-                      <label className="input-label">Room Number / Name</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. 101 or A-12"
-                        className="form-input bg-slate-950"
-                        value={roomNumber}
-                        onChange={e => setRoomNumber(e.target.value)}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label className="input-label">Floor</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. 1st or G"
-                        className="form-input bg-slate-950"
-                        value={roomFloor}
-                        onChange={e => setRoomFloor(e.target.value)}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label className="input-label">Room Type</label>
-                      <select
-                        className="form-input bg-slate-955"
-                        value={roomType}
-                        onChange={e => setRoomType(e.target.value)}
-                      >
-                        <option value="Small">Small</option>
-                        <option value="Medium">Medium</option>
-                        <option value="Big(Window)">Big (window)</option>
-                        <option value="Shop">Shop</option>
-                      </select>
-                    </div>
-                    <div className="form-group">
-                      <label className="input-label">Base Monthly Rent (₹)</label>
-                      <input
-                        type="number"
-                        required
-                        placeholder="e.g. 5000"
-                        className="form-input bg-slate-950"
-                        value={roomRent}
-                        onChange={e => setRoomRent(e.target.value)}
-                      />
-                    </div>
-
-                    {/* Electricity Billing Choice */}
-                    <div className="form-group md:col-span-2">
-                      <label className="input-label flex items-center gap-1.5 font-bold text-slate-300">
-                        <Zap size={14} className="text-yellow-400" /> Electricity Billing Method
-                      </label>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
-                        <button
-                          type="button"
-                          onClick={() => setHasSubmeter(true)}
-                          className={`p-3 rounded-xl border flex items-center gap-3 transition-all text-left ${
-                            hasSubmeter
-                              ? 'bg-blue-600/20 border-blue-500 text-slate-100 ring-1 ring-blue-500/30'
-                              : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
-                          }`}
-                        >
-                          <span className="text-xl">⚡</span>
-                          <div>
-                            <p className="font-bold text-xs">Submeter Reading</p>
-                            <p className="text-[10px] text-slate-400">Track meter units & per-unit rate</p>
-                          </div>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => setHasSubmeter(false)}
-                          className={`p-3 rounded-xl border flex items-center gap-3 transition-all text-left ${
-                            !hasSubmeter
-                              ? 'bg-blue-600/20 border-blue-500 text-slate-100 ring-1 ring-blue-500/30'
-                              : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
-                          }`}
-                        >
-                          <span className="text-xl">📄</span>
-                          <div>
-                            <p className="font-bold text-xs">Direct Bill / Skip Submeter</p>
-                            <p className="text-[10px] text-slate-400">Bill amount added directly or included</p>
-                          </div>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Conditional Submeter Fields */}
-                    {hasSubmeter ? (
-                      <>
-                        <div className="form-group">
-                          <label className="input-label">Starting Meter Reading (units)</label>
-                          <input
-                            type="number"
-                            required={hasSubmeter}
-                            placeholder="e.g. 235"
-                            className="form-input bg-slate-950 font-mono"
-                            value={roomReading}
-                            disabled={!!editingRoomId}
-                            onChange={e => setRoomReading(e.target.value)}
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label className="input-label">Electricity Unit Rate (₹/unit)</label>
-                          <input
-                            type="number"
-                            required={hasSubmeter}
-                            placeholder="e.g. 17"
-                            className="form-input bg-slate-950"
-                            value={roomRate}
-                            onChange={e => setRoomRate(e.target.value)}
-                          />
-                        </div>
-                      </>
-                    ) : (
-                      <div className="md:col-span-2 p-3 bg-slate-950 border border-slate-800/80 rounded-xl text-xs text-slate-400 flex items-center gap-2">
-                        <span>💡</span>
-                        <span>Submeter tracking disabled for this room. You can enter electricity amounts directly or mark as included during monthly billing.</span>
-                      </div>
-                    )}
-
-                    <div className="md:col-span-2 flex gap-3 pt-2">
-                      <button type="submit" className="btn btn-primary py-2.5 px-4 rounded-xl flex-1 text-xs">
-                        Save Room Config
-                      </button>
-                      <button 
-                        type="button" 
-                        onClick={() => setShowRoomForm(false)} 
-                        className="btn btn-secondary py-2.5 px-4 rounded-xl text-xs"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              )}
-
-              {/* Rooms Grid list */}
-              {rooms.length === 0 ? (
-                <div className="card glass-card p-12 text-center text-slate-500 text-sm">
-                  No rooms added to this property yet. Click "Add Room" to create one.
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {rooms.map(room => {
-                    const isSubmeter = room.has_submeter !== false;
-                    return (
-                      <div key={room.id} className="card glass-card p-5 border-slate-800 flex flex-col justify-between">
-                        <div className="flex justify-between items-start">
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold">
-                              {room.room_number}
-                            </div>
-                            <div>
-                              <h3 className="font-bold text-slate-200">Room {room.room_number}</h3>
-                              <span className="text-xs text-slate-500 capitalize">{room.room_type} Room • Floor {room.floor || 'G'}</span>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center gap-1">
-                            <button 
-                              onClick={() => startEditRoom(room)}
-                              className="p-1.5 text-slate-500 hover:text-slate-200 hover:bg-slate-800 rounded"
-                              title="Edit Room"
-                            >
-                              <Edit2 size={13} />
-                            </button>
-                            <button 
-                              onClick={() => handleRoomDelete(room.id)}
-                              className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-slate-800 rounded"
-                              title="Delete Room"
-                            >
-                              <Trash2 size={13} />
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="mt-5 pt-4 border-t border-slate-800/80 grid grid-cols-3 gap-2 text-center">
-                          <div>
-                            <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Base Rent</span>
-                            <p className="text-sm font-bold text-slate-200 mt-0.5">₹{room.base_rent}</p>
-                          </div>
-                          <div>
-                            <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Submeter</span>
-                            <p className="text-sm font-bold text-slate-200 mt-0.5 font-mono">
-                              {isSubmeter ? `${room.current_meter_reading} u` : 'Skipped'}
-                            </p>
-                          </div>
-                          <div>
-                            <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Rate</span>
-                            <p className="text-sm font-bold text-slate-200 mt-0.5">
-                              {isSubmeter ? `₹${room.rate_per_unit}` : 'N/A'}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="card glass-card p-12 text-center text-slate-500 flex flex-col items-center justify-center h-full min-h-[300px]">
-              <Building size={48} className="text-slate-700 mb-4 animate-pulse" />
-              <h3 className="font-semibold text-slate-400">No Property Selected</h3>
-              <p className="text-xs text-slate-600 mt-1 max-w-sm">Select an existing property from the list on the left, or create a new property to manage its rooms.</p>
+              <button 
+                onClick={() => {
+                  setEditingRoom(null);
+                  setShowRoomDrawer(true);
+                }}
+                className="btn btn-primary shadow-glow px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2"
+              >
+                <Plus size={16} /> + Add Room
+              </button>
             </div>
-          )}
-        </div>
+          </div>
 
-      </div>
+          {/* Rooms Filter & Search Toolbar */}
+          <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
+            {/* Status Filter Pills */}
+            <div className="flex items-center gap-1.5 bg-slate-900/80 p-1 border border-slate-800 rounded-xl">
+              {['All', 'Occupied', 'Vacant', 'Maintenance'].map((st) => (
+                <button
+                  key={st}
+                  onClick={() => setRoomStatusFilter(st)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    roomStatusFilter === st
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                  }`}
+                >
+                  {st}
+                </button>
+              ))}
+            </div>
+
+            {/* Room Search */}
+            <div className="relative w-full sm:w-64">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+              <input
+                type="text"
+                placeholder="Search Room No. or Tenant..."
+                value={roomSearchQuery}
+                onChange={(e) => setRoomSearchQuery(e.target.value)}
+                className="form-input bg-slate-900 border-slate-800 pl-9 py-2 text-xs rounded-xl"
+              />
+            </div>
+          </div>
+
+          {/* ROOMS LIST - DESKTOP TABLE & MOBILE CARDS */}
+          {filteredRooms.length === 0 ? (
+            <div className="card glass-card p-12 text-center text-slate-500 text-sm flex flex-col items-center justify-center">
+              <Home size={44} className="text-slate-700 mb-3" />
+              <p className="font-semibold text-slate-300">No rooms found</p>
+              <p className="text-xs text-slate-500 mt-1 max-w-sm">
+                {roomSearchQuery || roomStatusFilter !== 'All' 
+                  ? 'No room matches your filter or search query.' 
+                  : 'Add your first room to start managing tenants, rent, and electricity billing.'}
+              </p>
+              <button
+                onClick={() => {
+                  setEditingRoom(null);
+                  setShowRoomDrawer(true);
+                }}
+                className="btn btn-primary text-xs px-4 py-2 mt-4 rounded-xl font-semibold shadow-glow"
+              >
+                + Add Room
+              </button>
+            </div>
+          ) : (
+            <>
+              {/* DESKTOP ROOMS TABLE */}
+              <div className="hidden md:block card glass-card border-slate-800">
+                <div className="overflow-visible">
+                  <table className="table w-full text-left">
+                    <thead>
+                      <tr className="bg-slate-900/60 border-b border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                        <th className="px-6 py-4">Room</th>
+                        <th className="px-6 py-4">Type</th>
+                        <th className="px-6 py-4">Tenant</th>
+                        <th className="px-6 py-4">Monthly Rent</th>
+                        <th className="px-6 py-4">Electricity</th>
+                        <th className="px-6 py-4">Status</th>
+                        <th className="px-6 py-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredRooms.map(room => {
+                        const tenant = getRoomTenant(room.id);
+                        const isOccupied = room.status === 'Occupied' || !!tenant;
+                        const elecMode = room.elec_mode || (room.has_submeter !== false ? 'submeter' : 'direct');
+
+                        return (
+                          <tr key={room.id} className="border-b border-slate-850 hover:bg-slate-900/30 transition-colors">
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-blue-600/10 text-blue-400 flex items-center justify-center font-bold text-xs border border-blue-500/20">
+                                  {room.room_number}
+                                </div>
+                                <span className="font-bold text-slate-200">Room {room.room_number}</span>
+                              </div>
+                            </td>
+
+                            <td className="px-6 py-4 text-slate-300 text-xs font-medium">
+                              {room.room_type || 'Single Room'}
+                            </td>
+
+                            <td className="px-6 py-4 text-xs font-medium">
+                              {tenant ? (
+                                <span className="text-slate-200 font-semibold">{tenant.name}</span>
+                              ) : (
+                                <span className="text-slate-500 italic">— Vacant —</span>
+                              )}
+                            </td>
+
+                            <td className="px-6 py-4 font-bold text-slate-100 font-mono">
+                              {formatINR(room.base_rent)}
+                            </td>
+
+                            <td className="px-6 py-4 text-xs">
+                              {elecMode === 'submeter' && (
+                                <span className="inline-flex items-center gap-1 text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20 font-medium">
+                                  ⚡ Submeter
+                                </span>
+                              )}
+                              {elecMode === 'direct' && (
+                                <span className="inline-flex items-center gap-1 text-purple-400 bg-purple-500/10 px-2.5 py-0.5 rounded-full border border-purple-500/20 font-medium">
+                                  📄 Direct Bill
+                                </span>
+                              )}
+                              {elecMode === 'fixed' && (
+                                <span className="inline-flex items-center gap-1 text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 font-medium">
+                                  🏷️ Fixed
+                                </span>
+                              )}
+                              {elecMode === 'shared' && (
+                                <span className="inline-flex items-center gap-1 text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20 font-medium">
+                                  🤝 Shared
+                                </span>
+                              )}
+                              {elecMode === 'none' && (
+                                <span className="inline-flex items-center gap-1 text-slate-400 bg-slate-800 px-2.5 py-0.5 rounded-full font-medium">
+                                  🚫 None
+                                </span>
+                              )}
+                            </td>
+
+                            <td className="px-6 py-4">
+                              <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                                isOccupied 
+                                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                                  : room.status === 'Maintenance' 
+                                  ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' 
+                                  : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                              }`}>
+                                {isOccupied ? 'Occupied' : room.status || 'Vacant'}
+                              </span>
+                            </td>
+
+                            <td className="px-6 py-4 text-right relative">
+                              <div className="inline-block text-left" onClick={e => e.stopPropagation()}>
+                                <button
+                                  onClick={() => setActiveMenuRoomId(activeMenuRoomId === room.id ? null : room.id)}
+                                  className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+                                  title="Actions"
+                                >
+                                  <MoreVertical size={16} />
+                                </button>
+
+                                {/* Contextual Action Menu Dropdown */}
+                                {activeMenuRoomId === room.id && (
+                                  <div className="absolute right-0 bottom-full mb-1 w-48 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 py-1.5 text-xs text-slate-200 animate-fade-in">
+                                    <button
+                                      onClick={() => {
+                                        setActiveMenuRoomId(null);
+                                        setInspectRoom(room);
+                                      }}
+                                      className="w-full px-4 py-2 text-left hover:bg-slate-800 flex items-center gap-2"
+                                    >
+                                      <Eye size={13} className="text-blue-400" /> View Room Details
+                                    </button>
+
+                                    <button
+                                      onClick={() => {
+                                        setActiveMenuRoomId(null);
+                                        setEditingRoom(room);
+                                        setShowRoomDrawer(true);
+                                      }}
+                                      className="w-full px-4 py-2 text-left hover:bg-slate-800 flex items-center gap-2"
+                                    >
+                                      <Edit2 size={13} className="text-slate-400" /> Edit Room Config
+                                    </button>
+
+                                    <button
+                                      onClick={() => {
+                                        setActiveMenuRoomId(null);
+                                        navigate('/tenants');
+                                      }}
+                                      className="w-full px-4 py-2 text-left hover:bg-slate-800 flex items-center gap-2"
+                                    >
+                                      <User size={13} className="text-emerald-400" /> {tenant ? 'View Tenant' : 'Add Tenant'}
+                                    </button>
+
+                                    <button
+                                      onClick={() => {
+                                        setActiveMenuRoomId(null);
+                                        navigate(`/smart-calc?roomId=${room.id}`);
+                                      }}
+                                      className="w-full px-4 py-2 text-left hover:bg-slate-800 flex items-center gap-2"
+                                    >
+                                      <Calculator size={13} className="text-amber-400" /> Generate Bill
+                                    </button>
+
+                                    <div className="border-t border-slate-800 my-1" />
+
+                                    <button
+                                      onClick={(e) => {
+                                        setActiveMenuRoomId(null);
+                                        handleRoomDelete(room, e);
+                                      }}
+                                      className="w-full px-4 py-2 text-left hover:bg-red-500/10 text-red-400 flex items-center gap-2"
+                                    >
+                                      <Archive size={13} /> Archive Room
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* MOBILE ROOMS CARDS */}
+              <div className="md:hidden space-y-3">
+                {filteredRooms.map(room => {
+                  const tenant = getRoomTenant(room.id);
+                  const isOccupied = room.status === 'Occupied' || !!tenant;
+                  const elecMode = room.elec_mode || (room.has_submeter !== false ? 'submeter' : 'direct');
+
+                  return (
+                    <div key={room.id} className="card glass-card p-4 space-y-3 border-slate-800 relative">
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-blue-600/10 text-blue-400 flex items-center justify-center font-bold text-sm border border-blue-500/20">
+                            {room.room_number}
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-slate-100 text-sm">Room {room.room_number}</h3>
+                            <p className="text-xs text-slate-400">{room.room_type || 'Single Room'} • Floor {room.floor || 'G'}</p>
+                          </div>
+                        </div>
+
+                        <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
+                          isOccupied ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'
+                        }`}>
+                          {isOccupied ? 'Occupied' : room.status || 'Vacant'}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-slate-850">
+                        <div>
+                          <span className="text-[10px] font-semibold text-slate-500 uppercase">Tenant</span>
+                          <p className="font-medium text-slate-200 truncate">{tenant ? tenant.name : '— Vacant —'}</p>
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-semibold text-slate-500 uppercase">Monthly Rent</span>
+                          <p className="font-bold text-slate-100 font-mono">{formatINR(room.base_rent)}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-850 text-xs">
+                        <span className="text-slate-400">
+                          Elec: <strong className="text-blue-400 font-semibold">{elecMode}</strong>
+                        </span>
+
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setInspectRoom(room)}
+                            className="btn btn-secondary px-2.5 py-1 text-xs"
+                          >
+                            View
+                          </button>
+                          <button
+                            onClick={() => {
+                              setEditingRoom(room);
+                              setShowRoomDrawer(true);
+                            }}
+                            className="btn btn-secondary px-2.5 py-1 text-xs"
+                          >
+                            Edit
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+        </div>
+      ) : (
+        <div className="card glass-card p-12 text-center text-slate-500 flex flex-col items-center justify-center min-h-[300px]">
+          <Building size={48} className="text-slate-700 mb-4 animate-pulse" />
+          <h3 className="font-semibold text-slate-400 text-base">No Property Selected</h3>
+          <p className="text-xs text-slate-600 mt-1 max-w-sm">Select an existing property above, or click "+ New Property" to start managing your rooms.</p>
+        </div>
+      )}
+
+      {/* ── NEW / EDIT PROPERTY MODAL ── */}
+      {showPropModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
+          <div className="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden my-auto">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950/40">
+              <h3 className="font-bold text-base text-slate-100">
+                {editingPropId ? 'Edit Property Details' : 'Add New Property'}
+              </h3>
+              <button onClick={() => setShowPropModal(false)} className="p-1 text-slate-400 hover:text-white">
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handlePropSubmit} className="p-6 space-y-4">
+              <div>
+                <label className="input-label">Property / Building Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Royal Heights or Supernova"
+                  className="form-input bg-slate-950 border-slate-800"
+                  value={propName}
+                  onChange={e => setPropName(e.target.value)}
+                  autoFocus
+                />
+              </div>
+
+              <div>
+                <label className="input-label">Address / Location (Optional)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Sector 62, Noida"
+                  className="form-input bg-slate-950 border-slate-800"
+                  value={propAddress}
+                  onChange={e => setPropAddress(e.target.value)}
+                />
+              </div>
+
+              <div className="pt-2 flex gap-3">
+                <button type="submit" className="btn btn-primary flex-1 justify-center py-2.5 text-xs font-bold shadow-glow">
+                  Save Property
+                </button>
+                <button type="button" onClick={() => setShowPropModal(false)} className="btn btn-secondary px-4 py-2.5 text-xs">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── ROOM DRAWER (SIDE DRAWER / MOBILE SHEET) ── */}
+      <RoomDrawer
+        isOpen={showRoomDrawer}
+        onClose={() => {
+          setShowRoomDrawer(false);
+          setEditingRoom(null);
+        }}
+        onSubmit={handleRoomSubmit}
+        editingRoom={editingRoom}
+        customRoomTypes={customRoomTypes}
+        onOpenCreateTypeModal={() => setShowCreateTypeModal(true)}
+      />
+
+      {/* ── CREATE CUSTOM ROOM TYPE MODAL ── */}
+      <CreateRoomTypeModal
+        isOpen={showCreateTypeModal}
+        onClose={() => setShowCreateTypeModal(false)}
+        onCreate={handleCreateCustomRoomType}
+      />
+
+      {/* ── ROOM DETAILS INSPECTION MODAL ── */}
+      <RoomDetailsModal
+        isOpen={!!inspectRoom}
+        onClose={() => setInspectRoom(null)}
+        room={inspectRoom}
+        tenant={inspectRoom ? getRoomTenant(inspectRoom.id) : null}
+        onEdit={(roomToEdit) => {
+          setEditingRoom(roomToEdit);
+          setShowRoomDrawer(true);
+        }}
+      />
+
     </div>
   );
 }

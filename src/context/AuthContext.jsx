@@ -71,10 +71,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const signUp = async (email, password, fullName) => {
+  const signUp = async (email, password, fullName, phone = '') => {
     setLoading(true);
     try {
-      const data = await api.auth.signUp(email, password, fullName);
+      const data = await api.auth.signUp(email, password, fullName, phone);
       const activeUser = data.user;
       setUser(activeUser);
       if (isLocalMode()) {

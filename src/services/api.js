@@ -9,7 +9,7 @@ export const isLocalMode = () => {
 export const api = {
   // Authentication
   auth: {
-    signUp: async (email, password, fullName) => {
+    signUp: async (email, password, fullName, phone = '') => {
       if (!isLocalMode()) {
         const { data, error } = await supabase.auth.signUp({
           email,
@@ -17,13 +17,14 @@ export const api = {
           options: {
             data: {
               full_name: fullName,
+              phone: phone
             },
           },
         });
         if (error) throw error;
         return data;
       } else {
-        return mockDb.auth.signUp(email, password, fullName);
+        return mockDb.auth.signUp(email, password, fullName, phone);
       }
     },
 
@@ -129,6 +130,22 @@ export const api = {
       return supabaseDb.deleteRoom(id);
     } else {
       return mockDb.deleteRoom(id);
+    }
+  },
+
+  // Room Types
+  getRoomTypes: async (propertyId) => {
+    if (!isLocalMode()) {
+      return (supabaseDb.getRoomTypes ? supabaseDb.getRoomTypes(propertyId) : mockDb.getRoomTypes(propertyId));
+    } else {
+      return mockDb.getRoomTypes(propertyId);
+    }
+  },
+  createRoomType: async (propertyId, data) => {
+    if (!isLocalMode()) {
+      return (supabaseDb.createRoomType ? supabaseDb.createRoomType(propertyId, data) : mockDb.createRoomType(propertyId, data));
+    } else {
+      return mockDb.createRoomType(propertyId, data);
     }
   },
 

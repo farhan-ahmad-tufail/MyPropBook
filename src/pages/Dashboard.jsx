@@ -22,10 +22,12 @@ import {
   Link as LinkIcon,
   CreditCard
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import OnboardingModal from '../components/OnboardingModal';
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [properties, setProperties] = useState([]);
   const [rooms, setRooms] = useState([]);
   const [tenants, setTenants] = useState([]);
@@ -34,6 +36,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showGuideModal, setShowGuideModal] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(searchParams.get('newuser') === 'true');
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -457,6 +460,39 @@ export default function Dashboard() {
         </div>,
         document.body
       )}
+
+      {/* Onboarding Wizard Modal */}
+      <OnboardingModal 
+        isOpen={showOnboarding} 
+        onClose={() => setShowOnboarding(false)} 
+        onComplete={async (data) => {
+          try {
+            const ownerId = user?.id || 'mock_owner_id';
+            if (data.propertyName) {
+              const newProp = await api.createProperty(ownerId, {
+                name: data.propertyName,
+                address: data.propertyAddress || ''
+              });
+              if (newProp && data.roomNumber) {
+                await api.createRoom(newProp.id, {
+                  room_number: data.roomNumber,
+                  base_rent: parseFloat(data.baseRent || 8500),
+                  elec_mode: data.utilityMode || 'submeter'
+                });
+              }
+              // Refresh dashboard data
+              const [propsList, roomsList] = await Promise.all([
+                api.getProperties(ownerId),
+                api.getAllRooms(ownerId)
+              ]);
+              setProperties(propsList);
+              setRooms(roomsList);
+            }
+          } catch (e) {
+            console.error('Error during onboarding setup', e);
+          }
+        }}
+      />
     </div>
   );
 }

@@ -2,7 +2,23 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
-import { Receipt, DollarSign, Eye, ShieldAlert, Check, X, Filter, Printer, Download, Share2 } from 'lucide-react';
+import { 
+  Receipt, 
+  DollarSign, 
+  Eye, 
+  ShieldAlert, 
+  Check, 
+  X, 
+  Filter, 
+  Printer, 
+  Download, 
+  Share2,
+  History,
+  CreditCard,
+  CheckCircle2,
+  Calendar,
+  AlertCircle
+} from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { useToast } from '../components/Toast';
@@ -22,11 +38,13 @@ export default function Billing() {
   const [statusFilter, setStatusFilter] = useState('All');
   const [selectedBill, setSelectedBill] = useState(null);
   
-  // Payment Modal state
+  // Payment Modal & History state
   const [showPayModal, setShowPayModal] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [payAmount, setPayAmount] = useState('');
   const [payMethod, setPayMethod] = useState('UPI');
   const [billPayments, setBillPayments] = useState([]);
+  const [loadingPayments, setLoadingPayments] = useState(false);
 
   const receiptRef = useRef(null);
 
@@ -57,22 +75,69 @@ export default function Billing() {
     loadBillingData();
   }, [loadBillingData]);
 
+  const handleClosePayModal = () => {
+    setShowPayModal(false);
+    setSelectedBill(null);
+    setBillPayments([]);
+  };
+
+  const handleCloseViewModal = () => {
+    setSelectedBill(null);
+    setBillPayments([]);
+  };
 
   const handleOpenPayModal = async (bill) => {
     setSelectedBill(bill);
-    const remaining = parseFloat(bill.total_payable) - parseFloat(bill.amount_paid || 0);
+    const total = parseFloat(bill.total_payable || 0);
+    const paid = parseFloat(bill.amount_paid || 0);
+    const remaining = total - paid;
     setPayAmount(remaining > 0 ? remaining.toString() : '0');
     setPayMethod('UPI');
+    setBillPayments([]);
+    setLoadingPayments(true);
     
-    // Fetch payments made for this bill
     try {
       const list = await api.getPayments(bill.id);
-      setBillPayments(list);
+      setBillPayments(list || []);
     } catch (err) {
       console.error(err);
+    } finally {
+      setLoadingPayments(false);
     }
     
     setShowPayModal(true);
+  };
+
+  const handleOpenHistoryModal = async (bill) => {
+    setSelectedBill(bill);
+    setBillPayments([]);
+    setLoadingPayments(true);
+    setShowHistoryModal(true);
+
+    try {
+      const list = await api.getPayments(bill.id);
+      setBillPayments(list || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingPayments(false);
+    }
+  };
+
+  const handleCloseHistoryModal = () => {
+    setShowHistoryModal(false);
+    setSelectedBill(null);
+    setBillPayments([]);
+  };
+
+  const handleOpenViewModal = async (bill) => {
+    setSelectedBill(bill);
+    try {
+      const list = await api.getPayments(bill.id);
+      setBillPayments(list || []);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleRecordPayment = async (e) => {
@@ -84,6 +149,7 @@ export default function Billing() {
       await api.recordPayment(selectedBill.id, parseFloat(payAmount), payMethod);
       setShowPayModal(false);
       setSelectedBill(null);
+      setBillPayments([]);
       await loadBillingData();
       toast('Payment successfully recorded!', 'success');
     } catch (err) {
@@ -126,7 +192,10 @@ export default function Billing() {
 
     try {
       const tenantName = getTenantName(selectedBill.tenant_id);
-      const text = `*RENT RECEIPT*\nMonth: ${selectedBill.bill_month} ${selectedBill.bill_year}\nTenant: ${tenantName}\nTotal: ₹${parseFloat(selectedBill.total_payable).toFixed(2)}`;
+      const paid = parseFloat(selectedBill.amount_paid || 0);
+      const total = parseFloat(selectedBill.total_payable || 0);
+      const due = total - paid;
+      const text = `*RENT RECEIPT*\nMonth: ${selectedBill.bill_month} ${selectedBill.bill_year}\nTenant: ${tenantName}\nTotal Payable: ₹${total.toFixed(2)}\nPaid: ₹${paid.toFixed(2)}\nRemaining Balance: ₹${due > 0 ? due.toFixed(2) : '0.00'}`;
 
       const canvas = await html2canvas(receiptRef.current, { scale: 2, backgroundColor: '#ffffff' });
       const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
@@ -167,7 +236,7 @@ export default function Billing() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-100">Billing & Invoices</h1>
-          <p className="text-slate-400 mt-1 text-sm">Review historical billing records and record payments.</p>
+          <p className="text-slate-400 mt-1 text-sm">Review historical billing records, payment history, and record payments.</p>
         </div>
 
         {/* Filter controls */}
@@ -208,74 +277,110 @@ export default function Billing() {
                   <th className="px-6 py-4">Tenant Name</th>
                   <th className="px-6 py-4">Room</th>
                   <th className="px-6 py-4">Billing Month</th>
-                  <th className="px-6 py-4 font-mono">Cons. Units</th>
                   <th className="px-6 py-4">Payable Amount</th>
+                  <th className="px-6 py-4">Paid / Remaining</th>
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredBills.map(bill => (
-                  <tr key={bill.id} className="border-b border-slate-850 hover:bg-slate-900/10 last:border-0">
-                    <td className="px-6 py-4 font-semibold text-slate-200">{getTenantName(bill.tenant_id)}</td>
-                    <td className="px-6 py-4 text-slate-300 font-medium">{getRoomNumber(bill.room_id)}</td>
-                    <td className="px-6 py-4 text-slate-400">{bill.bill_month} {bill.bill_year}</td>
-                    <td className="px-6 py-4 font-mono text-slate-400 text-xs">{parseFloat(bill.units_consumed).toFixed(2)} u</td>
-                    <td className="px-6 py-4 font-bold text-slate-200">₹{parseFloat(bill.total_payable).toLocaleString()}</td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                        bill.payment_status === 'Paid' 
-                          ? 'bg-emerald-500/10 text-emerald-400' 
-                          : bill.payment_status === 'Partially Paid' 
-                          ? 'bg-yellow-500/10 text-yellow-400'
-                          : 'bg-red-500/10 text-red-400'
-                      }`}>
-                        {bill.payment_status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => setSelectedBill(bill)}
-                          className="btn btn-secondary px-3 py-1.5 rounded-lg text-xs flex items-center gap-1 hover:text-blue-400"
-                          title="Open Bill Details"
-                        >
-                          <Eye size={12} />
-                          <span>View</span>
-                        </button>
-                        
-                        {bill.payment_status !== 'Paid' && (
+                {filteredBills.map(bill => {
+                  const total = parseFloat(bill.total_payable || 0);
+                  const paid = parseFloat(bill.amount_paid || 0);
+                  const remaining = total - paid;
+
+                  return (
+                    <tr key={bill.id} className="border-b border-slate-850 hover:bg-slate-900/20 last:border-0 transition-colors">
+                      <td className="px-6 py-4 font-semibold text-slate-200">{getTenantName(bill.tenant_id)}</td>
+                      <td className="px-6 py-4 text-slate-300 font-medium">{getRoomNumber(bill.room_id)}</td>
+                      <td className="px-6 py-4 text-slate-400">{bill.bill_month} {bill.bill_year}</td>
+                      <td className="px-6 py-4 font-bold text-slate-200">₹{total.toLocaleString()}</td>
+                      
+                      {/* Paid / Remaining Column Breakdown */}
+                      <td className="px-6 py-4 text-xs font-mono">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-emerald-400 font-semibold">
+                            Paid: ₹{paid.toLocaleString()}
+                          </span>
+                          {remaining > 0 ? (
+                            <span className="text-amber-400 font-bold">
+                              Due: ₹{remaining.toLocaleString()}
+                            </span>
+                          ) : (
+                            <span className="text-slate-500">Fully Paid</span>
+                          )}
+                        </div>
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                          bill.payment_status === 'Paid' 
+                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                            : bill.payment_status === 'Partially Paid' 
+                            ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                            : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                        }`}>
+                          {bill.payment_status}
+                        </span>
+                      </td>
+
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex justify-end gap-2">
+                          
+                          {/* Payment History Button */}
                           <button
-                            onClick={() => handleOpenPayModal(bill)}
-                            className="btn btn-primary px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5"
+                            onClick={() => handleOpenHistoryModal(bill)}
+                            className="btn btn-secondary px-2.5 py-1.5 rounded-lg text-xs flex items-center gap-1 hover:text-amber-400"
+                            title="View Payment History"
                           >
-                            <DollarSign size={12} />
-                            <span>Pay</span>
+                            <History size={12} />
+                            <span>History</span>
                           </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+
+                          {/* View Invoice Receipt Button */}
+                          <button
+                            onClick={() => handleOpenViewModal(bill)}
+                            className="btn btn-secondary px-2.5 py-1.5 rounded-lg text-xs flex items-center gap-1 hover:text-blue-400"
+                            title="Open Bill Details"
+                          >
+                            <Eye size={12} />
+                            <span>View</span>
+                          </button>
+                          
+                          {/* Record Payment Button */}
+                          {bill.payment_status !== 'Paid' && (
+                            <button
+                              onClick={() => handleOpenPayModal(bill)}
+                              className="btn btn-primary px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow-glow"
+                            >
+                              <DollarSign size={12} />
+                              <span>Pay</span>
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         </div>
       )}
 
-      {/* Bill View Detail Modal - Rendered in Portal to avoid parent overflow clipping */}
-      {selectedBill && !showPayModal && createPortal(
+      {/* Bill View Detail Modal (Only renders when NOT in pay or history modal) */}
+      {selectedBill && !showPayModal && !showHistoryModal && createPortal(
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[9999] overflow-y-auto p-4 sm:p-6 flex items-center justify-center">
           <div className="card glass-card w-full max-w-lg border-slate-800 bg-slate-900 shadow-2xl relative my-auto">
             <button 
-              onClick={() => setSelectedBill(null)} 
+              onClick={handleCloseViewModal} 
               className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-200 z-10"
             >
               <X size={20} />
             </button>
 
             <div className="p-5 sm:p-6 space-y-5">
-              <h3 className="font-bold text-slate-200 text-base pr-8">Invoice Details</h3>
+              <h3 className="font-bold text-slate-200 text-base pr-8">Invoice Details & Receipt</h3>
               
               {/* Receipt Visual wrapper */}
               <div className="border border-slate-800 rounded-xl max-h-[60vh] overflow-y-auto bg-slate-950 p-2 sm:p-3">
@@ -328,10 +433,37 @@ export default function Billing() {
                     )}
                   </div>
 
-                  <div style={{ borderTop: '2px solid #0f172a', paddingTop: '8px', display: 'flex', justifycontent: 'space-between', alignItems: 'center' }}>
-                    <span className="font-bold text-slate-900 text-sm">TOTAL AMOUNT:</span>
-                    <span className="font-bold text-blue-600 text-base">₹{parseFloat(selectedBill.total_payable).toFixed(2)}</span>
+                  {/* Amount Breakdown Summary */}
+                  <div style={{ borderTop: '2px solid #0f172a', paddingTop: '8px' }} className="space-y-1 text-xs">
+                    <div className="flex justify-between items-center font-bold text-slate-900 text-sm">
+                      <span>TOTAL AMOUNT:</span>
+                      <span className="text-blue-600 text-base">₹{parseFloat(selectedBill.total_payable).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-emerald-700 font-semibold">
+                      <span>Amount Received:</span>
+                      <span>₹{parseFloat(selectedBill.amount_paid || 0).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-amber-700 font-bold">
+                      <span>Remaining Due:</span>
+                      <span>₹{Math.max(0, parseFloat(selectedBill.total_payable) - parseFloat(selectedBill.amount_paid || 0)).toFixed(2)}</span>
+                    </div>
                   </div>
+
+                  {/* Payment History Log inside Receipt View */}
+                  {billPayments.length > 0 && (
+                    <div className="mt-4 pt-3 border-t border-dashed border-slate-300">
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Payment History</div>
+                      <div className="space-y-1 text-[11px]">
+                        {billPayments.map((p, idx) => (
+                          <div key={p.id || idx} className="flex justify-between text-slate-700">
+                            <span>{p.payment_date} ({p.payment_method})</span>
+                            <span className="font-semibold text-emerald-600">+₹{parseFloat(p.amount_paid).toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                 </div>
               </div>
 
@@ -350,7 +482,7 @@ export default function Billing() {
                   <Share2 size={14} /> Share WhatsApp
                 </button>
                 <button 
-                  onClick={() => setSelectedBill(null)} 
+                  onClick={handleCloseViewModal} 
                   className="btn btn-secondary rounded-xl py-2.5 px-4 text-xs"
                 >
                   Close
@@ -367,16 +499,35 @@ export default function Billing() {
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[9999] overflow-y-auto p-4 sm:p-6 flex items-center justify-center">
           <div className="card glass-card w-full max-w-md border-slate-800 bg-slate-900 shadow-2xl relative my-auto">
             <button 
-              onClick={() => setShowPayModal(false)} 
+              onClick={handleClosePayModal} 
               className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-200 z-10"
             >
               <X size={20} />
             </button>
 
-            <div className="p-6 space-y-6">
+            <div className="p-6 space-y-5">
               <div className="space-y-1">
-                <h3 className="font-bold text-slate-200 text-base">Record Payment Receipt</h3>
-                <p className="text-xs text-slate-500">Receive payment for {getTenantName(selectedBill.tenant_id)}'s invoice.</p>
+                <h3 className="font-bold text-slate-200 text-base flex items-center gap-2">
+                  <CreditCard size={18} className="text-blue-400" />
+                  <span>Record Payment</span>
+                </h3>
+                <p className="text-xs text-slate-400">Receive payment for {getTenantName(selectedBill.tenant_id)}'s invoice.</p>
+              </div>
+
+              {/* Outstanding Balance Breakdown Card */}
+              <div className="p-3.5 bg-slate-950 border border-slate-800 rounded-xl space-y-2 text-xs">
+                <div className="flex justify-between text-slate-400">
+                  <span>Total Payable:</span>
+                  <span className="font-bold text-slate-200">₹{parseFloat(selectedBill.total_payable).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between text-emerald-400 font-medium">
+                  <span>Already Paid:</span>
+                  <span>₹{parseFloat(selectedBill.amount_paid || 0).toLocaleString()}</span>
+                </div>
+                <div className="border-t border-slate-850 pt-1.5 flex justify-between font-bold text-amber-400 text-sm">
+                  <span>Remaining Due:</span>
+                  <span>₹{Math.max(0, parseFloat(selectedBill.total_payable) - parseFloat(selectedBill.amount_paid || 0)).toLocaleString()}</span>
+                </div>
               </div>
 
               <form onSubmit={handleRecordPayment} className="space-y-4">
@@ -384,14 +535,12 @@ export default function Billing() {
                   <label className="input-label">Payment Amount (₹)</label>
                   <input
                     type="number"
+                    step="any"
                     required
-                    className="form-input bg-slate-950"
+                    className="form-input bg-slate-950 font-semibold text-slate-100"
                     value={payAmount}
                     onChange={e => setPayAmount(e.target.value)}
                   />
-                  <span className="text-[10px] text-slate-500 mt-1 block">
-                    Remaining: ₹{(parseFloat(selectedBill.total_payable) - parseFloat(selectedBill.amount_paid || 0)).toFixed(2)} of ₹{selectedBill.total_payable} total
-                  </span>
                 </div>
 
                 <div className="form-group">
@@ -409,24 +558,29 @@ export default function Billing() {
 
                 {/* History of payments already recorded */}
                 {billPayments.length > 0 && (
-                  <div className="p-3.5 bg-slate-950 border border-slate-850 rounded-xl space-y-2 text-xs">
-                    <span className="font-semibold text-slate-400">Payments History:</span>
-                    {billPayments.map((p, idx) => (
-                      <div key={p.id || idx} className="flex justify-between text-slate-400 font-mono">
-                        <span>{p.payment_date} ({p.payment_method})</span>
-                        <span className="text-emerald-400">+₹{p.amount_paid}</span>
-                      </div>
-                    ))}
+                  <div className="p-3.5 bg-slate-950 border border-slate-800 rounded-xl space-y-2 text-xs">
+                    <span className="font-semibold text-slate-400 flex items-center gap-1.5">
+                      <History size={13} className="text-slate-400" />
+                      Previously Recorded Transactions:
+                    </span>
+                    <div className="space-y-1 max-h-32 overflow-y-auto pr-1">
+                      {billPayments.map((p, idx) => (
+                        <div key={p.id || idx} className="flex justify-between text-slate-400 font-mono text-[11px]">
+                          <span>{p.payment_date} ({p.payment_method})</span>
+                          <span className="text-emerald-400 font-semibold">+₹{parseFloat(p.amount_paid).toLocaleString()}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
 
                 <div className="flex gap-3 pt-2">
-                  <button type="submit" className="btn btn-primary py-2.5 px-4 rounded-xl flex-1 text-xs">
+                  <button type="submit" className="btn btn-primary py-2.5 px-4 rounded-xl flex-1 text-xs font-semibold shadow-glow">
                     Record Payment
                   </button>
                   <button 
                     type="button" 
-                    onClick={() => setShowPayModal(false)} 
+                    onClick={handleClosePayModal} 
                     className="btn btn-secondary py-2.5 px-4 rounded-xl text-xs"
                   >
                     Cancel
@@ -438,6 +592,104 @@ export default function Billing() {
         </div>,
         document.body
       )}
+
+      {/* DEDICATED PAYMENT HISTORY MODAL */}
+      {showHistoryModal && selectedBill && createPortal(
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[9999] overflow-y-auto p-4 sm:p-6 flex items-center justify-center">
+          <div className="card glass-card w-full max-w-md border-slate-800 bg-slate-900 shadow-2xl relative my-auto">
+            <button 
+              onClick={handleCloseHistoryModal} 
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-200 z-10"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="p-6 space-y-5">
+              <div className="space-y-1">
+                <h3 className="font-bold text-slate-200 text-base flex items-center gap-2">
+                  <History size={18} className="text-amber-400" />
+                  <span>Payment History</span>
+                </h3>
+                <p className="text-xs text-slate-400">
+                  {getTenantName(selectedBill.tenant_id)} • {getRoomNumber(selectedBill.room_id)} ({selectedBill.bill_month} {selectedBill.bill_year})
+                </p>
+              </div>
+
+              {/* Financial Breakdown Card */}
+              <div className="grid grid-cols-3 gap-2 bg-slate-950 p-3.5 border border-slate-800 rounded-xl text-center">
+                <div>
+                  <p className="text-[10px] font-semibold text-slate-500 uppercase">Total Bill</p>
+                  <p className="text-sm font-bold text-slate-200 mt-0.5">₹{parseFloat(selectedBill.total_payable).toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-semibold text-slate-500 uppercase">Paid So Far</p>
+                  <p className="text-sm font-bold text-emerald-400 mt-0.5">₹{parseFloat(selectedBill.amount_paid || 0).toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-semibold text-slate-500 uppercase">Remaining</p>
+                  <p className="text-sm font-bold text-amber-400 mt-0.5">
+                    ₹{Math.max(0, parseFloat(selectedBill.total_payable) - parseFloat(selectedBill.amount_paid || 0)).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+
+              {/* Transactions List */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Transaction Records</h4>
+                
+                {loadingPayments ? (
+                  <div className="py-6 text-center text-xs text-slate-500">Loading transactions...</div>
+                ) : billPayments.length === 0 ? (
+                  <div className="py-6 text-center text-xs text-slate-500 bg-slate-950/60 rounded-xl border border-slate-850">
+                    No payment transactions recorded yet.
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                    {billPayments.map((p, idx) => (
+                      <div key={p.id || idx} className="p-3 bg-slate-950 border border-slate-850 rounded-xl flex items-center justify-between text-xs">
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-2 font-medium text-slate-200">
+                            <Calendar size={13} className="text-slate-500" />
+                            <span>{p.payment_date}</span>
+                          </div>
+                          <span className="text-[10px] text-slate-500 block">Method: {p.payment_method}</span>
+                        </div>
+                        <span className="font-bold text-emerald-400 font-mono text-sm">
+                          +₹{parseFloat(p.amount_paid).toLocaleString()}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Footer Buttons */}
+              <div className="flex gap-2 pt-2">
+                {selectedBill.payment_status !== 'Paid' && (
+                  <button
+                    onClick={() => {
+                      setShowHistoryModal(false);
+                      handleOpenPayModal(selectedBill);
+                    }}
+                    className="btn btn-primary flex-1 py-2.5 text-xs justify-center font-semibold shadow-glow"
+                  >
+                    Add Payment
+                  </button>
+                )}
+                <button
+                  onClick={handleCloseHistoryModal}
+                  className="btn btn-secondary px-4 py-2.5 text-xs"
+                >
+                  Close
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
     </div>
   );
 }

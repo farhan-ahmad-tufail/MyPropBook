@@ -33,12 +33,12 @@ const setStore = (key, data) => {
 export const mockDb = {
   // Authentication Mock
   auth: {
-    signUp: async (email, password, fullName) => {
+    signUp: async (email, password, fullName, phone = '') => {
       const users = getStore('mock_users');
       if (users.find(u => u.email === email)) {
         throw new Error('User already exists');
       }
-      const newUser = { id: 'user_' + Date.now(), email, fullName };
+      const newUser = { id: 'user_' + Date.now(), email, fullName, phone };
       users.push(newUser);
       setStore('mock_users', users);
       return { user: newUser, session: { access_token: 'mock_token' } };
@@ -112,12 +112,15 @@ export const mockDb = {
       property_id: propertyId,
       room_number: data.room_number,
       floor: data.floor,
-      room_type: data.room_type || 'Medium',
+      room_type: data.room_type || 'Single Room',
       base_rent: parseFloat(data.base_rent) || 0,
+      status: data.status || 'Vacant',
       has_submeter: data.has_submeter !== false,
       elec_mode: data.elec_mode || (data.has_submeter !== false ? 'submeter' : 'direct'),
-      current_meter_reading: data.has_submeter !== false ? (parseFloat(data.current_meter_reading) || 0) : 0,
-      rate_per_unit: data.has_submeter !== false ? (parseFloat(data.rate_per_unit) || 17) : 0,
+      current_meter_reading: parseFloat(data.current_meter_reading || 0),
+      rate_per_unit: parseFloat(data.rate_per_unit || 17),
+      direct_elec_amount: parseFloat(data.direct_elec_amount || 0),
+      fixed_elec_amount: parseFloat(data.fixed_elec_amount || 0),
       created_at: new Date().toISOString()
     };
     list.push(newRoom);
@@ -134,11 +137,33 @@ export const mockDb = {
       base_rent: data.base_rent !== undefined ? parseFloat(data.base_rent) : list[index].base_rent,
       current_meter_reading: data.current_meter_reading !== undefined ? parseFloat(data.current_meter_reading) : list[index].current_meter_reading,
       rate_per_unit: data.rate_per_unit !== undefined ? parseFloat(data.rate_per_unit) : list[index].rate_per_unit,
+      direct_elec_amount: data.direct_elec_amount !== undefined ? parseFloat(data.direct_elec_amount) : list[index].direct_elec_amount,
+      fixed_elec_amount: data.fixed_elec_amount !== undefined ? parseFloat(data.fixed_elec_amount) : list[index].fixed_elec_amount,
       has_submeter: data.has_submeter !== undefined ? data.has_submeter : list[index].has_submeter,
       elec_mode: data.elec_mode !== undefined ? data.elec_mode : list[index].elec_mode,
+      status: data.status !== undefined ? data.status : list[index].status,
     };
     setStore('mock_rooms', list);
     return list[index];
+  },
+  
+  // Custom Room Types
+  getRoomTypes: async (propertyId) => {
+    const types = getStore('mock_room_types');
+    return types.filter(t => t.property_id === propertyId);
+  },
+  createRoomType: async (propertyId, typeData) => {
+    const types = getStore('mock_room_types');
+    const newType = {
+      id: 'type_' + Date.now(),
+      property_id: propertyId,
+      name: typeData.name,
+      description: typeData.description || '',
+      created_at: new Date().toISOString()
+    };
+    types.push(newType);
+    setStore('mock_room_types', types);
+    return newType;
   },
   deleteRoom: async (id) => {
     const list = getStore('mock_rooms');
