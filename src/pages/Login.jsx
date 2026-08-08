@@ -30,17 +30,30 @@ export default function Login() {
       navigate('/dashboard');
     } catch (err) {
       console.error(err);
-      setError(err.message || 'Authentication failed. Please try again.');
+      const rawMsg = err.message || '';
+      if (rawMsg.toLowerCase().includes('invalid login credentials') || rawMsg.toLowerCase().includes('invalid credentials')) {
+        setError("We couldn't sign you in. Please check your email and password and try again.");
+      } else {
+        setError(err.message || "We couldn't sign you in. Please try again in a moment.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex-1 flex items-center justify-center px-6 py-12 relative min-h-screen">
-      {/* Glow background decoration */}
-      <div className="absolute w-[400px] h-[400px] bg-blue-600/10 blur-[80px] rounded-full top-1/4 left-1/4 pointer-events-none" />
-      <div className="absolute w-[400px] h-[400px] bg-purple-600/10 blur-[80px] rounded-full bottom-1/4 right-1/4 pointer-events-none" />
+    <div className="flex-1 flex items-center justify-center px-6 py-12 relative min-h-screen bg-slate-950 overflow-hidden">
+      {/* Vercel-style subtle background grid pattern */}
+      <div 
+        className="absolute inset-0 pointer-events-none opacity-[0.04]"
+        style={{
+          backgroundImage: `linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px)`,
+          backgroundSize: '32px 32px'
+        }}
+      />
+
+      {/* Vercel/Linear style subtle blue/indigo background ambient gradient glow */}
+      <div className="absolute w-[600px] h-[600px] bg-gradient-to-tr from-blue-600/15 via-indigo-500/10 to-purple-600/10 blur-[130px] rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
 
       <div className="w-full max-w-md card glass-card border-slate-800/80 shadow-2xl relative z-10">
         {/* Top Gradient strip */}
@@ -124,10 +137,13 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full btn btn-primary justify-center py-3 text-base shadow-glow flex items-center gap-2 rounded-xl mt-6"
+              className="w-full btn btn-primary justify-center py-3 text-base shadow-glow flex items-center gap-2 rounded-xl mt-6 transition-all duration-200"
             >
               {loading ? (
-                <div className="w-5 h-5 rounded-full border-2 border-slate-300 border-t-transparent animate-spin" />
+                <span className="flex items-center gap-2.5">
+                  <div className="w-4 h-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+                  <span className="text-sm font-medium">Signing you in...</span>
+                </span>
               ) : isSignUpMode ? (
                 <>
                   <UserPlus size={18} /> Register
@@ -159,7 +175,7 @@ export default function Login() {
                 if (result) navigate('/dashboard');
               } catch (err) {
                 console.error(err);
-                setError(err.message || 'Google sign-in failed.');
+                setError(err.message || "We couldn't sign you in with Google. Please try again.");
               } finally {
                 setGoogleLoading(false);
               }
@@ -167,7 +183,10 @@ export default function Login() {
             className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-slate-700 bg-slate-800/50 hover:bg-slate-700/60 hover:border-slate-600 text-slate-200 font-medium text-sm transition-all duration-200 cursor-pointer"
           >
             {googleLoading ? (
-              <div className="w-5 h-5 rounded-full border-2 border-slate-400 border-t-transparent animate-spin" />
+              <span className="flex items-center gap-2.5">
+                <div className="w-4 h-4 rounded-full border-2 border-slate-400 border-t-slate-100 animate-spin" />
+                <span className="text-sm font-medium">Connecting to Google...</span>
+              </span>
             ) : (
               <>
                 <svg width="18" height="18" viewBox="0 0 48 48">
