@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Home, ShieldAlert, LogIn, UserPlus, AlertCircle } from 'lucide-react';
+import Logo from '../components/Logo';
 
 export default function Login() {
   const { signIn, signUp, signInWithGoogle, isLocal } = useAuth();
@@ -48,8 +49,8 @@ export default function Login() {
         <div className="p-8">
           {/* Brand Logo Header */}
           <div className="flex flex-col items-center mb-8 text-center">
-            <Link to="/" className="mb-4">
-              <img src="/logo.png" alt="BillRoom Logo" className="h-14 w-auto object-contain" />
+            <Link to="/" className="mb-4 group">
+              <Logo size={44} />
             </Link>
             <h2 className="text-2xl font-bold text-slate-100">
               {isSignUpMode ? 'Create your Account' : 'Welcome Back'}
