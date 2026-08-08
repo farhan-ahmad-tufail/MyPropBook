@@ -274,13 +274,32 @@ export default function Dashboard() {
                           </div>
 
                           {/* Room bottom details row */}
-                          <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs">
-                            <span className="text-slate-400">Rent: <span className="text-slate-200 font-semibold">₹{parseFloat(room.base_rent).toLocaleString()}</span></span>
-                            {tenant && (
-                              <span className="text-slate-400">Tenant: <span className="text-slate-200 font-medium">{tenant.name}</span></span>
-                            )}
-                            {balance > 0 && (
-                              <span className="text-red-400 font-semibold">Due: ₹{balance.toLocaleString()}</span>
+                          <div className="mt-3 flex items-center justify-between gap-2 text-xs flex-wrap">
+                            <div className="flex flex-wrap gap-x-4 gap-y-1">
+                              <span className="text-slate-400">Rent: <span className="text-slate-200 font-semibold">₹{parseFloat(room.base_rent).toLocaleString()}</span></span>
+                              {tenant && (
+                                <span className="text-slate-400">Tenant: <span className="text-slate-200 font-medium">{tenant.name}</span></span>
+                              )}
+                              {balance > 0 && (
+                                <span className="text-red-400 font-semibold">Due: ₹{balance.toLocaleString()}</span>
+                              )}
+                            </div>
+
+                            {/* 1-Click WhatsApp Payment Reminder Button */}
+                            {balance > 0 && tenant && (
+                              <button
+                                onClick={() => {
+                                  const text = `*RENT & UTILITY PAYMENT REMINDER*\nDear ${tenant.name},\nThis is a gentle reminder regarding your pending balance of *₹${balance.toLocaleString()}* for Room ${room.room_number} (${property.name}).\n\nPlease clear the due payment at your earliest convenience. Thank you!`;
+                                  const phone = tenant.phone ? tenant.phone.replace(/[^0-9]/g, '') : '';
+                                  const url = phone ? `https://wa.me/${phone}?text=${encodeURIComponent(text)}` : `https://wa.me/?text=${encodeURIComponent(text)}`;
+                                  window.open(url, '_blank');
+                                }}
+                                className="px-2.5 py-1 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/30 rounded-lg text-[11px] font-semibold flex items-center gap-1 transition-all"
+                                title="Send 1-Click WhatsApp Reminder to Tenant"
+                              >
+                                <Share2 size={11} />
+                                <span>Remind WhatsApp</span>
+                              </button>
                             )}
                           </div>
                         </div>
