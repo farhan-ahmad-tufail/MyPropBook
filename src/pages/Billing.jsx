@@ -162,19 +162,33 @@ export default function Billing() {
     }
   };
 
-  const getTenantName = (bill) => {
-    if (!bill) return 'Unknown Tenant';
-    let t = tenants.find(ten => String(ten.id) === String(bill.tenant_id));
+  const getTenantName = (billOrId) => {
+    if (!billOrId) return 'Unknown Tenant';
+    
+    // If passed a bill object
+    if (typeof billOrId === 'object') {
+      if (billOrId.tenant_name) return billOrId.tenant_name;
+      let t = tenants.find(ten => String(ten.id) === String(billOrId.tenant_id));
+      if (t) return t.name;
+      if (billOrId.room_id) {
+        const lease = leases.find(l => String(l.room_id) === String(billOrId.room_id));
+        if (lease) {
+          t = tenants.find(ten => String(ten.id) === String(lease.tenant_id));
+          if (t) return t.name;
+        }
+      }
+      return 'Unknown Tenant';
+    }
+
+    // If passed a string/number ID directly
+    const tenantIdStr = String(billOrId);
+    let t = tenants.find(ten => String(ten.id) === tenantIdStr);
     if (t) return t.name;
 
-    // Fallback: Check active or historical lease for this room
-    if (bill.room_id) {
-      const lease = leases.find(l => String(l.room_id) === String(bill.room_id));
-      if (lease) {
-        t = tenants.find(ten => String(ten.id) === String(lease.tenant_id));
-        if (t) return t.name;
-      }
-    }
+    // Check if any bill in list has tenant_name for this tenant_id
+    const bMatch = bills.find(b => String(b.tenant_id) === tenantIdStr && b.tenant_name);
+    if (bMatch) return bMatch.tenant_name;
+
     return 'Unknown Tenant';
   };
 
@@ -340,29 +354,23 @@ export default function Billing() {
                       </td>
 
                       <td className="px-6 py-4 text-right">
-                        <div className="flex justify-end gap-2">
-                          
-                          {/* Payment History Button */}
-                          <button
-                            onClick={() => handleOpenHistoryModal(bill)}
-                            className="btn btn-secondary px-2.5 py-1.5 rounded-lg text-xs flex items-center gap-1 hover:text-amber-400"
-                            title="View Payment History"
-                          >
-                            <History size={12} />
-                            <span>History</span>
-                          </button>
-
-                          {/* View Invoice Receipt Button */}
+                        <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => handleOpenViewModal(bill)}
-                            className="btn btn-secondary px-2.5 py-1.5 rounded-lg text-xs flex items-center gap-1 hover:text-blue-400"
-                            title="Open Bill Details"
+                            className="p-1.5 text-slate-400 hover:text-slate-100 hover:bg-slate-800 rounded-lg transition-colors"
+                            title="View Receipt"
                           >
-                            <Eye size={12} />
-                            <span>View</span>
+                            <Eye size={16} />
                           </button>
                           
-                          {/* Record Payment Button */}
+                          <button
+                            onClick={() => handleOpenHistoryModal(bill)}
+                            className="p-1.5 text-slate-400 hover:text-amber-400 hover:bg-amber-500/10 rounded-lg transition-colors"
+                            title="Payment History"
+                          >
+                            <History size={16} />
+                          </button>
+
                           {bill.payment_status !== 'Paid' && (
                             <button
                               onClick={() => handleOpenPayModal(bill)}
@@ -383,7 +391,7 @@ export default function Billing() {
         </div>
       )}
 
-      {/* Bill View Detail Modal (Only renders when NOT in pay or history modal) */}
+      {/* Bill View Detail Modal */}
       {selectedBill && !showPayModal && !showHistoryModal && createPortal(
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[9999] overflow-y-auto p-4 sm:p-6 flex items-center justify-center">
           <div className="card glass-card w-full max-w-lg border-slate-800 bg-slate-900 shadow-2xl relative my-auto">
@@ -397,7 +405,6 @@ export default function Billing() {
             <div className="p-5 sm:p-6 space-y-5">
               <h3 className="font-bold text-slate-200 text-base pr-8">Invoice Details & Receipt</h3>
               
-              {/* Receipt Visual wrapper */}
               <div className="border border-slate-800 rounded-xl max-h-[60vh] overflow-y-auto bg-slate-950 p-2 sm:p-3">
                 <div ref={receiptRef} className="receipt-paper w-full" style={{ padding: '20px', color: '#1e293b' }}>
                   <div className="text-center mb-4">
@@ -409,7 +416,7 @@ export default function Billing() {
                   <div className="flex justify-between items-start gap-4 mb-3 p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-xs">
                     <div>
                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">TENANT</span>
-                      <span className="font-bold text-slate-900 text-sm">{getTenantName(selectedBill.tenant_id)}</span>
+                      <span className="font-bold text-slate-900 text-sm">{getTenantName(selectedBill)}</span>
                     </div>
                     <div className="text-right">
                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">ROOM</span>
@@ -626,7 +633,7 @@ export default function Billing() {
                   <span>Payment History</span>
                 </h3>
                 <p className="text-xs text-slate-400">
-                  {getTenantName(selectedBill.tenant_id)} • {getRoomNumber(selectedBill.room_id)} ({selectedBill.bill_month} {selectedBill.bill_year})
+                  {getTenantName(selectedBill)} • {getRoomNumber(selectedBill.room_id)} ({selectedBill.bill_month} {selectedBill.bill_year})
                 </p>
               </div>
 
