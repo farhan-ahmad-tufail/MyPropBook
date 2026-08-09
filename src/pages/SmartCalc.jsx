@@ -196,20 +196,12 @@ export default function SmartCalc() {
         .filter(b => b.room_id === selectedRoomId && b.tenant_id === tenantObj.id && (b.payment_status === 'Unpaid' || b.payment_status === 'Partially Paid'))
         .reduce((sum, b) => sum + (parseFloat(b.total_payable || 0) - parseFloat(b.amount_paid || 0)), 0);
       setCalculatedArrears(roomArrears);
-      setCustomArrears(roomArrears.toString());
+      setCustomArrears(prev => prev !== '' ? prev : roomArrears.toString());
     } else {
       setActiveTenant(null);
       setCalculatedArrears(0);
       setCustomArrears('');
     }
-    
-    // Clear previous input results
-    setCurrentReading('');
-    setOtherCharges('');
-    setDirectElecAmount('');
-    setElecMode('submeter');
-    setResult(null);
-    setIsSaved(false);
   }, [selectedRoomId, rooms, leases, tenants, bills]);
 
   const handleCalculate = async (e) => {
@@ -287,7 +279,11 @@ export default function SmartCalc() {
       setIsSaving(true);
       await api.createBill(calculatedBill);
       setIsSaved(true);
-      await loadAllData();
+      // Update room in state directly so receipt stays visible and previous meter updates
+      if (elecMode === 'submeter') {
+        setActiveRoom(prev => prev ? { ...prev, current_meter_reading: currReading } : prev);
+        setRooms(prevRooms => prevRooms.map(r => r.id === activeRoom.id ? { ...r, current_meter_reading: currReading } : r));
+      }
       toast('Bill generated & saved to Billing Records!', 'success');
     } catch (err) {
       console.error('Error saving bill:', err);
@@ -429,7 +425,16 @@ export default function SmartCalc() {
                   disabled={!selectedPropertyId}
                   className="form-input bg-slate-900 border-slate-800"
                   value={selectedRoomId}
-                  onChange={e => setSelectedRoomId(e.target.value)}
+                  onChange={e => {
+                    const newRoomId = e.target.value;
+                    setSelectedRoomId(newRoomId);
+                    setCurrentReading('');
+                    setOtherCharges('');
+                    setDirectElecAmount('');
+                    setElecMode('submeter');
+                    setResult(null);
+                    setIsSaved(false);
+                  }}
                 >
                   <option value="">-- Choose Room --</option>
                   {rooms
@@ -530,7 +535,14 @@ export default function SmartCalc() {
                     onChange={e => setCurrentReading(e.target.value)}
                   />
                   {activeRoom && (
-                    <p className="text-xs text-slate-500 mt-1">Previous reading: <span className="font-mono text-blue-400">{activeRoom.current_meter_reading} units</span></p>
+                    <div className="flex justify-between items-center text-xs text-slate-500 mt-1">
+                      <span>Previous reading: <span className="font-mono text-blue-400">{activeRoom.current_meter_reading} units</span></span>
+                      {currentReading !== '' && !isNaN(parseFloat(currentReading)) && parseFloat(currentReading) >= (parseFloat(activeRoom.current_meter_reading) || 0) && (
+                        <span className="font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 text-[11px] font-semibold">
+                          {(parseFloat(currentReading) - (parseFloat(activeRoom.current_meter_reading) || 0)).toFixed(1)} units
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
               )}
