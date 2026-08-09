@@ -15,7 +15,7 @@ import {
   LineChart as LineIcon
 } from 'lucide-react';
 import { useToast } from '../components/Toast';
-import { formatINR } from '../utils/formatters';
+import { formatINR, formatINRShort } from '../utils/formatters';
 import {
   ResponsiveContainer,
   AreaChart,
