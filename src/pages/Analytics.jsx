@@ -48,10 +48,11 @@ export default function Analytics() {
         setLoading(true);
         const ownerId = user?.id || 'mock_owner_id';
         const billsList = await api.getBills(ownerId);
-        setBills(billsList);
+        setBills(Array.isArray(billsList) ? billsList : []);
       } catch (err) {
         console.error('Error loading analytics:', err);
         setError('Failed to fetch financial analytics data.');
+        setBills([]);
       } finally {
         setLoading(false);
       }
