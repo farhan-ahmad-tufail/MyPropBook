@@ -5,7 +5,7 @@
 @tailwind utilities;
 
 /* =========================================
-   Global Base
+   Global Base — Premium SaaS Dark Theme
    ========================================= */
 @layer base {
   *, *::before, *::after {
@@ -13,8 +13,35 @@
   }
 
   body {
-    @apply bg-slate-950 text-slate-100 font-sans antialiased;
+    @apply text-slate-100 font-sans antialiased;
     min-height: 100vh;
+    background-color: #030712;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59, 130, 246, 0.08), transparent),
+      radial-gradient(ellipse 60% 40% at 100% 50%, rgba(139, 92, 246, 0.05), transparent),
+      radial-gradient(ellipse 60% 40% at 0% 80%, rgba(14, 165, 233, 0.04), transparent);
+    background-attachment: fixed;
+  }
+
+  /* Subtle dot-grid overlay for depth */
+  #root::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image: radial-gradient(rgba(148, 163, 184, 0.04) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  #root {
+    position: relative;
+    z-index: 0;
+  }
+
+  #root > * {
+    position: relative;
+    z-index: 1;
   }
 
   /* Hide number input spinners */
@@ -40,24 +67,44 @@
   }
 
   .sidebar {
-    @apply fixed top-0 left-0 h-screen w-64 bg-slate-950 border-r border-slate-800/80 z-50 flex flex-col p-6;
+    @apply fixed top-0 left-0 h-screen w-64 z-50 flex flex-col p-6;
+    background: rgba(2, 6, 23, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-right: 1px solid rgba(51, 65, 85, 0.4);
+    box-shadow: 1px 0 30px rgba(59, 130, 246, 0.03);
   }
 
   .main-content {
-    @apply flex-1 ml-64 min-h-screen bg-slate-950 p-8;
+    @apply flex-1 ml-64 min-h-screen p-8;
+    background: transparent;
   }
 
   /* --- Cards --- */
   .card {
-    @apply bg-slate-900 border border-slate-800 rounded-2xl shadow-md;
+    @apply bg-slate-900/80 border border-slate-800/70 rounded-2xl shadow-md;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3), 0 0 1px rgba(59, 130, 246, 0.1);
   }
 
   .glass-card {
-    @apply bg-slate-900/70 backdrop-blur-sm border border-slate-800/80 rounded-2xl shadow-lg;
+    @apply rounded-2xl shadow-lg;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(51, 65, 85, 0.5);
   }
 
   .dark-card {
-    @apply bg-slate-950 border border-slate-800 rounded-2xl;
+    @apply bg-slate-950/90 border border-slate-800/60 rounded-2xl;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 
   /* --- Card Sub-elements --- */
@@ -91,7 +138,7 @@
   }
 
   .shadow-glow {
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.35);
+    box-shadow: 0 0 25px rgba(59, 130, 246, 0.25), 0 0 60px rgba(59, 130, 246, 0.08);
   }
 
   /* --- Forms --- */
@@ -184,7 +231,9 @@
   }
 
   .nav-item.active {
-    @apply bg-blue-600 text-white shadow-md;
+    @apply text-white shadow-md;
+    background: linear-gradient(135deg, #2563eb, #4f46e5);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
   }
 
   /* --- Miscellaneous --- */

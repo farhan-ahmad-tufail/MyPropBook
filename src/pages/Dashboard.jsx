@@ -411,26 +411,28 @@ export default function Dashboard() {
                               </div>
                             </div>
 
-                            {/* Center Status, Tenant Details */}
-                            <div className="flex flex-wrap items-center gap-4 text-xs w-full sm:w-auto">
-                              <div className="min-w-[100px]">
+                            {/* Center Status, Tenant Details — fixed 3-column grid for alignment */}
+                            <div className="grid grid-cols-3 gap-4 text-xs w-full sm:w-auto" style={{ minWidth: '300px' }}>
+                              <div className="min-w-0">
                                 <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block">Tenant</span>
                                 <span className="font-semibold text-slate-200 truncate block max-w-[120px]">
                                   {tenant ? tenant.name : <span className="text-slate-600 italic">— Vacant —</span>}
                                 </span>
                               </div>
 
-                              <div className="min-w-[80px]">
+                              <div className="min-w-0">
                                 <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block">Monthly Rent</span>
                                 <span className="font-bold text-slate-200 font-mono">{formatINR(room.base_rent)}</span>
                               </div>
 
-                              {balance > 0 && (
-                                <div className="min-w-[80px]">
-                                  <span className="text-[9px] font-bold text-red-500/70 uppercase tracking-widest block">Arrears</span>
+                              <div className="min-w-0">
+                                <span className={`text-[9px] font-bold uppercase tracking-widest block ${balance > 0 ? 'text-red-500/70' : 'text-slate-500'}`}>Arrears</span>
+                                {balance > 0 ? (
                                   <span className="font-bold text-red-400 font-mono">{formatINR(balance)}</span>
-                                </div>
-                              )}
+                                ) : (
+                                  <span className="font-medium text-slate-600">—</span>
+                                )}
+                              </div>
                             </div>
 
                             {/* Right Actions */}
