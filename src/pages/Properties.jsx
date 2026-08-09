@@ -408,10 +408,10 @@ export default function Properties() {
     <div className="space-y-8 fade-in-up active">
       
       {/* ── TOP HEADER BAR ── */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800/80 pb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-2">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-100">Properties & Rooms</h1>
-          <p className="text-slate-400 mt-1 text-sm">Manage your properties, rooms, rent, and billing settings.</p>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Properties &amp; Rooms</h1>
+          <p className="text-slate-500 mt-1 text-sm">Manage your properties, rooms, rent, and billing settings.</p>
         </div>
         
         <button 
@@ -421,9 +421,9 @@ export default function Properties() {
             setPropAddress('');
             setShowPropModal(true);
           }} 
-          className="btn btn-primary shadow-glow px-5 py-2.5 rounded-xl flex items-center gap-2 text-sm font-bold cursor-pointer"
+          className="px-5 py-2.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all flex items-center gap-2 shadow-sm cursor-pointer"
         >
-          <Plus size={18} /> + New Property
+          <Plus size={16} /> + New Property
         </button>
       </div>
 
@@ -439,9 +439,9 @@ export default function Properties() {
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div className="flex items-center gap-2">
-            <Building size={16} className="text-blue-400" />
-            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Your Properties</h2>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
+            <Building size={16} className="text-[#2d5a47]" />
+            <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest">YOUR PROPERTIES</h2>
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">
               {properties.length}
             </span>
           </div>
@@ -449,13 +449,13 @@ export default function Properties() {
           {/* Lightweight Property Search */}
           {properties.length > 2 && (
             <div className="relative w-full sm:w-64">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search properties..."
                 value={propertySearchQuery}
                 onChange={(e) => setPropertySearchQuery(e.target.value)}
-                className="form-input bg-slate-900 border-slate-800 pl-9 py-1.5 text-xs rounded-xl"
+                className="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-200 text-xs font-semibold text-slate-800 rounded-xl outline-none focus:border-[#2d5a47]"
               />
             </div>
           )}
@@ -504,23 +504,23 @@ export default function Properties() {
                 <div
                   key={p.id}
                   onClick={() => setSelectedPropertyId(p.id)}
-                  className={`card glass-card p-4 flex flex-col justify-between cursor-pointer transition-all duration-200 relative group ${
+                  className={`bg-white p-5 rounded-3xl border shadow-sm flex flex-col justify-between cursor-pointer transition-all duration-200 relative group ${
                     isSelected 
-                      ? 'border-blue-500 bg-blue-600/10 ring-1 ring-blue-500/40 shadow-lg' 
-                      : 'border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/40'
+                      ? 'border-[#2d5a47] ring-2 ring-[#2d5a47]/20 bg-[#edf5f1]/40 shadow-md' 
+                      : 'border-slate-100 hover:border-slate-200 hover:shadow'
                   }`}
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${
-                        isSelected ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-900 text-slate-400 border border-slate-800'
+                      <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-sm ${
+                        isSelected ? 'bg-[#2d5a47] text-white shadow-sm' : 'bg-slate-100 text-slate-600'
                       }`}>
                         <Building size={18} />
                       </div>
                       <div className="min-w-0">
-                        <h3 className="font-bold text-sm text-slate-100 truncate">{p.name}</h3>
+                        <h3 className="font-extrabold text-sm text-slate-900 truncate">{p.name}</h3>
                         <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5 truncate">
-                          <MapPin size={11} className="text-slate-500" />
+                          <MapPin size={11} className="text-slate-400" />
                           <span>{p.address || 'No location set'}</span>
                         </p>
                       </div>
@@ -529,14 +529,14 @@ export default function Properties() {
                     <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
                       <button
                         onClick={(e) => startEditProperty(p, e)}
-                        className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                        className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
                         title="Edit Property"
                       >
                         <Edit2 size={13} />
                       </button>
                       <button
                         onClick={(e) => handlePropDelete(p.id, e)}
-                        className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition-colors"
+                        className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                         title="Delete Property"
                       >
                         <Trash2 size={13} />
@@ -544,12 +544,12 @@ export default function Properties() {
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs">
-                    <span className="text-slate-400 font-medium">
-                      {roomCount} Rooms • <strong className="text-emerald-400 font-semibold">{occCount} Occupied</strong>
+                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-semibold">
+                    <span className="text-slate-500">
+                      {roomCount} Rooms • <strong className="text-emerald-700 font-bold">{occCount} Occupied</strong>
                     </span>
 
-                    <span className="font-bold text-slate-200 font-mono">
+                    <span className="font-extrabold text-slate-900">
                       {formatINR(propExpectedRent)}
                     </span>
                   </div>
@@ -562,29 +562,29 @@ export default function Properties() {
 
       {/* ── SELECTED PROPERTY ROOMS SECTION ── */}
       {selectedProperty ? (
-        <div className="space-y-6 pt-4 border-t border-slate-800/80">
+        <div className="space-y-6 pt-4 border-t border-slate-200/60">
           
           {/* Selected Property Header Banner */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 sm:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-xl sm:text-2xl font-extrabold text-white">
+                <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900">
                   Rooms in {selectedProperty.name}
                 </h2>
-                <span className="text-xs text-slate-400 bg-slate-800 px-2.5 py-1 rounded-full border border-slate-700">
+                <span className="text-xs font-bold text-emerald-800 bg-[#edf5f1] px-2.5 py-1 rounded-full border border-[#d8e7e0]">
                   {selectedProperty.address || 'Active Property'}
                 </span>
               </div>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-slate-500 mt-1">
                 {selectedPropertyStats.totalRooms} rooms · {selectedPropertyStats.occupied} occupied · {selectedPropertyStats.vacant} vacant
               </p>
             </div>
 
             {/* Quick Stats Pills */}
             <div className="flex flex-wrap items-center gap-3">
-              <div className="bg-slate-950 px-3.5 py-2 rounded-xl border border-slate-800 text-center">
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Expected Rent</span>
-                <span className="text-sm font-extrabold text-emerald-400">{formatINR(selectedPropertyStats.expectedRent)}</span>
+              <div className="bg-slate-50 px-4 py-2 rounded-2xl border border-slate-200/80 text-center">
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">EXPECTED RENT</span>
+                <span className="text-sm font-extrabold text-[#2d5a47]">{formatINR(selectedPropertyStats.expectedRent)}</span>
               </div>
 
               <button 
@@ -592,7 +592,7 @@ export default function Properties() {
                   setEditingRoom(null);
                   setShowRoomDrawer(true);
                 }}
-                className="btn btn-primary shadow-glow px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2"
+                className="px-4 py-2.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all flex items-center gap-2 shadow-sm cursor-pointer"
               >
                 <Plus size={16} /> + Add Room
               </button>
@@ -600,28 +600,28 @@ export default function Properties() {
           </div>
 
           {/* ── TAB SWITCHER: Rooms List / Bulk Billing ── */}
-          <div className="flex items-center gap-1 bg-slate-900/80 p-1 border border-slate-800 rounded-xl w-fit">
+          <div className="flex items-center gap-1 bg-slate-200/60 p-1 rounded-2xl w-fit">
             <button
               onClick={() => setActiveTab('rooms')}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'rooms'
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                  ? 'bg-[#2d5a47] text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <Home size={13} /> Rooms List
             </button>
             <button
               onClick={() => setActiveTab('bulkbill')}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'bulkbill'
-                  ? 'bg-violet-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                  ? 'bg-violet-700 text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <Bolt size={13} /> Bulk Billing
               {occupiedRoomsForBulk.length > 0 && (
-                <span className="bg-violet-500/30 text-violet-300 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full">
+                <span className="bg-violet-100 text-violet-800 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full">
                   {occupiedRoomsForBulk.length}
                 </span>
               )}
@@ -928,15 +928,15 @@ export default function Properties() {
               {/* Rooms Filter & Search Toolbar */}
               <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
                 {/* Status Filter Pills */}
-                <div className="flex items-center gap-1.5 bg-slate-900/80 p-1 border border-slate-800 rounded-xl">
+                <div className="flex items-center gap-1 bg-slate-200/60 p-1 rounded-2xl">
                   {['All', 'Occupied', 'Vacant', 'Maintenance'].map((st) => (
                     <button
                       key={st}
                       onClick={() => setRoomStatusFilter(st)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                         roomStatusFilter === st
-                          ? 'bg-blue-600 text-white shadow-sm'
-                          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                          ? 'bg-[#2d5a47] text-white shadow-sm'
+                          : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
                       {st}
@@ -946,22 +946,22 @@ export default function Properties() {
 
                 {/* Room Search */}
                 <div className="relative w-full sm:w-64">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                  <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     type="text"
                     placeholder="Search Room No. or Tenant..."
                     value={roomSearchQuery}
                     onChange={(e) => setRoomSearchQuery(e.target.value)}
-                    className="form-input bg-slate-900 border-slate-800 pl-9 py-2 text-xs rounded-xl"
+                    className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 text-xs font-semibold text-slate-800 rounded-2xl outline-none focus:border-[#2d5a47]"
                   />
                 </div>
               </div>
 
               {/* ROOMS LIST - DESKTOP TABLE & MOBILE CARDS */}
               {filteredRooms.length === 0 ? (
-                <div className="card glass-card p-12 text-center text-slate-500 text-sm flex flex-col items-center justify-center">
-                  <Home size={44} className="text-slate-700 mb-3" />
-                  <p className="font-semibold text-slate-300">No rooms found</p>
+                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-12 text-center text-slate-500 text-sm flex flex-col items-center justify-center">
+                  <Home size={44} className="text-slate-400 mb-3" />
+                  <p className="font-bold text-slate-800">No rooms found</p>
                   <p className="text-xs text-slate-500 mt-1 max-w-sm">
                     {roomSearchQuery || roomStatusFilter !== 'All' 
                       ? 'No room matches your filter or search query.' 
@@ -972,7 +972,7 @@ export default function Properties() {
                       setEditingRoom(null);
                       setShowRoomDrawer(true);
                     }}
-                    className="btn btn-primary text-xs px-4 py-2 mt-4 rounded-xl font-semibold shadow-glow"
+                    className="px-4 py-2 mt-4 rounded-xl bg-[#2d5a47] text-white text-xs font-bold hover:bg-[#234738]"
                   >
                     + Add Room
                   </button>
@@ -980,88 +980,88 @@ export default function Properties() {
               ) : (
                 <>
                   {/* DESKTOP ROOMS TABLE */}
-                  <div className="hidden md:block card glass-card border-slate-800">
+                  <div className="hidden md:block bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
                     <div className="overflow-visible">
-                      <table className="table w-full text-left">
+                      <table className="w-full text-left border-collapse">
                         <thead>
-                          <tr className="bg-slate-900/60 border-b border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-400">
-                            <th className="px-6 py-4">Room</th>
-                            <th className="px-6 py-4">Type</th>
-                            <th className="px-6 py-4">Tenant</th>
-                            <th className="px-6 py-4">Monthly Rent</th>
-                            <th className="px-6 py-4">Electricity</th>
-                            <th className="px-6 py-4">Status</th>
-                            <th className="px-6 py-4 text-right">Actions</th>
+                          <tr className="border-b border-slate-100 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50/50">
+                            <th className="px-6 py-4">ROOM</th>
+                            <th className="px-6 py-4">TYPE</th>
+                            <th className="px-6 py-4">TENANT</th>
+                            <th className="px-6 py-4">MONTHLY RENT</th>
+                            <th className="px-6 py-4">ELECTRICITY</th>
+                            <th className="px-6 py-4">STATUS</th>
+                            <th className="px-6 py-4 text-right">ACTIONS</th>
                           </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="divide-y divide-slate-100 font-medium text-xs">
                           {filteredRooms.map(room => {
                             const tenant = getRoomTenant(room.id);
                             const isOccupied = room.status === 'Occupied' || !!tenant;
                             const elecMode = room.elec_mode || (room.has_submeter !== false ? 'submeter' : 'direct');
 
                             return (
-                              <tr key={room.id} className="border-b border-slate-850 hover:bg-slate-900/30 transition-colors">
+                              <tr key={room.id} className="hover:bg-slate-50/60 transition-colors">
                                 <td className="px-6 py-4">
                                   <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-blue-600/10 text-blue-400 flex items-center justify-center font-bold text-xs border border-blue-500/20">
+                                    <div className="w-8 h-8 rounded-xl bg-[#e2eee7] text-[#2d5a47] flex items-center justify-center font-bold text-xs">
                                       {room.room_number}
                                     </div>
-                                    <span className="font-bold text-slate-200">Room {room.room_number}</span>
+                                    <span className="font-bold text-slate-800">Room {room.room_number}</span>
                                   </div>
                                 </td>
 
-                                <td className="px-6 py-4 text-slate-300 text-xs font-medium">
+                                <td className="px-6 py-4 text-slate-500 font-medium">
                                   {room.room_type || 'Single Room'}
                                 </td>
 
-                                <td className="px-6 py-4 text-xs font-medium">
+                                <td className="px-6 py-4">
                                   {tenant ? (
-                                    <span className="text-slate-200 font-semibold">{tenant.name}</span>
+                                    <span className="text-slate-800 font-bold">{tenant.name}</span>
                                   ) : (
-                                    <span className="text-slate-500 italic">— Vacant —</span>
+                                    <span className="text-slate-400 italic">— Vacant —</span>
                                   )}
                                 </td>
 
-                                <td className="px-6 py-4 font-bold text-slate-100 font-mono">
+                                <td className="px-6 py-4 font-bold text-slate-900">
                                   {formatINR(room.base_rent)}
                                 </td>
 
-                                <td className="px-6 py-4 text-xs">
+                                <td className="px-6 py-4">
                                   {elecMode === 'submeter' && (
-                                    <span className="inline-flex items-center gap-1 text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20 font-medium">
+                                    <span className="inline-flex items-center gap-1 text-[#2d5a47] bg-[#edf5f1] px-2.5 py-0.5 rounded-full font-bold text-[10px]">
                                       ⚡ Submeter
                                     </span>
                                   )}
                                   {elecMode === 'direct' && (
-                                    <span className="inline-flex items-center gap-1 text-purple-400 bg-purple-500/10 px-2.5 py-0.5 rounded-full border border-purple-500/20 font-medium">
+                                    <span className="inline-flex items-center gap-1 text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full font-bold text-[10px]">
                                       📄 Direct Bill
                                     </span>
                                   )}
                                   {elecMode === 'fixed' && (
-                                    <span className="inline-flex items-center gap-1 text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 font-medium">
+                                    <span className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full font-bold text-[10px]">
                                       🏷️ Fixed
                                     </span>
                                   )}
                                   {elecMode === 'shared' && (
-                                    <span className="inline-flex items-center gap-1 text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20 font-medium">
+                                    <span className="inline-flex items-center gap-1 text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full font-bold text-[10px]">
                                       🤝 Shared
                                     </span>
                                   )}
                                   {elecMode === 'none' && (
-                                    <span className="inline-flex items-center gap-1 text-slate-400 bg-slate-800 px-2.5 py-0.5 rounded-full font-medium">
+                                    <span className="inline-flex items-center gap-1 text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full font-bold text-[10px]">
                                       🚫 None
                                     </span>
                                   )}
                                 </td>
 
                                 <td className="px-6 py-4">
-                                  <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                                  <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                                     isOccupied 
-                                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                                      ? 'bg-emerald-50 text-emerald-700' 
                                       : room.status === 'Maintenance' 
-                                      ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' 
-                                      : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                      ? 'bg-purple-50 text-purple-700' 
+                                      : 'bg-amber-50 text-amber-700'
                                   }`}>
                                     {isOccupied ? 'Occupied' : room.status || 'Vacant'}
                                   </span>

@@ -22,7 +22,12 @@ import {
   Sparkles,
   Search,
   CheckCircle2,
-  FileText
+  FileText,
+  IndianRupee,
+  Mail,
+  Gauge,
+  MoreHorizontal,
+  Bell
 } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import OnboardingModal from '../components/OnboardingModal';
@@ -97,10 +102,31 @@ export default function Dashboard() {
     [bills]
   );
 
-  const occupancyRate = useMemo(() => {
-    if (totalRooms === 0) return 0;
-    return Math.round((activeLeaseRoomIds.length / totalRooms) * 100);
-  }, [totalRooms, activeLeaseRoomIds]);
+  const totalCollected = useMemo(() => 
+    bills
+      .filter(b => b.payment_status === 'Paid' || b.payment_status === 'Partially Paid')
+      .reduce((sum, b) => sum + parseFloat(b.amount_paid || 0), 0),
+    [bills]
+  );
+
+  const collectionHealthPct = useMemo(() => {
+    const totalTarget = expectedMonthlyRevenue;
+    if (!totalTarget) return 0;
+    const collected = totalCollected || Math.max(0, expectedMonthlyRevenue - pendingArrears);
+    return Math.min(100, Math.round((collected / totalTarget) * 100));
+  }, [expectedMonthlyRevenue, totalCollected, pendingArrears]);
+
+  const tenantsWithArrears = useMemo(() => {
+    const roomIdsWithArrears = bills
+      .filter(b => b.payment_status === 'Unpaid' || b.payment_status === 'Partially Paid')
+      .map(b => b.room_id);
+    const uniqueRoomIds = [...new Set(roomIdsWithArrears)];
+    const tenantIds = uniqueRoomIds.map(rid => {
+      const lease = leases.find(l => l.room_id === rid && l.is_active);
+      return lease?.tenant_id;
+    }).filter(Boolean);
+    return [...new Set(tenantIds)].length;
+  }, [bills, leases]);
 
   const getRoomOccupancy = (roomId) => {
     const activeLease = leases.find(l => l.room_id === roomId && l.is_active);
@@ -115,413 +141,466 @@ export default function Dashboard() {
       .reduce((sum, b) => sum + (parseFloat(b.total_payable || 0) - parseFloat(b.amount_paid || 0)), 0);
   };
 
-  // Filtered properties for breakdown
-  const filteredProperties = useMemo(() => {
-    if (!propertySearch.trim()) return properties;
-    return properties.filter(p => 
-      p.name.toLowerCase().includes(propertySearch.toLowerCase()) ||
-      (p.address && p.address.toLowerCase().includes(propertySearch.toLowerCase()))
-    );
-  }, [properties, propertySearch]);
+  // Recent bills for activity feed (last 3, sorted by date)
+  const recentBills = useMemo(() => {
+    return [...bills]
+      .sort((a, b) => new Date(b.created_at || b.bill_date || 0) - new Date(a.created_at || a.bill_date || 0))
+      .slice(0, 3)
+      .map(b => {
+        const room = rooms.find(r => r.id === b.room_id);
+        const prop = properties.find(p => p.id === room?.property_id);
+        const lease = leases.find(l => l.room_id === b.room_id && l.is_active);
+        const tenant = tenants.find(t => t.id === (b.tenant_id || lease?.tenant_id));
+        return { ...b, room, prop, tenant };
+      });
+  }, [bills, rooms, properties, leases, tenants]);
 
-  const displayName = user?.user_metadata?.full_name || user?.fullName || user?.email?.split('@')[0] || 'Property Owner';
-  const currentDate = new Intl.DateTimeFormat('en-IN', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  }).format(new Date());
+  // Room billing status: latest bill per room for the billing table
+  const roomBillingRows = useMemo(() => {
+    return rooms.slice(0, 5).map(room => {
+      const prop = properties.find(p => p.id === room.property_id);
+      const activeLease = leases.find(l => l.room_id === room.id && l.is_active);
+      const tenant = activeLease ? tenants.find(t => t.id === activeLease.tenant_id) : null;
+      const latestBill = bills
+        .filter(b => b.room_id === room.id)
+        .sort((a, b) => new Date(b.created_at || b.bill_date || 0) - new Date(a.created_at || a.bill_date || 0))[0];
+      const status = latestBill?.payment_status || (tenant ? 'No bill yet' : 'Vacant');
+      return { room, prop, tenant, latestBill, status };
+    });
+  }, [rooms, properties, bills, leases, tenants]);
+
+
+  const displayName = user?.user_metadata?.full_name?.split(' ')[0] || user?.fullName?.split(' ')[0] || user?.email?.split('@')[0] || 'there';
+  const currentDate = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
 
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
-        <div className="w-10 h-10 rounded-full border-4 border-slate-800 border-t-blue-500 animate-spin" />
+        <div className="w-9 h-9 rounded-full border-3 border-emerald-200 border-t-[#2d5a47] animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 fade-in-up active">
+    <div className="space-y-6 fade-in-up active">
       
       {/* ── HERO GREETING HEADER ── */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-900/40 p-6 border border-slate-800/80 rounded-2xl">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-2">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center gap-1">
-              <Sparkles size={11} /> Landlord Portal
+            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+              {currentDate}
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-100 mt-2">
-            Welcome back, {displayName}
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-1">
+            Good morning, {displayName}.
           </h1>
-          <p className="text-slate-400 mt-1 text-sm flex items-center gap-1.5">
-            <Calendar size={14} className="text-slate-500" />
-            <span>{currentDate}</span>
+          <p className="text-slate-500 text-sm mt-1">
+            Here's what needs your attention across the portfolio.
           </p>
         </div>
 
-        <div className="flex gap-2 w-full md:w-auto">
+        <div className="flex items-center gap-3">
           <button
-            onClick={() => setShowGuideModal(true)}
-            className="btn btn-secondary rounded-xl px-4 py-2.5 text-xs font-bold flex-1 md:flex-none flex items-center justify-center gap-1.5"
+            onClick={() => navigate('/smart-calc')}
+            className="px-5 py-3 rounded-2xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all flex items-center gap-2 shadow-sm cursor-pointer"
           >
-            <BookOpen size={14} className="text-blue-400" /> User Manual
+            <Zap size={14} fill="currentColor" />
+            <span>Create smart bill</span>
+            <ArrowUpRight size={14} />
           </button>
-          <Link 
-            to="/smart-calc" 
-            className="btn btn-primary shadow-glow rounded-xl px-5 py-2.5 text-xs font-extrabold flex-1 md:flex-none flex items-center justify-center gap-2"
-          >
-            <Zap size={14} /> + Quick Bill
-          </Link>
         </div>
       </div>
 
       {error && (
-        <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-sm flex items-center gap-2">
-          <CircleAlert size={18} />
+        <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-xs flex items-center gap-2">
+          <CircleAlert size={16} />
           <span>{error}</span>
         </div>
       )}
 
-      {/* ── SAAS METRICS GRID ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      {/* ── TOP KPI CARDS GRID ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
-        {/* Properties KPI */}
-        <div className="card glass-card p-5 flex flex-col justify-between border-slate-800 hover:border-slate-700/80 transition-all duration-300">
+        {/* KPI 1: Properties */}
+        <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
           <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none">Properties</span>
-            <div className="w-8 h-8 rounded-xl bg-blue-600/10 text-blue-400 flex items-center justify-center border border-blue-500/20">
-              <Building size={15} />
+            <div className="w-10 h-10 rounded-2xl bg-[#e2eee7] text-[#2d5a47] flex items-center justify-center">
+              <Building size={18} />
             </div>
           </div>
-          <div className="mt-4">
-            <h3 className="text-2xl sm:text-3xl font-black text-slate-100">{totalProperties}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span> Active Buildings
-            </p>
+          <div className="mt-6">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">PROPERTIES</span>
+            <div className="text-3xl font-black text-slate-900 mt-1">{totalProperties}</div>
+            <span className="text-xs text-slate-400 font-medium block mt-1">All active</span>
           </div>
         </div>
 
-        {/* Total Rooms KPI */}
-        <div className="card glass-card p-5 flex flex-col justify-between border-slate-800 hover:border-slate-700/80 transition-all duration-300">
+        {/* KPI 2: Occupied Rooms */}
+        <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between relative">
           <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none">Total Rooms</span>
-            <div className="w-8 h-8 rounded-xl bg-purple-600/10 text-purple-400 flex items-center justify-center border border-purple-500/20">
-              <Home size={15} />
+            <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+              <Users size={18} />
             </div>
           </div>
-          <div className="mt-4">
-            <h3 className="text-2xl sm:text-3xl font-black text-slate-100">{totalRooms}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-purple-400"></span> {occupancyRate}% Occupied
-            </p>
+          <div className="mt-6">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">OCCUPIED ROOMS</span>
+            <div className="text-3xl font-black text-slate-900 mt-1">
+              {activeLeaseRoomIds.length} <span className="text-xl text-slate-400 font-normal">/ {totalRooms}</span>
+            </div>
+            <span className="text-xs text-slate-400 font-medium block mt-1">{totalRooms > 0 ? `${Math.round((activeLeaseRoomIds.length / totalRooms) * 100)}% occupancy rate` : 'No rooms yet'}</span>
           </div>
         </div>
 
-        {/* Active Tenants KPI */}
-        <div className="card glass-card p-5 flex flex-col justify-between border-slate-800 hover:border-slate-700/80 transition-all duration-300">
+        {/* KPI 3: Expected Rent */}
+        <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
           <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none">Tenants</span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-600/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
-              <Users size={15} />
+            <div className="w-10 h-10 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-base">
+              ₹
             </div>
           </div>
-          <div className="mt-4">
-            <h3 className="text-2xl sm:text-3xl font-black text-slate-100">{activeTenants}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Active Leases
-            </p>
+          <div className="mt-6">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">EXPECTED RENT</span>
+            <div className="text-3xl font-black text-slate-900 mt-1">
+              {formatINR(expectedMonthlyRevenue)}
+            </div>
+            <span className="text-xs text-slate-400 font-medium block mt-1">{new Date().toLocaleString('en-IN', { month: 'long' })} cycle</span>
           </div>
         </div>
 
-        {/* Monthly Revenue KPI */}
-        <div className="card glass-card p-5 flex flex-col justify-between border-slate-800 hover:border-slate-700/80 transition-all duration-300">
+        {/* KPI 4: Pending Arrears */}
+        <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between relative">
           <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none">Monthly Rent</span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-600/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
-              <TrendingUp size={15} />
+            <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
+              <Mail size={18} />
             </div>
+            <span className="w-2 h-2 rounded-full bg-amber-500 absolute top-5 right-5" />
           </div>
-          <div className="mt-4">
-            <h3 className="text-xl sm:text-2xl font-black text-emerald-400">{formatINR(expectedMonthlyRevenue)}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Expected income
-            </p>
-          </div>
-        </div>
-
-        {/* Pending Balance KPI */}
-        <div className="card glass-card p-5 flex flex-col justify-between border-slate-800 hover:border-slate-700/80 transition-all duration-300 col-span-2 lg:col-span-1">
-          <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none">Pending Balance</span>
-            <div className="w-8 h-8 rounded-xl bg-red-600/10 text-red-400 flex items-center justify-center border border-red-500/20">
-              <AlertTriangle size={15} />
+          <div className="mt-6">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">PENDING ARREARS</span>
+            <div className="text-3xl font-black text-slate-900 mt-1">
+              {formatINR(pendingArrears)}
             </div>
-          </div>
-          <div className="mt-4">
-            <h3 className="text-xl sm:text-2xl font-black text-red-400">{formatINR(pendingArrears)}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span> Awaiting payments
-            </p>
+            {tenantsWithArrears > 0 ? (
+              <span className="text-xs text-amber-600 font-semibold block mt-1">{tenantsWithArrears} tenant{tenantsWithArrears > 1 ? 's' : ''} with dues</span>
+            ) : (
+              <span className="text-xs text-emerald-600 font-semibold block mt-1">All clear ✓</span>
+            )}
           </div>
         </div>
 
       </div>
 
-      {/* ── QUICK ACTION CENTRE ── */}
-      <div className="space-y-3">
-        <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Quick Actions</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {[
-            { label: 'Register Property', desc: 'Add new building/PG', path: '/properties', icon: <Plus size={16} />, color: 'blue' },
-            { label: 'Configure Room', desc: 'Define rent & meter', path: '/properties', icon: <Home size={15} />, color: 'purple' },
-            { label: 'Add Tenant', desc: 'Create active lease', path: '/tenants', icon: <UserPlus size={15} />, color: 'emerald' },
-            { label: 'View Invoices', desc: 'Track history & dues', path: '/billing', icon: <FileText size={15} />, color: 'amber' }
-          ].map((action, idx) => (
-            <button
-              key={idx}
-              onClick={() => navigate(action.path)}
-              className="card glass-card p-4 hover:bg-slate-900/40 hover:border-slate-700 text-left transition-all group flex items-start justify-between cursor-pointer border-slate-800"
-            >
-              <div>
-                <p className="font-bold text-xs text-slate-200 group-hover:text-blue-400 transition-colors">{action.label}</p>
-                <p className="text-[10px] text-slate-500 mt-1">{action.desc}</p>
+      {/* ── REVENUE OVERVIEW & COLLECTIONS HEALTH SECTION ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Revenue Overview Chart Box */}
+        <div className="lg:col-span-2 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-extrabold text-slate-900 text-base">Revenue overview</h3>
+                <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-bold text-[9px] uppercase tracking-wider">LIVE</span>
               </div>
-              <div className="p-1.5 rounded-lg bg-slate-950 text-slate-400 group-hover:text-blue-400 transition-colors border border-slate-800/60">
-                {action.icon}
+              <p className="text-xs text-slate-400 mt-0.5">Collected vs expected across your portfolio</p>
+            </div>
+            
+            <select className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 outline-none cursor-pointer">
+              <option>This month</option>
+              <option>Last month</option>
+              <option>Year 2026</option>
+            </select>
+          </div>
+
+          <div>
+            <div className="flex items-baseline gap-3">
+              <span className="text-3xl font-black text-slate-900">{formatINR(totalCollected)}</span>
+              {totalCollected > 0 && (
+                <span className="text-xs font-bold text-emerald-600 flex items-center gap-0.5">
+                  <TrendingUp size={12} /> collected
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-4 text-xs font-medium text-slate-500 mt-2 mb-6">
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-[#2d5a47]" /> Collected
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-slate-200" /> Expected
+              </span>
+            </div>
+
+            {/* Curved SVG Chart representation */}
+            <div className="w-full h-44 bg-[#f8faf9] rounded-2xl p-4 flex flex-col justify-end relative overflow-hidden border border-slate-100">
+              <svg className="w-full h-32 text-[#2d5a47]" viewBox="0 0 500 120" preserveAspectRatio="none" fill="none">
+                <defs>
+                  <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#2d5a47" stopOpacity="0.25" />
+                    <stop offset="100%" stopColor="#2d5a47" stopOpacity="0.0" />
+                  </linearGradient>
+                </defs>
+                <path
+                  d="M0,90 Q50,70 100,75 T200,60 T300,70 T400,50 T500,30 L500,120 L0,120 Z"
+                  fill="url(#chartGrad)"
+                />
+                <path
+                  d="M0,90 Q50,70 100,75 T200,60 T300,70 T400,50 T500,30"
+                  stroke="#2d5a47"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                />
+              </svg>
+              <div className="flex justify-between items-center text-[10px] font-semibold text-slate-400 mt-2 px-2">
+                <span>Mar</span>
+                <span>Apr</span>
+                <span>May</span>
+                <span>Jun</span>
+                <span>Jul</span>
+                <span>Aug</span>
               </div>
-            </button>
-          ))}
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* ── PROPERTIES BREAKDOWN ── */}
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-          <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-            <Building size={15} className="text-blue-400" />
-            <span>Properties Breakdown</span>
-          </h2>
+        {/* Collections Health Widget */}
+        <div className="bg-[#edf5f1] p-6 rounded-3xl border border-[#d2e5dc] shadow-sm flex flex-col justify-between">
+          <div>
+            <div className="flex justify-between items-start">
+              <span className="text-[10px] font-bold text-[#2d5a47] uppercase tracking-widest">COLLECTIONS HEALTH</span>
+              <div className="w-8 h-8 rounded-full bg-white text-slate-700 flex items-center justify-center shadow-sm">
+                <Gauge size={16} />
+              </div>
+            </div>
 
-          {/* Inline search filter */}
-          {properties.length > 2 && (
-            <div className="relative w-full sm:w-64">
-              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-              <input
-                type="text"
-                placeholder="Filter properties..."
-                value={propertySearch}
-                onChange={e => setPropertySearch(e.target.value)}
-                className="form-input bg-slate-900 border-slate-800 pl-9 py-1.5 text-xs rounded-xl"
+            <div className="mt-4">
+              <div className="text-4xl font-black text-slate-900">{collectionHealthPct}%</div>
+              <p className="text-xs text-slate-500 mt-1 font-medium">of {new Date().toLocaleString('en-IN', { month: 'long' })} rent collected</p>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="w-full bg-slate-200/80 h-2.5 rounded-full overflow-hidden mt-6">
+              <div 
+                className="bg-[#2d5a47] h-full rounded-full transition-all duration-500"
+                style={{ width: `${collectionHealthPct}%` }}
               />
             </div>
-          )}
+
+            <div className="space-y-3 mt-6 text-xs font-semibold">
+              <div className="flex justify-between items-center text-slate-600">
+                <span>Collected</span>
+                <span className="text-slate-900 font-bold">{formatINR(totalCollected)}</span>
+              </div>
+              <div className="flex justify-between items-center text-slate-600">
+                <span>Still to collect</span>
+                <span className="text-amber-700 font-bold">{formatINR(pendingArrears)}</span>
+              </div>
+            </div>
+          </div>
+
+          <button 
+            onClick={() => navigate('/billing')}
+            className="w-full py-3 mt-6 bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs rounded-2xl border border-slate-200 transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+          >
+            <span>Review outstanding</span>
+            <ArrowUpRight size={14} />
+          </button>
         </div>
 
-        {properties.length === 0 ? (
-          <div className="card glass-card p-12 text-center text-slate-500 flex flex-col items-center justify-center border-slate-800">
-            <Building size={40} className="text-slate-700 mb-3" />
-            <h3 className="text-sm font-bold text-slate-300">No properties registered</h3>
-            <p className="text-xs text-slate-500 mt-1 max-w-xs">Add your first property to start monitoring occupancy and expected revenue.</p>
-            <Link to="/properties" className="btn btn-primary text-xs px-4 py-2 mt-4 rounded-xl shadow-glow">
-              + Add Property
-            </Link>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {filteredProperties.map(property => {
-              const propertyRooms = rooms.filter(r => r.property_id === property.id);
-              const roomCount = propertyRooms.length;
-              
-              // Compute occupancy stats
-              const occupiedRooms = propertyRooms.filter(r => {
-                return r.status === 'Occupied' || leases.some(l => l.room_id === r.id && l.is_active);
-              });
-              const occupiedCount = occupiedRooms.length;
-              const propOccupancyRate = roomCount === 0 ? 0 : Math.round((occupiedCount / roomCount) * 100);
-
-              // Compute monthly total expected rent
-              const propertyRevenue = propertyRooms.reduce((sum, r) => sum + parseFloat(r.base_rent || 0), 0);
-
-              return (
-                <div key={property.id} className="card glass-card overflow-hidden border-slate-800/80 bg-slate-900/20">
-                  
-                  {/* Property Header */}
-                  <div className="px-5 py-4 border-b border-slate-800 bg-slate-950/40 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                    <div>
-                      <h3 className="font-extrabold text-sm text-slate-100 flex items-center gap-2">
-                        {property.name}
-                        {property.address && (
-                          <span className="text-[10px] font-normal text-slate-400 bg-slate-800 px-2 py-0.5 rounded-full border border-slate-700">
-                            {property.address}
-                          </span>
-                        )}
-                      </h3>
-                      
-                      {/* Occupancy Progress Bar */}
-                      <div className="flex items-center gap-2.5 mt-2">
-                        <div className="w-32 bg-slate-950 h-1.5 rounded-full overflow-hidden border border-slate-850">
-                          <div 
-                            className={`h-full rounded-full transition-all duration-300 ${
-                              propOccupancyRate > 75 ? 'bg-emerald-500' : propOccupancyRate > 35 ? 'bg-blue-500' : 'bg-amber-500'
-                            }`}
-                            style={{ width: `${propOccupancyRate}%` }}
-                          />
-                        </div>
-                        <span className="text-[10px] text-slate-400 font-semibold">{propOccupancyRate}% Occupied ({occupiedCount}/{roomCount} rooms)</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-4 text-xs">
-                      <div className="text-right">
-                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block">Expected Rent</span>
-                        <span className="font-bold text-slate-200 font-mono">{formatINR(propertyRevenue)}</span>
-                      </div>
-                      <Link 
-                        to="/properties" 
-                        className="p-1.5 bg-slate-950 hover:bg-slate-850 text-slate-400 hover:text-white rounded-lg border border-slate-800 transition-colors flex items-center justify-center"
-                        title="Manage Property"
-                      >
-                        <ArrowUpRight size={14} />
-                      </Link>
-                    </div>
-                  </div>
-
-                  {/* Rooms List */}
-                  {propertyRooms.length === 0 ? (
-                    <div className="p-6 text-center text-xs text-slate-500 italic">
-                      No rooms added yet. Go to Properties & Rooms to add configurations.
-                    </div>
-                  ) : (
-                    <div className="divide-y divide-slate-850/60">
-                      {propertyRooms.map(room => {
-                        const { status, tenant } = getRoomOccupancy(room.id);
-                        const balance = getRoomPendingBalance(room.id);
-                        const isOccupied = status === 'Occupied' || !!tenant;
-
-                        return (
-                          <div key={room.id} className="p-4 hover:bg-slate-900/30 transition-colors flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                            <div className="flex items-center gap-3 min-w-0">
-                              <div className="w-8 h-8 rounded-lg bg-blue-600/10 text-blue-400 flex items-center justify-center font-bold text-xs border border-blue-500/20 flex-shrink-0 font-mono">
-                                {room.room_number}
-                              </div>
-                              <div className="min-w-0">
-                                <p className="font-bold text-xs text-slate-200">Room {room.room_number}</p>
-                                <p className="text-[10px] text-slate-500 mt-0.5 font-medium">{room.room_type || 'Standard'} • Floor {room.floor || 'G'}</p>
-                              </div>
-                            </div>
-
-                            {/* Center Status, Tenant Details — fixed 3-column grid for alignment */}
-                            <div className="grid grid-cols-3 gap-4 text-xs w-full sm:w-auto" style={{ minWidth: '300px' }}>
-                              <div className="min-w-0">
-                                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block">Tenant</span>
-                                <span className="font-semibold text-slate-200 truncate block max-w-[120px]">
-                                  {tenant ? tenant.name : <span className="text-slate-600 italic">— Vacant —</span>}
-                                </span>
-                              </div>
-
-                              <div className="min-w-0">
-                                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block">Monthly Rent</span>
-                                <span className="font-bold text-slate-200 font-mono">{formatINR(room.base_rent)}</span>
-                              </div>
-
-                              <div className="min-w-0">
-                                <span className={`text-[9px] font-bold uppercase tracking-widest block ${balance > 0 ? 'text-red-500/70' : 'text-slate-500'}`}>Arrears</span>
-                                {balance > 0 ? (
-                                  <span className="font-bold text-red-400 font-mono">{formatINR(balance)}</span>
-                                ) : (
-                                  <span className="font-medium text-slate-600">—</span>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Right Actions */}
-                            <div className="flex items-center gap-2 self-end sm:self-auto flex-shrink-0">
-                              {balance > 0 && tenant && (
-                                <button
-                                  onClick={() => {
-                                    const text = `*RENT & UTILITY PAYMENT REMINDER*\nDear ${tenant.name},\nThis is a gentle reminder regarding your pending balance of *${formatINR(balance)}* for Room ${room.room_number} (${property.name}).\n\nPlease clear the due payment at your earliest convenience. Thank you!`;
-                                    const phone = tenant.phone ? tenant.phone.replace(/[^0-9]/g, '') : '';
-                                    const url = phone ? `https://wa.me/${phone}?text=${encodeURIComponent(text)}` : `https://wa.me/?text=${encodeURIComponent(text)}`;
-                                    window.open(url, '_blank');
-                                  }}
-                                  className="px-2.5 py-1 bg-emerald-600/10 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/20 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all"
-                                  title="Send 1-Click WhatsApp Reminder to Tenant"
-                                >
-                                  <Share2 size={11} />
-                                  <span>Remind</span>
-                                </button>
-                              )}
-
-                              {isOccupied ? (
-                                <Link
-                                  to={`/smart-calc?roomId=${room.id}`}
-                                  className="px-2.5 py-1 bg-blue-600/10 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/20 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all"
-                                >
-                                  <Zap size={11} /> Bill
-                                </Link>
-                              ) : (
-                                <Link
-                                  to="/tenants"
-                                  className="px-2.5 py-1 bg-slate-950 hover:bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 rounded-lg text-[10px] font-semibold flex items-center gap-1 transition-all"
-                                >
-                                  Assign <ArrowRight size={10} />
-                                </Link>
-                              )}
-                            </div>
-
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                </div>
-              );
-            })}
-          </div>
-        )}
       </div>
 
-      {/* ── USER GUIDE POPUP manual ── */}
-      <div className="card glass-card p-5 border-blue-500/20 bg-slate-900/30 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-600/25 text-blue-400 flex items-center justify-center border border-blue-500/20 flex-shrink-0">
-            <BookOpen size={18} />
-          </div>
+      {/* ── PORTFOLIO SNAPSHOT SECTION ── */}
+      <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+        <div className="flex justify-between items-center">
           <div>
-            <h3 className="font-bold text-slate-200 text-sm">Need help setting up leases or calculation modes?</h3>
-            <p className="text-slate-400 text-xs mt-0.5">Explore our simple 5-step quick-start manual wizard.</p>
+            <h3 className="font-extrabold text-slate-900 text-base">Portfolio snapshot</h3>
+            <p className="text-xs text-slate-400 mt-0.5">Room occupancy and billing status across properties</p>
+          </div>
+          <Link to="/properties" className="text-xs font-bold text-[#2d5a47] hover:underline flex items-center gap-1">
+            View all properties &rsaquo;
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+          {properties.slice(0, 3).map((prop, i) => {
+            const propRooms = rooms.filter(r => r.property_id === prop.id);
+            const occupied = propRooms.filter(r => leases.some(l => l.room_id === r.id && l.is_active)).length;
+            const rev = propRooms.reduce((sum, r) => sum + parseFloat(r.base_rent || 0), 0);
+
+            return (
+              <div key={prop.id || i} className="bg-[#f8faf9] p-5 rounded-2xl border border-slate-100 flex flex-col justify-between hover:border-slate-200 transition-all">
+                <div className="flex justify-between items-start">
+                  <div className="w-9 h-9 rounded-xl bg-[#e2eee7] text-[#2d5a47] flex items-center justify-center font-bold">
+                    <Building size={16} />
+                  </div>
+                  <ArrowUpRight size={14} className="text-slate-400" />
+                </div>
+
+                <div className="mt-4">
+                  <h4 className="font-extrabold text-slate-900 text-sm">{prop.name}</h4>
+                  <p className="text-[11px] text-slate-400">{prop.address || '—'}</p>
+                </div>
+
+                <div className="flex justify-between items-center pt-4 mt-4 border-t border-slate-200/60 text-xs">
+                  <div>
+                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">OCCUPIED</span>
+                    <span className="font-bold text-slate-800">{occupied} / {propRooms.length} rooms</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">EXPECTED</span>
+                    <span className="font-bold text-slate-800">{formatINR(rev)}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── ROOM BILLING STATUS & RECENT ACTIVITY GRID ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Room Billing Status Table */}
+        <div className="lg:col-span-2 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="font-extrabold text-slate-900 text-base">Room billing status</h3>
+              <p className="text-xs text-slate-400 mt-0.5">Latest bill per room</p>
+            </div>
+            <button className="text-slate-400 hover:text-slate-600 p-1">
+              <MoreHorizontal size={18} />
+            </button>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                  <th className="pb-3">ROOM / TENANT</th>
+                  <th className="pb-3">PROPERTY</th>
+                  <th className="pb-3">MONTHLY RENT</th>
+                  <th className="pb-3 text-right">STATUS</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 font-medium">
+                {roomBillingRows.length === 0 ? (
+                  <tr><td colSpan={4} className="py-8 text-center text-slate-400 text-xs">No rooms yet. Add rooms to see billing status.</td></tr>
+                ) : roomBillingRows.map(({ room, prop, tenant, latestBill, status }) => {
+                  const isPaid = status === 'Paid';
+                  const isPartial = status === 'Partially Paid';
+                  const isUnpaid = status === 'Unpaid';
+                  const isVacant = status === 'Vacant';
+                  const isNoBill = status === 'No bill yet';
+                  return (
+                    <tr key={room.id} className="hover:bg-slate-50/60 transition-colors">
+                      <td className="py-3.5">
+                        <div className="flex items-center gap-2.5">
+                          <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                            isPaid ? 'bg-emerald-500' : isPartial ? 'bg-amber-400' : isUnpaid ? 'bg-red-400' : 'bg-slate-300'
+                          }`} />
+                          <div>
+                            <p className="font-bold text-slate-800">Room {room.room_number}</p>
+                            <p className="text-[11px] text-slate-400 font-normal">{tenant?.name || (isVacant ? 'Vacant' : '—')}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3.5 text-slate-500">{prop?.name || '—'}</td>
+                      <td className="py-3.5 font-bold text-slate-800">{formatINR(room.base_rent)}</td>
+                      <td className="py-3.5 text-right">
+                        <span className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] ${
+                          isPaid ? 'bg-emerald-50 text-emerald-700' :
+                          isPartial ? 'bg-amber-50 text-amber-700' :
+                          isUnpaid ? 'bg-red-50 text-red-600' :
+                          'bg-slate-100 text-slate-500'
+                        }`}>
+                          {isVacant ? 'Vacant' : isNoBill ? 'No bill' : status}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
-        <button
-          onClick={() => setShowGuideModal(true)}
-          className="btn btn-secondary text-xs py-2 px-4 rounded-xl text-blue-400 hover:text-white flex items-center gap-1.5 w-full sm:w-auto justify-center flex-shrink-0"
-        >
-          <span>Open interactive Manual</span>
-          <ArrowRight size={13} />
-        </button>
+
+        {/* Recent Activity Box */}
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h3 className="font-extrabold text-slate-900 text-base">Recent activity</h3>
+                <p className="text-xs text-slate-400 mt-0.5">A quiet pulse of your workspace</p>
+              </div>
+              <Link to="/billing" className="text-xs font-bold text-[#2d5a47] hover:underline">See all</Link>
+            </div>
+
+            <div className="space-y-4">
+              {recentBills.length === 0 ? (
+                <div className="text-center py-6 text-slate-400 text-xs">
+                  <Receipt size={28} className="mx-auto mb-2 opacity-40" />
+                  No bills generated yet.
+                </div>
+              ) : recentBills.map((b, idx) => {
+                const isPaid = b.payment_status === 'Paid';
+                const isUnpaid = b.payment_status === 'Unpaid';
+                const billDate = b.created_at || b.bill_date;
+                const dateStr = billDate ? new Date(billDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+                const bgColor = isPaid ? 'bg-emerald-50 text-emerald-700' : isUnpaid ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600';
+                return (
+                  <div key={b.id || idx} className="flex items-start gap-3 text-xs">
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 ${bgColor}`}>
+                      <Receipt size={15} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-slate-800 truncate">
+                        {b.tenant?.name || 'Tenant'} — Room {b.room?.room_number || '?'}
+                      </p>
+                      <p className="text-[11px] text-slate-400">{b.prop?.name || '—'} • {dateStr}</p>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <span className="font-bold text-slate-800 block">{formatINR(b.total_payable)}</span>
+                      <span className={`text-[10px] font-semibold ${isPaid ? 'text-emerald-600' : isUnpaid ? 'text-red-500' : 'text-amber-600'}`}>
+                        {b.payment_status}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <button 
+            onClick={() => navigate('/billing')}
+            className="w-full py-3 mt-6 bg-[#f1f5f3] hover:bg-slate-200/60 text-slate-800 font-bold text-xs rounded-2xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            <span>Open billing records</span>
+            <ArrowRight size={14} />
+          </button>
+        </div>
+
       </div>
 
       {/* Popout Interactive User Manual Modal */}
       {showGuideModal && createPortal(
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-[9999] overflow-y-auto p-4 sm:p-6 flex items-center justify-center">
-          <div className="card glass-card w-full max-w-2xl border-slate-800 bg-slate-900 shadow-2xl relative my-auto overflow-hidden">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] overflow-y-auto p-4 sm:p-6 flex items-center justify-center">
+          <div className="bg-white w-full max-w-2xl border border-slate-200 rounded-3xl shadow-2xl relative my-auto overflow-hidden">
             
             {/* Header */}
-            <div className="p-5 sm:p-6 border-b border-slate-800 bg-slate-950 flex justify-between items-center">
+            <div className="p-5 sm:p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-[#e2eee7] text-[#2d5a47] flex items-center justify-center">
                   <BookOpen size={18} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-100 text-base">BillRoom Quick Start & User Guide</h3>
+                  <h3 className="font-bold text-slate-900 text-base">BillRoom Quick Start & User Guide</h3>
                   <p className="text-slate-400 text-xs">Step-by-step instructions to manage your property portfolio.</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowGuideModal(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-100 hover:bg-slate-800 rounded-lg transition-colors"
+                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
               >
                 <X size={20} />
               </button>
@@ -530,94 +609,45 @@ export default function Dashboard() {
             {/* Steps Content */}
             <div className="p-5 sm:p-6 space-y-4 max-h-[65vh] overflow-y-auto">
               
-              {/* Step 1: Add Property */}
-              <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <span className="w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-[10px]">1</span>
-                    Add Property Location
-                  </span>
-                  <Building size={16} className="text-blue-400" />
-                </div>
-                <p className="text-xs text-slate-300 font-medium">Create your building or apartment complex</p>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Go to <strong className="text-slate-200">Properties & Rooms</strong> and click <strong className="text-blue-400">+ New Property</strong> to add your building name and address.
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <span className="text-xs font-bold text-[#2d5a47] uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#e2eee7] text-[#2d5a47] flex items-center justify-center text-[10px]">1</span>
+                  Add Property Location
+                </span>
+                <p className="text-xs text-slate-600 leading-relaxed pt-1">
+                  Go to <strong>Properties</strong> and click <strong>+ New Property</strong> to add your building name and address.
                 </p>
               </div>
 
-              {/* Step 2: Add Room */}
-              <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <span className="w-5 h-5 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center text-[10px]">2</span>
-                    Register Rooms & Submeter Mode
-                  </span>
-                  <Home size={16} className="text-purple-400" />
-                </div>
-                <p className="text-xs text-slate-300 font-medium">Set room rent & electricity billing method</p>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Select your property and click <strong className="text-purple-400">+ Add Room</strong>. Enter floor, base rent, and choose between <strong className="text-slate-200">⚡ Submeter Reading</strong> (units + rate) or <strong className="text-slate-200">📄 Direct Bill / Skip</strong>.
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <span className="text-xs font-bold text-[#2d5a47] uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#e2eee7] text-[#2d5a47] flex items-center justify-center text-[10px]">2</span>
+                  Register Rooms & Submeter Mode
+                </span>
+                <p className="text-xs text-slate-600 leading-relaxed pt-1">
+                  Select your property and click <strong>+ Add Room</strong>. Enter floor, base rent, and choose submeter reading or direct bill.
                 </p>
               </div>
 
-              {/* Step 3: Add Tenant & Allocate Room */}
-              <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <span className="w-5 h-5 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-[10px]">3</span>
-                    Add Tenant & Allocate Room
-                  </span>
-                  <div className="flex gap-1 text-amber-400">
-                    <UserPlus size={15} />
-                  </div>
-                </div>
-                <p className="text-xs text-slate-300 font-medium">Register tenant details & link them to a room</p>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Go to <strong className="text-slate-200">Tenants & Leases</strong>, click <strong className="text-amber-400">+ Register Tenant</strong>, then switch to the <strong className="text-slate-200">Room Allocations (Leases)</strong> tab to assign the tenant to their designated room.
-                </p>
-              </div>
-
-              {/* Step 4: Generate Bill */}
-              <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-yellow-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <span className="w-5 h-5 rounded-full bg-yellow-500/20 text-yellow-400 flex items-center justify-center text-[10px]">4</span>
-                    Calculate Monthly Bill
-                  </span>
-                  <Zap size={16} className="text-yellow-400" />
-                </div>
-                <p className="text-xs text-slate-300 font-medium">Generate itemized rent & utility bill</p>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Open <strong className="text-slate-200">Smart Calculator</strong>, pick the room, enter current meter reading (previous reading autofills automatically), and click <strong className="text-blue-400">Calculate & Save Bill</strong>.
-                </p>
-              </div>
-
-              {/* Step 5: Share & Collect Payment */}
-              <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px]">5</span>
-                    Share WhatsApp / PDF & Track Payments
-                  </span>
-                  <div className="flex gap-1 text-emerald-400">
-                    <Share2 size={15} />
-                  </div>
-                </div>
-                <p className="text-xs text-slate-300 font-medium">Share invoice on WhatsApp and record payments</p>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Click <strong className="text-emerald-400">Share WhatsApp</strong> or <strong className="text-blue-400">Download PDF</strong>. When payment is received, click <strong className="text-slate-200">Pay</strong> in Billing Records — any remaining balance will automatically track as arrears.
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <span className="text-xs font-bold text-[#2d5a47] uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#e2eee7] text-[#2d5a47] flex items-center justify-center text-[10px]">3</span>
+                  Add Tenant & Allocate Room
+                </span>
+                <p className="text-xs text-slate-600 leading-relaxed pt-1">
+                  Go to <strong>Tenants</strong>, register tenant details, then assign them to their designated room lease.
                 </p>
               </div>
 
             </div>
 
             {/* Footer */}
-            <div className="p-4 border-t border-slate-800 bg-slate-950 flex justify-end">
+            <div className="p-4 border-t border-slate-100 bg-slate-50/50 flex justify-end">
               <button
                 onClick={() => setShowGuideModal(false)}
                 className="btn btn-primary rounded-xl px-5 py-2 text-xs"
               >
-                Got It, Close Manual
+                Close User Guide
               </button>
             </div>
           </div>
@@ -644,7 +674,6 @@ export default function Dashboard() {
                   elec_mode: data.utilityMode || 'submeter'
                 });
               }
-              // Refresh dashboard data
               const [propsList, roomsList] = await Promise.all([
                 api.getProperties(ownerId),
                 api.getAllRooms(ownerId)
@@ -660,3 +689,4 @@ export default function Dashboard() {
     </div>
   );
 }
+

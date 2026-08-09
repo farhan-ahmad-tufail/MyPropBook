@@ -115,7 +115,7 @@ export default function Analytics() {
 
   // Pie chart data for cost breakdown
   const pieData = useMemo(() => [
-    { name: 'Base Rent', value: totalBaseRentYear, color: '#3b82f6' },
+    { name: 'Base Rent', value: totalBaseRentYear, color: '#2563eb' },
     { name: 'Electricity Utility', value: totalElectricityRevenueYear, color: '#f59e0b' },
     { name: 'Other Charges', value: totalOtherChargesYear, color: '#a855f7' }
   ].filter(d => d.value > 0), [totalBaseRentYear, totalElectricityRevenueYear, totalOtherChargesYear]);
@@ -171,35 +171,35 @@ export default function Analytics() {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
-        <div className="w-10 h-10 rounded-full border-4 border-slate-800 border-t-blue-500 animate-spin" />
+        <div className="w-10 h-10 rounded-full border-4 border-slate-200 border-t-[#2d5a47] animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 fade-in-up active">
+    <div className="space-y-8 fade-in-up active max-w-7xl mx-auto pb-12">
       
       {/* ── Page Header ── */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-2">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-100 flex items-center gap-2">
-            <BarChart3 className="text-blue-500" size={28} />
-            <span>Financial Analytics & Reports</span>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
+            <BarChart3 className="text-[#2d5a47]" size={32} />
+            <span>Financial Analytics &amp; Reports</span>
           </h1>
-          <p className="text-slate-400 mt-1 text-sm">Track revenue collection, electricity consumption trends & export tax statements.</p>
+          <p className="text-slate-500 mt-1 text-sm">Track revenue collection, electricity consumption trends &amp; export tax statements.</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
           {/* Year Selector */}
-          <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3.5 py-2 rounded-xl">
+          <div className="flex items-center gap-2 bg-white border border-slate-200 px-3.5 py-2 rounded-2xl shadow-sm">
             <Calendar size={14} className="text-slate-400" />
             <select
               value={selectedYear}
               onChange={e => setSelectedYear(e.target.value)}
-              className="bg-transparent text-xs font-bold text-slate-200 focus:outline-none cursor-pointer"
+              className="bg-transparent text-xs font-bold text-slate-800 focus:outline-none cursor-pointer"
             >
               {availableYears.map(yr => (
-                <option key={yr} value={yr} className="bg-slate-900 text-slate-200">
+                <option key={yr} value={yr} className="bg-white text-slate-800">
                   Year {yr}
                 </option>
               ))}
@@ -209,78 +209,82 @@ export default function Analytics() {
           {/* Export CSV Button */}
           <button
             onClick={handleExportCSV}
-            className="btn bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl px-4 py-2.5 text-xs font-bold flex items-center gap-1.5 shadow-glow"
+            className="px-5 py-2.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all flex items-center gap-2 shadow-sm cursor-pointer"
             title="Download CSV Report for Accounting/Tax"
           >
-            <Download size={14} /> Export CSV Report
+            <Download size={15} /> Export CSV Report
           </button>
         </div>
       </div>
 
       {error && (
-        <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-sm flex items-center gap-2">
-          <ShieldAlert size={18} />
+        <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-xs flex items-center gap-2">
+          <ShieldAlert size={16} />
           <span>{error}</span>
         </div>
       )}
 
       {/* ── Financial Cards ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
         {/* Total Collected */}
-        <div className="card glass-card p-5 flex flex-col justify-between border-slate-800">
+        <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
           <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none">Revenue Collected</span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-600/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
-              <DollarSign size={15} />
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">REVENUE COLLECTED</span>
+            <div className="w-9 h-9 rounded-2xl bg-[#edf5f1] text-[#2d5a47] flex items-center justify-center font-bold">
+              <DollarSign size={16} />
             </div>
           </div>
-          <div className="mt-4">
-            <h3 className="text-xl sm:text-2xl font-black text-emerald-400">{formatINR(totalCollectedYear)}</h3>
-            <p className="text-[10px] text-slate-400 mt-1">Total received in {selectedYear}</p>
+          <div className="mt-5">
+            <h3 className="text-2xl sm:text-3xl font-black text-[#2d5a47]">{formatINR(totalCollectedYear)}</h3>
+            <p className="text-xs text-slate-400 font-medium mt-1">Total received in {selectedYear}</p>
           </div>
         </div>
 
         {/* Total Pending */}
-        <div className="card glass-card p-5 flex flex-col justify-between border-slate-800">
+        <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
           <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none">Pending Arrears</span>
-            <div className="w-8 h-8 rounded-xl bg-red-600/10 text-red-400 flex items-center justify-center border border-red-500/20">
-              <TrendingUp size={15} />
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">PENDING ARREARS</span>
+            <div className="w-9 h-9 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center font-bold">
+              <TrendingUp size={16} />
             </div>
           </div>
-          <div className="mt-4">
-            <h3 className="text-xl sm:text-2xl font-black text-red-400">{formatINR(totalPendingYear)}</h3>
-            <p className="text-[10px] text-slate-400 mt-1">Uncollected balance</p>
+          <div className="mt-5">
+            <h3 className={`text-2xl sm:text-3xl font-black ${totalPendingYear > 0 ? 'text-red-500' : 'text-slate-800'}`}>
+              {formatINR(totalPendingYear)}
+            </h3>
+            <p className="text-xs text-slate-400 font-medium mt-1">Uncollected balance</p>
           </div>
         </div>
 
         {/* Collection Efficiency Rate */}
-        <div className="card glass-card p-5 flex flex-col justify-between border-slate-800">
+        <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
           <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none">Collection Rate</span>
-            <div className="w-8 h-8 rounded-xl bg-blue-600/10 text-blue-400 flex items-center justify-center border border-blue-500/20">
-              <PieIcon size={15} />
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">COLLECTION RATE</span>
+            <div className="w-9 h-9 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+              <PieIcon size={16} />
             </div>
           </div>
-          <div className="mt-4">
-            <h3 className="text-xl sm:text-2xl font-black text-blue-400">{collectionRate}%</h3>
-            <p className="text-[10px] text-slate-400 mt-1">Paid vs total billed</p>
+          <div className="mt-5">
+            <h3 className="text-2xl sm:text-3xl font-black text-blue-600">{collectionRate}%</h3>
+            <p className="text-xs text-slate-400 font-medium mt-1">Paid vs total billed</p>
           </div>
         </div>
 
         {/* Electricity Consumption */}
-        <div className="card glass-card p-5 flex flex-col justify-between border-slate-800">
+        <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
           <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none">Electricity Consumed</span>
-            <div className="w-8 h-8 rounded-xl bg-amber-600/10 text-amber-400 flex items-center justify-center border border-amber-500/20">
-              <Zap size={15} />
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">ELECTRICITY CONSUMED</span>
+            <div className="w-9 h-9 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+              <Zap size={16} />
             </div>
           </div>
-          <div className="mt-4">
-            <h3 className="text-xl sm:text-2xl font-black text-amber-400">{totalUnitsConsumedYear.toLocaleString()} Units</h3>
-            <p className="text-[10px] text-slate-400 mt-1">{formatINR(totalElectricityRevenueYear)} billed</p>
+          <div className="mt-5">
+            <h3 className="text-2xl sm:text-3xl font-black text-amber-600">{totalUnitsConsumedYear.toLocaleString()} Units</h3>
+            <p className="text-xs text-slate-400 font-medium mt-1">{formatINR(totalElectricityRevenueYear)} billed</p>
           </div>
         </div>
+
       </div>
 
       {/* ── CHARTS SECTION ── */}
@@ -288,12 +292,12 @@ export default function Analytics() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           {/* 1. Month-Over-Month Revenue Trend (Area Chart) */}
-          <div className="lg:col-span-2 card glass-card p-5 border-slate-800 space-y-4">
+          <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-100 p-6 shadow-sm space-y-4">
             <div>
-              <h3 className="font-bold text-slate-200 text-sm flex items-center gap-2">
-                <TrendingUp size={16} className="text-blue-400" /> Revenue Flow & Collections
+              <h3 className="font-extrabold text-slate-900 text-base flex items-center gap-2">
+                <TrendingUp size={16} className="text-[#2d5a47]" /> Revenue Flow &amp; Collections
               </h3>
-              <p className="text-slate-500 text-[10px] mt-0.5">Billed invoices vs payments received month-by-month</p>
+              <p className="text-xs text-slate-400 mt-0.5">Billed invoices vs payments received month-by-month</p>
             </div>
             
             <div className="h-72 w-full text-xs">
@@ -301,37 +305,37 @@ export default function Analytics() {
                 <AreaChart data={monthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorBilled" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2}/>
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#475569" stopOpacity={0.15}/>
+                      <stop offset="95%" stopColor="#475569" stopOpacity={0}/>
                     </linearGradient>
                     <linearGradient id="colorCollected" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#2d5a47" stopOpacity={0.25}/>
+                      <stop offset="95%" stopColor="#2d5a47" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" opacity={0.3} />
-                  <XAxis dataKey="month" stroke="#64748b" tickLine={false} />
-                  <YAxis stroke="#64748b" tickLine={false} tickFormatter={formatChartCurrency} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                  <XAxis dataKey="month" stroke="#94a3b8" tickLine={false} />
+                  <YAxis stroke="#94a3b8" tickLine={false} tickFormatter={formatChartCurrency} />
                   <Tooltip 
-                    contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', borderRadius: '12px' }}
-                    labelStyle={{ color: '#94a3b8', fontWeight: 'bold' }}
+                    contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
+                    labelStyle={{ color: '#0f172a', fontWeight: 'bold' }}
                     formatter={(value) => [formatINR(value), null]}
                   />
-                  <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }} />
-                  <Area type="monotone" name="Total Billed" dataKey="billed" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorBilled)" />
-                  <Area type="monotone" name="Collected" dataKey="collected" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorCollected)" />
+                  <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '11px', color: '#64748b' }} />
+                  <Area type="monotone" name="Total Billed" dataKey="billed" stroke="#475569" strokeWidth={2} fillOpacity={1} fill="url(#colorBilled)" />
+                  <Area type="monotone" name="Collected" dataKey="collected" stroke="#2d5a47" strokeWidth={3} fillOpacity={1} fill="url(#colorCollected)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           </div>
 
           {/* 2. Revenue Distribution (Donut Pie Chart) */}
-          <div className="card glass-card p-5 border-slate-800 space-y-4 flex flex-col justify-between">
+          <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm space-y-4 flex flex-col justify-between">
             <div>
-              <h3 className="font-bold text-slate-200 text-sm flex items-center gap-2">
-                <PieIcon size={16} className="text-purple-400" /> Revenue Distribution
+              <h3 className="font-extrabold text-slate-900 text-base flex items-center gap-2">
+                <PieIcon size={16} className="text-purple-600" /> Revenue Distribution
               </h3>
-              <p className="text-slate-500 text-[10px] mt-0.5">Yield share of base rent vs utilities</p>
+              <p className="text-xs text-slate-400 mt-0.5">Yield share of base rent vs utilities</p>
             </div>
 
             {pieData.length > 0 ? (
@@ -352,57 +356,57 @@ export default function Analytics() {
                       ))}
                     </Pie>
                     <Tooltip 
-                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', borderRadius: '12px' }}
+                      contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
                       formatter={(value) => [formatINR(value), null]}
                     />
                   </PieChart>
                 </ResponsiveContainer>
                 {/* Center metric */}
                 <div className="absolute text-center">
-                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Total Billed</span>
-                  <span className="text-sm font-extrabold text-slate-200">{formatINRShort(totalBilledYear)}</span>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Total Billed</span>
+                  <span className="text-sm font-black text-slate-900">{formatINRShort(totalBilledYear)}</span>
                 </div>
               </div>
             ) : (
-              <div className="h-48 flex items-center justify-center text-slate-500 text-xs italic">
+              <div className="h-48 flex items-center justify-center text-slate-400 text-xs italic">
                 No revenue distribution data.
               </div>
             )}
 
             {/* Custom Legend */}
-            <div className="space-y-1.5 pt-2 border-t border-slate-850">
+            <div className="space-y-2 pt-2 border-t border-slate-100">
               {pieData.map((d, idx) => (
                 <div key={idx} className="flex justify-between items-center text-xs">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: d.color }} />
-                    <span className="text-slate-400">{d.name}</span>
+                    <span className="text-slate-500 font-medium">{d.name}</span>
                   </div>
-                  <span className="font-semibold text-slate-200">{formatINR(d.value)} ({((d.value / totalBilledYear) * 100).toFixed(0)}%)</span>
+                  <span className="font-bold text-slate-800">{formatINR(d.value)} ({((d.value / totalBilledYear) * 100).toFixed(0)}%)</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* 3. Utility consumption trends (Line Chart) */}
-          <div className="lg:col-span-3 card glass-card p-5 border-slate-800 space-y-4">
+          <div className="lg:col-span-3 bg-white rounded-3xl border border-slate-100 p-6 shadow-sm space-y-4">
             <div>
-              <h3 className="font-bold text-slate-200 text-sm flex items-center gap-2">
-                <LineIcon size={16} className="text-amber-400" /> Utility Consumption Cycle
+              <h3 className="font-extrabold text-slate-900 text-base flex items-center gap-2">
+                <LineIcon size={16} className="text-amber-500" /> Utility Consumption Cycle
               </h3>
-              <p className="text-slate-500 text-[10px] mt-0.5">Electricity submeter consumption (units) trends over the seasons</p>
+              <p className="text-xs text-slate-400 mt-0.5">Electricity submeter consumption (units) trends over the seasons</p>
             </div>
             
             <div className="h-64 w-full text-xs">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={monthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" opacity={0.3} />
-                  <XAxis dataKey="month" stroke="#64748b" tickLine={false} />
-                  <YAxis stroke="#64748b" tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                  <XAxis dataKey="month" stroke="#94a3b8" tickLine={false} />
+                  <YAxis stroke="#94a3b8" tickLine={false} />
                   <Tooltip 
-                    contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', borderRadius: '12px' }}
+                    contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
                     formatter={(value) => [`${parseFloat(value).toFixed(1)} Units`, 'Electricity consumed']}
                   />
-                  <Line type="monotone" name="Electricity Consumed" dataKey="units" stroke="#f59e0b" strokeWidth={3} dot={{ r: 4, stroke: '#d97706', strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                  <Line type="monotone" name="Electricity Consumed" dataKey="units" stroke="#d97706" strokeWidth={3} dot={{ r: 4, stroke: '#d97706', strokeWidth: 2 }} activeDot={{ r: 6 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -410,41 +414,41 @@ export default function Analytics() {
 
         </div>
       ) : (
-        <div className="card glass-card p-12 text-center text-slate-500 border-slate-850">
+        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-12 text-center text-slate-400 text-xs">
           No chart data available for selection. Make sure bills are calculated and saved in the system first.
         </div>
       )}
 
       {/* ── Month-over-Month Revenue & Electricity Breakdown Table ── */}
-      <div className="card glass-card overflow-hidden border-slate-800 space-y-4 p-5 bg-slate-900/20">
+      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm space-y-4 p-6 overflow-hidden">
         <div className="flex justify-between items-center">
-          <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-            <ArrowUpRight size={15} className="text-emerald-400" />
-            <span>Monthly Financial Ledger ({selectedYear})</span>
+          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+            <ArrowUpRight size={15} className="text-[#2d5a47]" />
+            <span>MONTHLY FINANCIAL LEDGER ({selectedYear})</span>
           </h2>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="table w-full text-left">
+          <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-950/40 border-b border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-400">
-                <th className="px-5 py-4">Month</th>
-                <th className="px-5 py-4">Invoices</th>
-                <th className="px-5 py-4">Billed (₹)</th>
-                <th className="px-5 py-4">Collected (₹)</th>
-                <th className="px-5 py-4">Pending (₹)</th>
-                <th className="px-5 py-4">Elec Units</th>
+              <tr className="border-b border-slate-100 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50/50">
+                <th className="px-5 py-4">MONTH</th>
+                <th className="px-5 py-4">INVOICES</th>
+                <th className="px-5 py-4">BILLED (₹)</th>
+                <th className="px-5 py-4">COLLECTED (₹)</th>
+                <th className="px-5 py-4">PENDING (₹)</th>
+                <th className="px-5 py-4">ELEC UNITS</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-100 font-medium text-xs">
               {monthlyData.map(m => (
-                <tr key={m.month} className="border-b border-slate-850 hover:bg-slate-900/30 text-xs transition-colors">
-                  <td className="px-5 py-3.5 font-bold text-slate-200">{m.fullMonth}</td>
+                <tr key={m.month} className="hover:bg-slate-50/60 transition-colors">
+                  <td className="px-5 py-3.5 font-bold text-slate-800">{m.fullMonth}</td>
                   <td className="px-5 py-3.5 text-slate-400">{m.count > 0 ? `${m.count} bills` : '-'}</td>
-                  <td className="px-5 py-3.5 font-semibold text-slate-350">₹{m.billed.toLocaleString()}</td>
-                  <td className="px-5 py-3.5 font-bold text-emerald-400">₹{m.collected.toLocaleString()}</td>
-                  <td className="px-5 py-3.5 font-bold text-red-400">{m.pending > 0 ? `₹${m.pending.toLocaleString()}` : '₹0'}</td>
-                  <td className="px-5 py-3.5 font-mono text-amber-500">{m.units > 0 ? `${m.units.toFixed(1)} units` : '-'}</td>
+                  <td className="px-5 py-3.5 font-semibold text-slate-700">₹{m.billed.toLocaleString()}</td>
+                  <td className="px-5 py-3.5 font-bold text-[#2d5a47]">₹{m.collected.toLocaleString()}</td>
+                  <td className="px-5 py-3.5 font-bold text-red-500">{m.pending > 0 ? `₹${m.pending.toLocaleString()}` : '₹0'}</td>
+                  <td className="px-5 py-3.5 font-mono text-amber-600">{m.units > 0 ? `${m.units.toFixed(1)} units` : '-'}</td>
                 </tr>
               ))}
             </tbody>

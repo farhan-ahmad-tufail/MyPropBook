@@ -3,72 +3,25 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import { useSearchParams } from 'react-router-dom';
 import { 
-  Calculator, 
-  RefreshCw, 
-  Printer, 
-  AlertTriangle, 
   Zap, 
-  Home, 
-  User, 
-  Layers, 
+  Sparkles, 
+  HelpCircle, 
   ArrowRight, 
-  Calendar, 
   Download, 
-  Save, 
+  Printer, 
   Share2, 
-  CheckCircle,
-  Building
+  CheckCircle2, 
+  AlertTriangle,
+  Building,
+  User,
+  Home,
+  IndianRupee,
+  Receipt,
+  FileText
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { useToast } from '../components/Toast';
-
-const translations = {
-  en: {
-    receiptTitle: "RENT & UTILITY BILL",
-    tenant: "TENANT",
-    rooms: "ROOMS",
-    total: "Total",
-    rent: "RENT",
-    readings: "READINGS",
-    units: "UNITS",
-    rate: "RATE",
-    elec: "ELEC",
-    cur: "Cur",
-    pre: "Pre",
-    totalRent: "Total Rent",
-    totalElectricity: "Total Electricity",
-    otherCharges: "Other Charges",
-    currentMonth: "CURRENT MONTH",
-    oldPendingBalance: "Old Pending Balance",
-    totalPayable: "TOTAL PAYABLE AMOUNT",
-    payByDueDate: "Please pay by due date",
-    thankYou: "Thank you for your timely payment.",
-    generatedOn: "Generated electronically on"
-  },
-  hi: {
-    receiptTitle: "किराया एवं बिजली बिल",
-    tenant: "किरायेदार",
-    rooms: "कमरे",
-    total: "टोटल",
-    rent: "किराया",
-    readings: "रीडिंग",
-    units: "यूनिट",
-    rate: "दर",
-    elec: "बिजली",
-    cur: "वर्तमान",
-    pre: "पिछला",
-    totalRent: "टोटल किराया",
-    totalElectricity: "टोटल बिजली बिल",
-    otherCharges: "अन्य शुल्क",
-    currentMonth: "इस महीने का टोटल",
-    oldPendingBalance: "पिछला बकाया",
-    totalPayable: "टोटल किराया देना है",
-    payByDueDate: "कृपया नियत तिथि तक भुगतान करें",
-    thankYou: "समय पर भुगतान के लिए धन्यवाद।",
-    generatedOn: "इलेक्ट्रॉनिक रूप से तैयार:"
-  }
-};
 
 export default function SmartCalc() {
   const { user } = useAuth();
@@ -112,17 +65,8 @@ export default function SmartCalc() {
   const [result, setResult] = useState(null);
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [language, setLanguage] = useState('en');
-  const [theme, setTheme] = useState('default');
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
   const receiptRef = useRef(null);
-
-  const themeOptions = {
-    default: { primary: '#2563eb', bg: '#064e3b', text: '#ffffff', border: '#e2e8f0', hex: '#2563eb', label: 'Dark Blue', icon: '#2563eb' },
-    dark: { primary: '#0f172a', bg: '#0f172a', text: '#ffffff', border: '#cbd5e1', hex: '#0f172a', label: 'Black', icon: '#0f172a' },
-    indigo: { primary: '#4f46e5', bg: '#312e81', text: '#ffffff', border: '#c7d2fe', hex: '#4f46e5', label: 'Indigo', icon: '#4f46e5' },
-    emerald: { primary: '#059669', bg: '#064e3b', text: '#ffffff', border: '#a7f3d0', hex: '#059669', label: 'Emerald', icon: '#059669' }
-  };
-  const currentTheme = themeOptions[theme] || themeOptions.default;
 
   const months = [
     "January", "February", "March", "April", "May", "June",
@@ -157,6 +101,8 @@ export default function SmartCalc() {
           setSelectedPropertyId(targetRoom.property_id);
           setSelectedRoomId(targetRoom.id);
         }
+      } else if (propsList.length > 0 && !selectedPropertyId) {
+        setSelectedPropertyId(propsList[0].id);
       }
     } catch (err) {
       console.error(err);
@@ -196,7 +142,7 @@ export default function SmartCalc() {
         .filter(b => b.room_id === selectedRoomId && b.tenant_id === tenantObj.id && (b.payment_status === 'Unpaid' || b.payment_status === 'Partially Paid'))
         .reduce((sum, b) => sum + (parseFloat(b.total_payable || 0) - parseFloat(b.amount_paid || 0)), 0);
       setCalculatedArrears(roomArrears);
-      setCustomArrears(prev => prev !== '' ? prev : roomArrears.toString());
+      setCustomArrears(roomArrears.toString());
     } else {
       setActiveTenant(null);
       setCalculatedArrears(0);
@@ -204,51 +150,48 @@ export default function SmartCalc() {
     }
   }, [selectedRoomId, rooms, leases, tenants, bills]);
 
+  // Real-time calculation computation
+  const activeProperty = properties.find(p => p.id === selectedPropertyId);
+  const prevReading = parseFloat(activeRoom?.current_meter_reading) || 0;
+  const currReading = parseFloat(currentReading) || 0;
+  const rate = parseFloat(activeRoom?.rate_per_unit) || 10;
+  const unitsConsumed = (currentReading !== '' && currReading >= prevReading) ? (currReading - prevReading) : 0;
+  
+  let calculatedElecAmount = 0;
+  if (elecMode === 'submeter') {
+    calculatedElecAmount = unitsConsumed * rate;
+  } else if (elecMode === 'direct') {
+    calculatedElecAmount = parseFloat(directElecAmount) || 0;
+  }
+
+  const baseRentAmount = parseFloat(activeRoom?.base_rent) || 0;
+  const arrearsAmount = customArrears !== '' ? (parseFloat(customArrears) || 0) : calculatedArrears;
+  const otherChargesAmount = parseFloat(otherCharges) || 0;
+  const grandTotalAmount = baseRentAmount + calculatedElecAmount + arrearsAmount + otherChargesAmount;
+
   const handleCalculate = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setError('');
     setIsSaved(false);
 
     if (!activeRoom || !activeTenant) {
-      setError('Please select a room that has an active tenant allocation');
+      setError('Please select a room with an active tenant');
       return;
     }
 
-    const rentAmount = parseFloat(activeRoom.base_rent) || 0;
-    const other = parseFloat(otherCharges) || 0;
-    const arrearsVal = customArrears !== '' ? (parseFloat(customArrears) || 0) : calculatedArrears;
-    let elecAmount = 0;
-    let prevReading = 0;
-    let currReading = 0;
-    let units = 0;
-    let rate = 0;
-
     if (elecMode === 'submeter') {
-      prevReading = parseFloat(activeRoom.current_meter_reading) || 0;
-      currReading = parseFloat(currentReading);
-      rate = parseFloat(activeRoom.rate_per_unit) || 17;
-
-      if (isNaN(currReading)) {
+      if (currentReading === '' || isNaN(currReading)) {
         setError('Please input a valid current meter reading');
         return;
       }
       if (currReading < prevReading) {
-        setError(`Current meter reading cannot be less than the previous reading (${prevReading} units).`);
+        setError(`Current meter reading cannot be less than previous reading (${prevReading} units).`);
         return;
       }
-      units = currReading - prevReading;
-      elecAmount = units * rate;
-    } else if (elecMode === 'direct') {
-      const directAmt = parseFloat(directElecAmount);
-      if (isNaN(directAmt) || directAmt < 0) {
-        setError('Please enter a valid electricity bill amount');
-        return;
-      }
-      elecAmount = directAmt;
+    } else if (elecMode === 'direct' && (directElecAmount === '' || isNaN(parseFloat(directElecAmount)))) {
+      setError('Please enter a valid electricity bill amount');
+      return;
     }
-    // elecMode === 'none' → elecAmount stays 0
-
-    const total = elecAmount + rentAmount + arrearsVal + other;
 
     const calculatedBill = {
       room_id: activeRoom.id,
@@ -262,24 +205,23 @@ export default function SmartCalc() {
       elec_mode: elecMode,
       previous_reading: prevReading,
       current_reading: currReading,
-      units_consumed: units,
+      units_consumed: unitsConsumed,
       rate_per_unit: rate,
-      elec_amount: elecAmount,
-      rent_amount: rentAmount,
-      arrears: arrearsVal,
-      other_charges: other,
-      total_payable: total,
+      elec_amount: calculatedElecAmount,
+      rent_amount: baseRentAmount,
+      arrears: arrearsAmount,
+      other_charges: otherChargesAmount,
+      total_payable: grandTotalAmount,
       payment_status: 'Unpaid'
     };
 
     setResult(calculatedBill);
 
-    // Auto-save bill to Billing Records database
+    // Save bill to database
     try {
       setIsSaving(true);
       await api.createBill(calculatedBill);
       setIsSaved(true);
-      // Update room in state directly so receipt stays visible and previous meter updates
       if (elecMode === 'submeter') {
         setActiveRoom(prev => prev ? { ...prev, current_meter_reading: currReading } : prev);
         setRooms(prevRooms => prevRooms.map(r => r.id === activeRoom.id ? { ...r, current_meter_reading: currReading } : r));
@@ -294,11 +236,11 @@ export default function SmartCalc() {
   };
 
   const handleDownloadPDF = async () => {
-    if (!result || !receiptRef.current) return;
+    if (!receiptRef.current) return;
     try {
       const canvas = await html2canvas(receiptRef.current, {
         scale: 2,
-        backgroundColor: '#ffffff',
+        backgroundColor: '#2d5a47',
         logging: false,
         useCORS: true
       });
@@ -314,96 +256,99 @@ export default function SmartCalc() {
       });
 
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`Bill_${result.tenant_name}_${result.bill_month}.pdf`);
+      pdf.save(`Invoice_${activeTenant?.name || 'Tenant'}_${billMonth}_${billYear}.pdf`);
     } catch (err) {
       console.error("PDF Fail", err);
     }
   };
 
   const handleShareWhatsapp = async () => {
-    if (!result || !receiptRef.current) return;
-
     try {
-      const text = `*RENT RECEIPT*\nMonth: ${result.bill_month} ${result.bill_year}\nTenant: ${result.tenant_name}\nTotal: ₹${result.total_payable.toFixed(2)}`;
+      const tenantName = activeTenant?.name || 'Tenant';
+      const text = `*RENT & UTILITY INVOICE*\nMonth: ${billMonth} ${billYear}\nTenant: ${tenantName}\nAmount Due: ₹${grandTotalAmount.toLocaleString('en-IN')}\nDue Date: 5th ${billMonth.substring(0,3)}`;
 
-      // Web share api for mobile, otherwise standard WhatsApp redirect link
-      const canvas = await html2canvas(receiptRef.current, { scale: 2, backgroundColor: '#ffffff' });
-      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-      const file = new File([blob], `Bill_${result.tenant_name}.png`, { type: 'image/png' });
+      if (receiptRef.current) {
+        const canvas = await html2canvas(receiptRef.current, { scale: 2, backgroundColor: '#2d5a47' });
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        const file = new File([blob], `Bill_${tenantName}.png`, { type: 'image/png' });
 
-      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: 'Rent Utility Bill',
-          text: text
-        });
-      } else {
-        const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
-        window.open(url, '_blank');
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: 'Rent Utility Bill', text });
+          return;
+        }
       }
+      const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+      window.open(url, '_blank');
     } catch (error) {
       console.error('Share failed:', error);
     }
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
-
-  const formatFloor = (floor) => {
-    if (!floor) return '';
-    const num = parseInt(floor);
-    if (isNaN(num)) return floor;
-    const j = num % 10, k = num % 100;
-    if (j === 1 && k !== 11) return num + "st Floor";
-    if (j === 2 && k !== 12) return num + "nd Floor";
-    if (j === 3 && k !== 13) return num + "rd Floor";
-    return num + "th Floor";
-  };
-
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
-        <div className="w-10 h-10 rounded-full border-4 border-slate-800 border-t-blue-500 animate-spin" />
+        <div className="w-10 h-10 rounded-full border-4 border-slate-200 border-t-[#2d5a47] animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 fade-in-up active">
-      {/* Header */}
+    <div className="space-y-6 fade-in-up active max-w-7xl mx-auto pb-12">
+      
+      {/* ── HEADER ── */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-100">Smart Bill Calculator</h1>
-        <p className="text-slate-400 mt-1 text-sm">Select a property and room to dynamically compute tenant bills.</p>
+        <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+          <Sparkles size={13} className="text-emerald-600" />
+          <span>BILLING DESK / {billMonth.toUpperCase()} {billYear}</span>
+        </div>
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-1">
+          Make the month add up.
+        </h1>
+        <p className="text-slate-500 text-sm mt-1 max-w-xl">
+          Choose a room, enter its latest meter reading, and BillRoom will prepare a clear bill in seconds.
+        </p>
       </div>
 
       {error && (
-        <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-sm flex items-center gap-2">
-          <AlertTriangle size={18} />
+        <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-xs flex items-center gap-2">
+          <AlertTriangle size={16} />
           <span>{error}</span>
         </div>
       )}
 
-      {/* Selector Cards Grid */}
+      {/* ── MAIN 2-COLUMN GRID ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
-        {/* Input Details Panel */}
-        <div className="lg:col-span-6 card glass-card overflow-hidden">
-          <div className="h-1.5 w-full bg-gradient-to-r from-blue-500 to-indigo-500" />
-          <div className="p-6 space-y-6">
-            <h2 className="text-base font-bold text-slate-200 flex items-center gap-2">
-              <Calculator size={18} className="text-blue-500" />
-              <span>Enter Readings</span>
-            </h2>
+        {/* LEFT COLUMN: Input Form Card (Sage Light Modern Theme) */}
+        <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-8 border border-slate-100 shadow-sm space-y-6">
+          
+          {/* Header Step Indicator */}
+          <div className="flex justify-between items-center border-b border-slate-100 pb-4">
+            <div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">01 / 03</span>
+              <h2 className="text-xl font-bold text-slate-900 tracking-tight mt-0.5">Select a room</h2>
+            </div>
+            {/* Step Progress Pills */}
+            <div className="flex items-center gap-1.5">
+              <span className="w-8 h-2 rounded-full bg-[#2d5a47]" />
+              <span className="w-8 h-2 rounded-full bg-slate-200" />
+              <span className="w-8 h-2 rounded-full bg-slate-200" />
+            </div>
+          </div>
 
-            <form onSubmit={handleCalculate} className="space-y-4">
+          <form onSubmit={handleCalculate} className="space-y-6">
+            
+            {/* DROPDOWNS ROW */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               
-              {/* Properties dropdown selector */}
-              <div className="form-group">
-                <label className="input-label">Property Location</label>
+              {/* Property Selector */}
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">
+                  PROPERTY
+                </label>
                 <select
                   required
-                  className="form-input bg-slate-900 border-slate-800"
+                  className="w-full px-4 py-3 rounded-2xl bg-white border border-slate-200 text-sm font-semibold text-slate-800 outline-none focus:border-[#2d5a47] focus:ring-1 focus:ring-[#2d5a47] transition-all cursor-pointer"
                   value={selectedPropertyId}
                   onChange={e => {
                     setSelectedPropertyId(e.target.value);
@@ -415,19 +360,23 @@ export default function SmartCalc() {
                     <option key={p.id} value={p.id}>{p.name}</option>
                   ))}
                 </select>
+                <p className="text-[11px] text-slate-400 mt-1.5 px-1 truncate">
+                  {activeProperty?.address || 'Select property location'}
+                </p>
               </div>
 
-              {/* Room selector */}
-              <div className="form-group">
-                <label className="input-label">Select Room Number</label>
+              {/* Room & Tenant Selector */}
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">
+                  ROOM / TENANT
+                </label>
                 <select
                   required
                   disabled={!selectedPropertyId}
-                  className="form-input bg-slate-900 border-slate-800"
+                  className="w-full px-4 py-3 rounded-2xl bg-white border border-slate-200 text-sm font-semibold text-slate-800 outline-none focus:border-[#2d5a47] focus:ring-1 focus:ring-[#2d5a47] transition-all cursor-pointer disabled:bg-slate-50 disabled:text-slate-400"
                   value={selectedRoomId}
                   onChange={e => {
-                    const newRoomId = e.target.value;
-                    setSelectedRoomId(newRoomId);
+                    setSelectedRoomId(e.target.value);
                     setCurrentReading('');
                     setOtherCharges('');
                     setDirectElecAmount('');
@@ -440,417 +389,321 @@ export default function SmartCalc() {
                   {rooms
                     .filter(r => r.property_id === selectedPropertyId)
                     .map(r => {
-                      const hasLease = leases.some(l => l.room_id === r.id && l.is_active);
+                      const activeLease = leases.find(l => l.room_id === r.id && l.is_active);
+                      const tenant = activeLease ? tenants.find(t => t.id === activeLease.tenant_id) : null;
                       return (
-                        <option key={r.id} value={r.id} disabled={!hasLease}>
-                          Room {r.room_number} {!hasLease ? '(Vacant)' : ''}
+                        <option key={r.id} value={r.id} disabled={!activeLease}>
+                          Room {r.room_number} {tenant ? `· ${tenant.name}` : '(Vacant)'}
                         </option>
                       );
                     })}
                 </select>
-              </div>
-
-              {/* Dynamic Autofilled Card */}
-              {activeRoom && activeTenant && (
-                <div className="p-4 bg-blue-500/5 border border-blue-500/10 rounded-xl space-y-3">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-slate-400 font-semibold uppercase tracking-wider flex items-center gap-1.5">
-                      <User size={13} className="text-blue-400" />
-                      Active Tenant
-                    </span>
-                    <span className="text-slate-400 font-semibold uppercase tracking-wider flex items-center gap-1.5">
-                      <Home size={13} className="text-blue-400" />
-                      Room Details
-                    </span>
-                  </div>
-                  
-                  <div className="flex justify-between items-start gap-4">
-                    <div>
-                      <p className="font-bold text-slate-200">{activeTenant.name}</p>
-                      <p className="text-xs text-slate-500 mt-0.5">{activeTenant.phone || 'No phone'}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-slate-200">Room {activeRoom.room_number}</p>
-                      <p className="text-xs text-slate-500 mt-0.5 capitalize">{formatFloor(activeRoom.floor)} • {activeRoom.room_type}</p>
-                    </div>
-                  </div>
-
-                  <div className="pt-2.5 border-t border-slate-800/80 grid grid-cols-3 gap-2 text-center text-xs">
-                    <div>
-                      <span className="text-[10px] text-slate-500 font-medium">Base Rent</span>
-                      <p className="font-bold text-slate-300 mt-0.5">₹{activeRoom.base_rent}</p>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-slate-500 font-medium">Previous Meter</span>
-                      <p className="font-bold text-blue-400 mt-0.5 font-mono">{activeRoom.current_meter_reading} u</p>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-slate-500 font-medium">Pending Balance</span>
-                      <p className={`font-bold mt-0.5 ${calculatedArrears > 0 ? 'text-red-400' : 'text-slate-500'}`}>
-                        ₹{calculatedArrears}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Electricity Billing Mode Toggle */}
-              <div className="form-group">
-                <label className="input-label flex items-center gap-1.5"><Zap size={13} className="text-yellow-400" /> Electricity Billing Mode</label>
-                <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-950 rounded-xl border border-slate-800">
-                  {[
-                    { id: 'submeter', icon: '⚡', label: 'Submeter' },
-                    { id: 'direct',   icon: '📄', label: 'Direct Amount' },
-                    { id: 'none',     icon: '🚫', label: 'Not Included' },
-                  ].map(({ id, icon, label }) => (
-                    <button
-                      key={id}
-                      type="button"
-                      disabled={!selectedRoomId}
-                      onClick={() => setElecMode(id)}
-                      className={`py-2 px-2 rounded-lg text-xs font-semibold transition-all flex flex-col items-center gap-0.5 ${
-                        elecMode === id
-                          ? 'bg-blue-600 text-white shadow'
-                          : 'text-slate-400 hover:text-slate-200'
-                      }`}
-                    >
-                      <span>{icon}</span>
-                      <span>{label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Electricity Input — conditional on mode */}
-              {elecMode === 'submeter' && (
-                <div className="form-group">
-                  <label className="input-label">Current Meter Reading</label>
-                  <input
-                    type="number"
-                    required
-                    disabled={!selectedRoomId}
-                    placeholder="e.g. 500"
-                    className="form-input bg-slate-950 font-mono"
-                    value={currentReading}
-                    onChange={e => setCurrentReading(e.target.value)}
-                  />
-                  {activeRoom && (
-                    <div className="flex justify-between items-center text-xs text-slate-500 mt-1">
-                      <span>Previous reading: <span className="font-mono text-blue-400">{activeRoom.current_meter_reading} units</span></span>
-                      {currentReading !== '' && !isNaN(parseFloat(currentReading)) && parseFloat(currentReading) >= (parseFloat(activeRoom.current_meter_reading) || 0) && (
-                        <span className="font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 text-[11px] font-semibold">
-                          {(parseFloat(currentReading) - (parseFloat(activeRoom.current_meter_reading) || 0)).toFixed(1)} units
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {elecMode === 'direct' && (
-                <div className="form-group">
-                  <label className="input-label">Electricity Bill Amount (₹)</label>
-                  <input
-                    type="number"
-                    required
-                    disabled={!selectedRoomId}
-                    placeholder="e.g. 450"
-                    className="form-input bg-slate-950"
-                    value={directElecAmount}
-                    onChange={e => setDirectElecAmount(e.target.value)}
-                  />
-                  <p className="text-xs text-slate-500 mt-1">Enter the amount from your electricity provider's bill directly.</p>
-                </div>
-              )}
-
-              {elecMode === 'none' && (
-                <div className="flex items-center gap-2 px-3 py-2.5 bg-slate-900 border border-slate-800 rounded-xl">
-                  <span className="text-lg">🚫</span>
-                  <span className="text-xs text-slate-400">No electricity charge — already included in the monthly rent.</span>
-                </div>
-              )}
-
-              {/* Pending Balance (Editable) */}
-              <div className="form-group">
-                <div className="flex justify-between items-center mb-1">
-                  <label className="input-label mb-0">Pending Balance / Arrears (₹)</label>
-                  {calculatedArrears > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setCustomArrears(calculatedArrears.toString())}
-                      className="text-[11px] text-blue-400 hover:text-blue-300 underline"
-                    >
-                      Reset to System (₹{calculatedArrears})
-                    </button>
-                  )}
-                </div>
-                <input
-                  type="number"
-                  disabled={!selectedRoomId}
-                  placeholder="e.g. 0"
-                  className="form-input bg-slate-950 font-mono"
-                  value={customArrears}
-                  onChange={e => setCustomArrears(e.target.value)}
-                />
-                <p className="text-xs text-slate-500 mt-1">
-                  Default from system: <span className="font-semibold text-slate-400">₹{calculatedArrears}</span>. You can edit this amount if needed.
+                <p className="text-[11px] text-slate-400 mt-1.5 px-1">
+                  Billing period · 01–31 {billMonth} {billYear}
                 </p>
               </div>
 
-              {/* Other Charges */}
-              <div className="form-group">
-                <label className="input-label">Other charges / Fees (₹)</label>
-                <input
-                  type="number"
-                  disabled={!selectedRoomId}
-                  placeholder="e.g. 100"
-                  className="form-input bg-slate-950"
-                  value={otherCharges}
-                  onChange={e => setOtherCharges(e.target.value)}
-                />
+            </div>
+
+            {/* ELECTRICITY MODE TOGGLE */}
+            <div className="flex items-center justify-between text-xs pt-1">
+              <span className="font-bold text-slate-700">Electricity billing mode:</span>
+              <div className="flex bg-slate-100 p-1 rounded-xl gap-1">
+                {[
+                  { id: 'submeter', label: 'Submeter' },
+                  { id: 'direct', label: 'Direct Amount' },
+                  { id: 'none', label: 'Included in Rent' }
+                ].map(mode => (
+                  <button
+                    key={mode.id}
+                    type="button"
+                    onClick={() => setElecMode(mode.id)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      elecMode === mode.id
+                        ? 'bg-[#2d5a47] text-white shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    {mode.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* METER READING INPUT BOX (Identical to reference screenshot) */}
+            {elecMode === 'submeter' && (
+              <div className="p-5 rounded-3xl bg-[#edf5f1] border border-[#d8e7e0] space-y-4">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-[#2d5a47]/10 text-[#2d5a47] flex items-center justify-center">
+                      <Zap size={13} />
+                    </div>
+                    <div>
+                      <span className="text-xs font-extrabold text-slate-900">Meter reading</span>
+                      <p className="text-[11px] text-slate-500">Enter the current reading from the room.</p>
+                    </div>
+                  </div>
+                  <span className="px-3 py-1 rounded-full bg-slate-200/70 text-slate-700 font-bold text-xs">
+                    Previous · {prevReading} units
+                  </span>
+                </div>
+
+                {/* Big input field */}
+                <div className="relative bg-white rounded-2xl border border-slate-200/80 p-2 focus-within:border-[#2d5a47] focus-within:ring-1 focus-within:ring-[#2d5a47] transition-all">
+                  <input
+                    type="number"
+                    required
+                    disabled={!selectedRoomId}
+                    placeholder="e.g. 1482"
+                    className="w-full text-3xl font-black text-slate-900 bg-transparent px-3 py-2 outline-none font-mono tracking-tight"
+                    value={currentReading}
+                    onChange={e => setCurrentReading(e.target.value)}
+                  />
+                  <span className="absolute right-5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                    units
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center text-xs font-semibold pt-1">
+                  <span className="text-slate-500">Calculated usage</span>
+                  <div className="flex items-center gap-1">
+                    <span className="px-2.5 py-1 rounded-xl bg-white border border-slate-200 text-[#2d5a47] font-black text-xs">
+                      {unitsConsumed} units
+                    </span>
+                    <span className="text-slate-400 font-mono text-[11px]">× ₹{rate}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {elecMode === 'direct' && (
+              <div className="p-5 rounded-3xl bg-[#edf5f1] border border-[#d8e7e0] space-y-3">
+                <label className="text-xs font-extrabold text-slate-900 block">Direct Electricity Amount (₹)</label>
+                <div className="relative bg-white rounded-2xl border border-slate-200/80 p-2">
+                  <input
+                    type="number"
+                    required
+                    disabled={!selectedRoomId}
+                    placeholder="e.g. 1007"
+                    className="w-full text-2xl font-black text-slate-900 bg-transparent px-3 py-1 outline-none font-mono"
+                    value={directElecAmount}
+                    onChange={e => setDirectElecAmount(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* 3 STAT SUMMARY CARDS AT BOTTOM OF FORM */}
+            <div className="grid grid-cols-3 gap-3">
+              
+              {/* Stat 1: Electricity */}
+              <div className="p-4 rounded-2xl bg-white border border-slate-100 shadow-sm space-y-2">
+                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-[#2d5a47] flex items-center justify-center">
+                  <Zap size={16} />
+                </div>
+                <div>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">ELECTRICITY</span>
+                  <p className="text-base sm:text-lg font-black text-slate-900 mt-0.5">
+                    ₹{calculatedElecAmount.toLocaleString('en-IN')}
+                  </p>
+                </div>
               </div>
 
-              {/* Month Selector dropdowns */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="form-group">
-                  <label className="input-label">Billing Month</label>
-                  <select
-                    className="form-input bg-slate-950"
-                    value={billMonth}
-                    onChange={e => setBillMonth(e.target.value)}
-                  >
-                    {months.map(m => <option key={m} value={m}>{m}</option>)}
-                  </select>
+              {/* Stat 2: Arrears */}
+              <div className="p-4 rounded-2xl bg-white border border-slate-100 shadow-sm space-y-2 relative">
+                <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                  <IndianRupee size={16} />
                 </div>
-                <div className="form-group">
-                  <label className="input-label">Billing Year</label>
-                  <select
-                    className="form-input bg-slate-950"
-                    value={billYear}
-                    onChange={e => setBillYear(e.target.value)}
-                  >
-                    {years.map(y => <option key={y} value={y}>{y}</option>)}
-                  </select>
+                <div>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">ARREARS</span>
+                  <input
+                    type="number"
+                    disabled={!selectedRoomId}
+                    className="w-full text-base sm:text-lg font-black text-slate-900 bg-transparent outline-none border-b border-dashed border-slate-200 focus:border-[#2d5a47]"
+                    value={customArrears}
+                    onChange={e => setCustomArrears(e.target.value)}
+                  />
                 </div>
               </div>
 
-              <div className="pt-2">
-                <button 
-                  type="submit" 
-                  disabled={!selectedRoomId || isSaving}
-                  className="w-full btn btn-primary py-3 rounded-xl justify-center text-base shadow-glow flex items-center gap-2"
+              {/* Stat 3: Monthly Rent */}
+              <div className="p-4 rounded-2xl bg-white border border-slate-100 shadow-sm space-y-2">
+                <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center">
+                  <Building size={16} />
+                </div>
+                <div>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">MONTHLY RENT</span>
+                  <p className="text-base sm:text-lg font-black text-slate-900 mt-0.5">
+                    ₹{baseRentAmount.toLocaleString('en-IN')}
+                  </p>
+                </div>
+              </div>
+
+            </div>
+
+            {/* MONTH & YEAR CONTROLS */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">BILLING MONTH</label>
+                <select
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 outline-none cursor-pointer"
+                  value={billMonth}
+                  onChange={e => setBillMonth(e.target.value)}
                 >
-                  <Save size={18} />
-                  <span>{isSaving ? 'Generating & Saving...' : 'Generate & Save Monthly Bill'}</span>
-                </button>
+                  {months.map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
               </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">BILLING YEAR</label>
+                <select
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 outline-none cursor-pointer"
+                  value={billYear}
+                  onChange={e => setBillYear(e.target.value)}
+                >
+                  {years.map(y => <option key={y} value={y}>{y}</option>)}
+                </select>
+              </div>
+            </div>
 
-            </form>
-          </div>
+            {/* BOTTOM ACTIONS ROW */}
+            <div className="flex justify-between items-center pt-2">
+              <button
+                type="button"
+                onClick={() => setShowHowItWorks(!showHowItWorks)}
+                className="text-xs font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-1 cursor-pointer"
+              >
+                <HelpCircle size={14} />
+                <span>How is this calculated?</span>
+              </button>
+
+              <button
+                type="submit"
+                disabled={!selectedRoomId || isSaving}
+                className="px-6 py-3 rounded-2xl bg-[#2d5a47] text-white font-bold text-sm hover:bg-[#234738] transition-all flex items-center gap-2 shadow-sm cursor-pointer disabled:opacity-50"
+              >
+                <span>{isSaving ? 'Saving...' : 'Save bill'}</span>
+                <ArrowRight size={16} />
+              </button>
+            </div>
+
+            {showHowItWorks && (
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs text-slate-600 space-y-1.5">
+                <p className="font-bold text-slate-900">Calculation breakdown:</p>
+                <p>• <strong>Electricity:</strong> (Current Reading - Previous Reading) × Unit Rate</p>
+                <p>• <strong>Total Payable:</strong> Monthly Rent + Electricity + Arrears + Other Charges</p>
+              </div>
+            )}
+
+          </form>
         </div>
 
-        {/* Right Pane: Live Receipt Preview */}
-        <div className="lg:col-span-6 space-y-4">
-          {result ? (
-            <div className="space-y-4">
-              <div className="card glass-card overflow-hidden">
-                {/* Actions row */}
-                <div className="card-header w-full flex-wrap gap-2">
-                  <h2 className="text-sm font-bold text-slate-200">Receipt Generated</h2>
-                  <div className="flex items-center gap-2">
-                    <button onClick={handlePrint} className="p-2 text-slate-400 hover:text-slate-200 bg-slate-900 border border-slate-800 rounded-lg" title="Print Receipt">
-                      <Printer size={16} />
-                    </button>
-                    <button onClick={handleDownloadPDF} className="p-2 text-slate-400 hover:text-slate-200 bg-slate-900 border border-slate-800 rounded-lg" title="Download PDF">
-                      <Download size={16} />
-                    </button>
-                    <button 
-                      onClick={handleShareWhatsapp} 
-                      className="px-3.5 py-2 text-xs font-bold text-emerald-300 hover:text-white bg-emerald-600/20 hover:bg-emerald-600 border border-emerald-500/30 rounded-xl flex items-center gap-1.5 transition-all shadow-sm"
-                      title="Share via WhatsApp"
-                    >
-                      <Share2 size={16} />
-                      <span>Share WhatsApp</span>
-                    </button>
-                  </div>
-                </div>
+        {/* RIGHT COLUMN: Dark Green Invoice Preview Card (Exact target design) */}
+        <div className="lg:col-span-5 space-y-4 sticky top-6">
+          
+          <div 
+            ref={receiptRef}
+            className="bg-[#2d5a47] text-white rounded-3xl p-8 shadow-xl relative overflow-hidden space-y-6 border border-[#234738]"
+          >
+            {/* Background Decorative Rings */}
+            <div className="absolute -top-12 -right-12 w-44 h-44 rounded-full bg-white/5 pointer-events-none" />
+            <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-white/5 pointer-events-none" />
 
-                {/* Print Paper Receipt Visual */}
-                <div className="p-6 bg-slate-900/10 flex flex-col items-center bg-pattern">
-                  {/* Settings Row: Language & Theme */}
-                  <div className="mb-5 flex flex-col sm:flex-row gap-3 w-full max-w-lg">
-                    <div className="flex bg-slate-800/80 p-1 rounded-xl flex-1 border border-slate-700/50">
-                      <button
-                        type="button"
-                        className={`flex-1 px-3 py-1.5 rounded-lg font-semibold text-xs transition-all ${language === 'en' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'}`}
-                        onClick={() => setLanguage('en')}
-                      >
-                        English
-                      </button>
-                      <button
-                        type="button"
-                        className={`flex-1 px-3 py-1.5 rounded-lg font-semibold text-xs transition-all ${language === 'hi' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'}`}
-                        onClick={() => setLanguage('hi')}
-                      >
-                        हिंदी
-                      </button>
-                    </div>
-                    <div className="flex bg-slate-800/80 p-1 rounded-xl flex-1 justify-around items-center px-3 border border-slate-700/50">
-                      {Object.entries(themeOptions).map(([key, t]) => (
-                        <button
-                          key={key}
-                          type="button"
-                          onClick={() => setTheme(key)}
-                          className={`w-5 h-5 rounded-full transition-transform hover:scale-110 ${theme === key ? 'ring-2 ring-offset-2 ring-blue-500 scale-110' : ''}`}
-                          style={{ backgroundColor: t.hex }}
-                          title={`Theme: ${t.label}`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  <div ref={receiptRef} className="receipt-paper w-full max-w-lg" style={{ padding: '30px' }}>
-                    <div className="text-center mb-6">
-                      <div className="text-2xl font-bold uppercase tracking-wider text-slate-800">{translations[language].receiptTitle}</div>
-                      <div className="text-xs font-semibold text-slate-500 mt-1">{result.bill_month} {result.bill_year}</div>
-                      <div style={{ borderBottom: '2px solid #cbd5e1', margin: '15px auto', width: '100%' }}></div>
-                    </div>
-
-                    {/* Tenant details row */}
-                    <div className="flex justify-between items-start gap-4 mb-6 p-3.5 bg-slate-50 rounded-lg border border-slate-100">
-                      <div>
-                        <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">{translations[language].tenant}</div>
-                        <div className="text-xl font-bold text-slate-900 leading-tight">{result.tenant_name}</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">ROOM</div>
-                        <div className="text-base font-bold text-slate-800">Room {result.room_number}</div>
-                        <span className="text-[10px] text-slate-500 capitalize">{formatFloor(result.floor)}</span>
-                      </div>
-                    </div>
-
-                    {/* Room details box matching QuickCalc */}
-                    <div className="mb-6 border border-slate-200 rounded-lg overflow-hidden bg-white">
-                      <div className="flex justify-between items-center py-2 px-4 bg-slate-50 border-b border-slate-200">
-                        <div className="font-bold text-slate-800 flex items-center gap-2 text-xs">
-                          <Home size={14} color={currentTheme.icon} /> Room {result.room_number} <span className="text-[10px] text-slate-500 font-normal capitalize">({formatFloor(result.floor)})</span>
-                        </div>
-                      </div>
-                      <div className="p-4 pt-3">
-                        {result.elec_mode === 'submeter' ? (
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', justifyContent: 'space-between', fontSize: '0.85rem', width: '100%' }}>
-                            <div>
-                              <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{translations[language].readings}</div>
-                              <div className="text-xs text-slate-600 mb-0.5">{translations[language].cur}: <span className="font-mono font-bold text-slate-800">{result.current_reading}</span></div>
-                              <div className="text-xs text-slate-600">{translations[language].pre}: <span className="font-mono font-bold text-slate-800">{result.previous_reading}</span></div>
-                            </div>
-                            <div className="sm:text-center">
-                              <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{translations[language].units}</div>
-                              <div className="font-mono font-bold text-slate-800 mt-2">{parseFloat(result.units_consumed || 0).toFixed(2)}</div>
-                            </div>
-                            <div className="sm:text-center">
-                              <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{translations[language].rate}</div>
-                              <div className="font-mono text-slate-600 text-xs mt-2">₹{result.rate_per_unit}</div>
-                            </div>
-                            <div className="sm:text-center">
-                              <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{translations[language].elec}</div>
-                              <div className="font-mono font-bold text-slate-800 mt-2">₹{parseFloat(result.elec_amount || 0).toFixed(2)}</div>
-                            </div>
-                            <div className="sm:text-right">
-                              <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{translations[language].rent}</div>
-                              <div className="font-mono font-bold text-slate-800 mt-2 text-sm">₹{parseFloat(result.rent_amount || 0).toFixed(2)}</div>
-                            </div>
-                          </div>
-                        ) : result.elec_mode === 'direct' ? (
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', justifyContent: 'space-between', fontSize: '0.85rem', width: '100%' }}>
-                            <div>
-                              <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">ELECTRICITY</div>
-                              <div className="text-xs text-slate-500 italic">Direct bill amount</div>
-                              <div className="font-mono font-bold text-slate-800 mt-1">₹{parseFloat(result.elec_amount || 0).toFixed(2)}</div>
-                            </div>
-                            <div className="sm:text-right">
-                              <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{translations[language].rent}</div>
-                              <div className="font-mono font-bold text-slate-800 mt-2 text-sm">₹{parseFloat(result.rent_amount || 0).toFixed(2)}</div>
-                            </div>
-                          </div>
-                        ) : (
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', justifyContent: 'space-between', fontSize: '0.85rem', width: '100%' }}>
-                            <div>
-                              <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">ELECTRICITY</div>
-                              <div className="text-xs text-slate-400 italic">Included in rent</div>
-                            </div>
-                            <div className="sm:text-right">
-                              <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{translations[language].rent}</div>
-                              <div className="font-mono font-bold text-slate-800 mt-2 text-sm">₹{parseFloat(result.rent_amount || 0).toFixed(2)}</div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Main Summary Box */}
-                    <div className="space-y-2.5 mb-6 bg-slate-50 p-4 rounded-lg">
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-slate-600 font-medium text-sm">{translations[language].totalRent}</span>
-                        <span className="font-mono font-bold text-slate-800 text-sm">₹{parseFloat(result.rent_amount || 0).toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-slate-600 font-medium text-sm">{translations[language].totalElectricity}</span>
-                        <span className="font-mono font-bold text-slate-800 text-sm">₹{parseFloat(result.elec_amount || 0).toFixed(2)}</span>
-                      </div>
-                      {result.other_charges > 0 && (
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-slate-600 font-medium text-sm">{translations[language].otherCharges}</span>
-                          <span className="font-mono font-bold text-slate-800 text-sm">₹{parseFloat(result.other_charges || 0).toFixed(2)}</span>
-                        </div>
-                      )}
-
-                      <div style={{ borderBottom: '2px dashed #cbd5e1', margin: '12px 0' }}></div>
-
-                      <div className="flex justify-between items-center">
-                        <span className="text-base font-bold text-slate-900">{translations[language].currentMonth}</span>
-                        <span className="text-base font-bold text-slate-900">
-                          ₹{(parseFloat(result.rent_amount || 0) + parseFloat(result.elec_amount || 0) + parseFloat(result.other_charges || 0)).toFixed(2)}
-                        </span>
-                      </div>
-
-                      {result.arrears > 0 && (
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-slate-600 font-medium text-base">{translations[language].oldPendingBalance}</span>
-                          <span className="font-mono font-bold text-slate-800 text-base">₹{parseFloat(result.arrears).toFixed(2)}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Grand Total Green/Theme Banner */}
-                    <div style={{ backgroundColor: currentTheme.bg, color: currentTheme.text, padding: '1.25rem', borderRadius: '0.75rem', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', itemsCenter: 'center', gap: '0.75rem', marginTop: '1rem', transition: 'background-color 0.3s' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8' }}>{translations[language].totalPayable}</span>
-                        <span style={{ fontSize: '0.70rem', color: '#cbd5e1', marginTop: '2px' }}>{translations[language].payByDueDate}</span>
-                      </div>
-                      <div style={{ fontSize: '1.85rem', fontWeight: 'bold', letterSpacing: '-0.03em', backgroundColor: 'rgba(255,255,255,0.1)', padding: '0.4rem 0.8rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.15)' }}>
-                        ₹{result.total_payable.toFixed(2)}
-                      </div>
-                    </div>
-
-                    <div className="mt-8 pt-4 text-center text-slate-400 text-xs">
-                      <p>{translations[language].thankYou}</p>
-                      <p className="mt-1">{translations[language].generatedOn} {new Date().toLocaleDateString()}</p>
-                    </div>
-                  </div>
-                </div>
+            {/* Top header row */}
+            <div className="flex justify-between items-start relative z-10">
+              <div>
+                <span className="text-[10px] font-bold text-emerald-200 uppercase tracking-widest block">INVOICE PREVIEW</span>
+                <h3 className="text-3xl font-black tracking-tight mt-1">{billMonth} bill</h3>
+              </div>
+              <div className="w-10 h-10 rounded-2xl bg-white/10 text-white flex items-center justify-center backdrop-blur-sm">
+                <Receipt size={20} />
               </div>
             </div>
-          ) : (
-            <div className="card glass-card p-12 text-center text-slate-500 flex flex-col items-center justify-center h-full min-h-[300px]">
-              <Building size={48} className="text-slate-700 mb-4" />
-              <h3 className="font-semibold text-slate-400">Invoice Visualizer</h3>
-              <p className="text-xs text-slate-600 mt-1 max-w-sm">Provide current meter readings and generate an invoice preview. The PDF download and WhatsApp options will load here.</p>
+
+            <div className="h-px bg-white/15 w-full" />
+
+            {/* Billed To Section */}
+            <div className="space-y-1 relative z-10">
+              <span className="text-[11px] font-medium text-emerald-200/80 block">Billed to</span>
+              <h4 className="text-xl font-extrabold text-white">{activeTenant?.name || 'Select a room'}</h4>
+              <p className="text-xs text-emerald-100/70">
+                {activeProperty?.name || 'Property'} · Room {activeRoom?.room_number || '00'}
+              </p>
             </div>
-          )}
+
+            {/* Itemized charges list */}
+            <div className="space-y-3.5 pt-2 relative z-10 text-sm">
+              <div className="flex justify-between items-center">
+                <span className="text-emerald-100/90 font-medium">Electricity · {unitsConsumed} units</span>
+                <span className="font-black tracking-tight">₹{calculatedElecAmount.toLocaleString('en-IN')}</span>
+              </div>
+              
+              <div className="flex justify-between items-center">
+                <span className="text-emerald-100/90 font-medium">Monthly rent</span>
+                <span className="font-black tracking-tight">₹{baseRentAmount.toLocaleString('en-IN')}</span>
+              </div>
+
+              {arrearsAmount > 0 && (
+                <div className="flex justify-between items-center">
+                  <span className="text-emerald-100/90 font-medium">Previous balance</span>
+                  <span className="font-black tracking-tight">₹{arrearsAmount.toLocaleString('en-IN')}</span>
+                </div>
+              )}
+
+              {otherChargesAmount > 0 && (
+                <div className="flex justify-between items-center">
+                  <span className="text-emerald-100/90 font-medium">Other charges</span>
+                  <span className="font-black tracking-tight">₹{otherChargesAmount.toLocaleString('en-IN')}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="h-px bg-white/15 w-full" />
+
+            {/* Amount Due Section */}
+            <div className="flex justify-between items-end relative z-10 pt-1">
+              <div>
+                <span className="text-xs font-semibold text-emerald-200/80 block">Amount due</span>
+                <div className="text-4xl font-black tracking-tight text-white mt-1">
+                  ₹{grandTotalAmount.toLocaleString('en-IN')}
+                </div>
+              </div>
+
+              <span className="px-3.5 py-1.5 rounded-full bg-emerald-100 text-[#2d5a47] font-extrabold text-[11px] tracking-wider uppercase shadow-sm">
+                DUE 05 {billMonth.substring(0,3).toUpperCase()}
+              </span>
+            </div>
+
+            {/* Footer subtext */}
+            <div className="flex justify-between items-center text-[10px] text-emerald-200/60 pt-4 border-t border-white/10 relative z-10 font-mono">
+              <span>Bill no. BR-{billYear}-0826</span>
+              <span>{isSaved ? 'Saved to DB ✓' : 'Live preview'}</span>
+            </div>
+
+          </div>
+
+          {/* Quick Action Toolbar underneath preview */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleDownloadPDF}
+              className="flex-1 py-3 px-4 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs border border-slate-200 transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+            >
+              <Download size={15} />
+              <span>Download PDF</span>
+            </button>
+
+            <button
+              onClick={handleShareWhatsapp}
+              className="flex-1 py-3 px-4 rounded-2xl bg-[#2d5a47] hover:bg-[#234738] text-white font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+            >
+              <Share2 size={15} />
+              <span>Share WhatsApp</span>
+            </button>
+          </div>
+
         </div>
 
       </div>
+
     </div>
   );
 }
