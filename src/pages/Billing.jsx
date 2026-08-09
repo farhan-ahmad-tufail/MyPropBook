@@ -36,7 +36,23 @@ export default function Billing() {
 
   // UI state
   const [statusFilter, setStatusFilter] = useState('All');
+  const [monthFilter, setMonthFilter] = useState('All');
+  const [yearFilter, setYearFilter] = useState('All');
   const [selectedBill, setSelectedBill] = useState(null);
+
+  const availableMonths = useMemo(() => {
+    const allMonths = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    const presentMonths = Array.from(new Set(bills.map(b => b.bill_month).filter(Boolean)));
+    return allMonths.filter(m => presentMonths.includes(m));
+  }, [bills]);
+
+  const availableYears = useMemo(() => {
+    const years = Array.from(new Set(bills.map(b => (b.bill_year || '').toString()).filter(Boolean)));
+    return years.sort((a, b) => b - a);
+  }, [bills]);
   
   // Payment Modal & History state
   const [showPayModal, setShowPayModal] = useState(false);
@@ -247,8 +263,10 @@ export default function Billing() {
 
   // Filtering list
   const filteredBills = bills.filter(b => {
-    if (statusFilter === 'All') return true;
-    return b.payment_status === statusFilter;
+    const matchStatus = statusFilter === 'All' || b.payment_status === statusFilter;
+    const matchMonth = monthFilter === 'All' || b.bill_month === monthFilter;
+    const matchYear = yearFilter === 'All' || String(b.bill_year) === String(yearFilter);
+    return matchStatus && matchMonth && matchYear;
   });
 
   if (loading) {
@@ -262,25 +280,58 @@ export default function Billing() {
   return (
     <div className="space-y-8 fade-in-up active">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-100">Billing & Invoices</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-100 flex items-center gap-2">
+            <Receipt className="text-blue-500" size={28} />
+            <span>Billing & Invoices</span>
+          </h1>
           <p className="text-slate-400 mt-1 text-sm">Review historical billing records, payment history, and record payments.</p>
         </div>
 
         {/* Filter controls */}
-        <div className="flex items-center gap-3 bg-slate-900 border border-slate-800 px-3 py-2 rounded-xl w-full sm:w-auto">
-          <Filter size={14} className="text-slate-400" />
-          <span className="text-xs font-semibold text-slate-400">Filter:</span>
+        <div className="flex flex-wrap items-center gap-2.5 bg-slate-900 border border-slate-800 p-2 rounded-xl w-full lg:w-auto">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 px-1">
+            <Filter size={14} className="text-blue-400" />
+            <span>Filter:</span>
+          </div>
+
+          {/* Month Dropdown Selector */}
           <select
-            className="bg-slate-900 text-xs font-bold text-slate-200 focus:outline-none cursor-pointer border border-slate-700 rounded-lg px-2 py-1"
+            className="bg-slate-950 text-xs font-bold text-slate-200 border border-slate-800 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-500 cursor-pointer"
+            value={monthFilter}
+            onChange={e => setMonthFilter(e.target.value)}
+          >
+            <option value="All">All Months</option>
+            {availableMonths.map(m => (
+              <option key={m} value={m}>{m}</option>
+            ))}
+          </select>
+
+          {/* Year Dropdown Selector */}
+          {availableYears.length > 0 && (
+            <select
+              className="bg-slate-950 text-xs font-bold text-slate-200 border border-slate-800 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-500 cursor-pointer"
+              value={yearFilter}
+              onChange={e => setYearFilter(e.target.value)}
+            >
+              <option value="All">All Years</option>
+              {availableYears.map(y => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          )}
+
+          {/* Status Dropdown Selector */}
+          <select
+            className="bg-slate-950 text-xs font-bold text-slate-200 border border-slate-800 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-500 cursor-pointer"
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value)}
           >
-            <option value="All" className="bg-slate-900 text-slate-200">All Invoices</option>
-            <option value="Paid" className="bg-slate-900 text-slate-200">Paid</option>
-            <option value="Partially Paid" className="bg-slate-900 text-slate-200">Partially Paid</option>
-            <option value="Unpaid" className="bg-slate-900 text-slate-200">Unpaid</option>
+            <option value="All">All Statuses</option>
+            <option value="Paid">Paid</option>
+            <option value="Partially Paid">Partially Paid</option>
+            <option value="Unpaid">Unpaid</option>
           </select>
         </div>
       </div>
