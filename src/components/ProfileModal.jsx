@@ -1,0 +1,233 @@
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from './Toast';
+import { 
+  X, 
+  User, 
+  Phone, 
+  Building2, 
+  CreditCard, 
+  Check, 
+  Sparkles,
+  ShieldCheck,
+  Palette
+} from 'lucide-react';
+
+const avatarColors = [
+  { id: 'sage', bg: 'bg-[#2d5a47]', label: 'Sage Green' },
+  { id: 'navy', bg: 'bg-[#0f172a]', label: 'Deep Navy' },
+  { id: 'blue', bg: 'bg-blue-600', label: 'Classic Blue' },
+  { id: 'purple', bg: 'bg-purple-600', label: 'Royal Purple' },
+  { id: 'emerald', bg: 'bg-[#059669]', label: 'Emerald' },
+];
+
+export default function ProfileModal({ isOpen, onClose }) {
+  const { user, updateProfile } = useAuth();
+  const toast = useToast();
+
+  const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [workspaceName, setWorkspaceName] = useState('');
+  const [upiId, setUpiId] = useState('');
+  const [avatarColor, setAvatarColor] = useState('sage');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      const sp = JSON.parse(localStorage.getItem('billroom_user_profile') || '{}');
+      const defaultName = sp.fullName || user?.user_metadata?.full_name || user?.fullName || 'Landlord Owner';
+      setFullName(defaultName === 'Google Demo User' || defaultName === 'Google' ? 'Farhan Ahmad Tufail' : defaultName);
+      setPhone(sp.phone || user?.user_metadata?.phone || '');
+      setWorkspaceName(sp.workspaceName || user?.user_metadata?.workspace_name || 'My Workspace');
+      setUpiId(sp.upiId || user?.user_metadata?.upi_id || '');
+      setAvatarColor(sp.avatarColor || user?.user_metadata?.avatar_color || 'sage');
+    }
+  }, [user]);
+
+  const initials = fullName
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .substring(0, 2)
+    .toUpperCase() || 'LO';
+
+  const selectedColorObj = avatarColors.find(c => c.id === avatarColor) || avatarColors[0];
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      await updateProfile({
+        fullName,
+        phone,
+        workspaceName,
+        upiId,
+        avatarColor
+      });
+      toast('Profile & Workspace settings updated!', 'success');
+      onClose();
+    } catch (err) {
+      console.error(err);
+      toast('Failed to update profile settings', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return createPortal(
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] overflow-y-auto p-4 sm:p-6 flex items-center justify-center">
+      <div className="bg-white rounded-3xl w-full max-w-md border border-slate-100 shadow-2xl relative my-auto overflow-hidden">
+        
+        {/* Header */}
+        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+          <div>
+            <span className="text-[10px] font-black text-[#2d5a47] uppercase tracking-widest block mb-0.5">
+              ACCOUNT &amp; WORKSPACE
+            </span>
+            <h3 className="font-extrabold text-slate-900 text-lg">Profile Settings</h3>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 rounded-xl transition-colors cursor-pointer"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Profile Card Preview Header */}
+        <div className="p-6 space-y-5">
+          <div className="flex items-center gap-4 p-4 bg-slate-50 border border-slate-200/80 rounded-2xl">
+            <div className={`w-12 h-12 rounded-2xl ${selectedColorObj.bg} text-white flex items-center justify-center font-black text-base shadow-sm`}>
+              {initials}
+            </div>
+            <div>
+              <h4 className="font-extrabold text-slate-900 text-sm">{fullName || 'Landlord Owner'}</h4>
+              <p className="text-xs text-slate-500 font-medium">{workspaceName || 'Landlord Workspace'}</p>
+              <div className="flex items-center gap-1 mt-1 text-[10px] text-emerald-700 font-bold">
+                <ShieldCheck size={12} />
+                <span>Verified Landlord</span>
+              </div>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            
+            {/* Full Name */}
+            <div>
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">
+                FULL NAME
+              </label>
+              <div className="relative">
+                <User size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  required
+                  placeholder="Enter your full name"
+                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-900 outline-none focus:border-[#2d5a47] transition-all"
+                  value={fullName}
+                  onChange={e => setFullName(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Phone / WhatsApp */}
+            <div>
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">
+                PHONE / WHATSAPP NUMBER
+              </label>
+              <div className="relative">
+                <Phone size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="+91 98765 43210"
+                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-900 outline-none focus:border-[#2d5a47] transition-all"
+                  value={phone}
+                  onChange={e => setPhone(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Workspace Name */}
+            <div>
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">
+                WORKSPACE NAME
+              </label>
+              <div className="relative">
+                <Building2 size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="E.g. Tufail Property Operations"
+                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-900 outline-none focus:border-[#2d5a47] transition-all"
+                  value={workspaceName}
+                  onChange={e => setWorkspaceName(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Default UPI ID */}
+            <div>
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">
+                DEFAULT UPI ID (FOR TENANT RECEIPTS)
+              </label>
+              <div className="relative">
+                <CreditCard size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="landlord@upi"
+                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-900 outline-none focus:border-[#2d5a47] transition-all"
+                  value={upiId}
+                  onChange={e => setUpiId(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Avatar Theme Color */}
+            <div>
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">
+                AVATAR THEME COLOR
+              </label>
+              <div className="flex items-center gap-2">
+                {avatarColors.map(c => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setAvatarColor(c.id)}
+                    className={`w-8 h-8 rounded-xl ${c.bg} text-white flex items-center justify-center transition-all cursor-pointer ${
+                      avatarColor === c.id ? 'ring-2 ring-offset-2 ring-[#2d5a47] scale-110' : 'opacity-80 hover:opacity-100'
+                    }`}
+                    title={c.label}
+                  >
+                    {avatarColor === c.id && <Check size={14} />}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-3 border-t border-slate-100">
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex-1 py-3 px-4 rounded-xl bg-[#2d5a47] hover:bg-[#234738] text-white font-bold text-xs transition-all shadow-sm cursor-pointer"
+              >
+                {loading ? 'Saving...' : 'Save Settings'}
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+
+          </form>
+
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}

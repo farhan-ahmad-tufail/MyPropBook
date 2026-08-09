@@ -123,6 +123,33 @@ export const AuthProvider = ({ children }) => {
     if (error) throw error;
   };
 
+  const updateProfile = async (profileData) => {
+    try {
+      const updatedUser = {
+        ...user,
+        fullName: profileData.fullName || user?.fullName,
+        user_metadata: {
+          ...user?.user_metadata,
+          full_name: profileData.fullName || user?.user_metadata?.full_name,
+          phone: profileData.phone,
+          workspace_name: profileData.workspaceName,
+          upi_id: profileData.upiId,
+          avatar_color: profileData.avatarColor
+        }
+      };
+      setUser(updatedUser);
+      localStorage.setItem('billroom_user_profile', JSON.stringify(profileData));
+      if (isLocalMode()) {
+        localStorage.setItem('mock_users', JSON.stringify([updatedUser]));
+        window.dispatchEvent(new Event('storage'));
+      }
+      return updatedUser;
+    } catch (err) {
+      console.error('Failed to update profile', err);
+      throw err;
+    }
+  };
+
   const value = {
     user,
     loading,
@@ -130,6 +157,7 @@ export const AuthProvider = ({ children }) => {
     signUp,
     signOut,
     signInWithGoogle,
+    updateProfile,
     isLocal: isLocalMode()
   };
 

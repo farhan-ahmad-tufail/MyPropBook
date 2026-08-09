@@ -52,7 +52,7 @@ export default function CreateRoomTypeModal({ isOpen, onClose, onCreate }) {
               placeholder="e.g. Premium AC Single, 2 BHK, 4 Sharing"
               value={typeName}
               onChange={(e) => setTypeName(e.target.value)}
-              className="form-input bg-slate-950 border-slate-800 focus:border-blue-500"
+              className="form-input bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-500 focus:border-blue-500"
               autoFocus
             />
           </div>
@@ -64,7 +64,7 @@ export default function CreateRoomTypeModal({ isOpen, onClose, onCreate }) {
               placeholder="e.g. Spacious room with attached balcony"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="form-input bg-slate-950 border-slate-800 focus:border-blue-500"
+              className="form-input bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-500 focus:border-blue-500"
             />
           </div>
 

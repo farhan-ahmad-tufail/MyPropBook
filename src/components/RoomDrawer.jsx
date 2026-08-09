@@ -146,7 +146,7 @@ export default function RoomDrawer({
                   type="text"
                   required
                   placeholder="e.g. 101, Flat A, Shop 12"
-                  className="form-input bg-slate-950"
+                  className="form-input bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-500"
                   value={roomNumber}
                   onChange={(e) => setRoomNumber(e.target.value)}
                 />
@@ -157,7 +157,7 @@ export default function RoomDrawer({
                 <input
                   type="text"
                   placeholder="e.g. 1st, 2nd, G"
-                  className="form-input bg-slate-950"
+                  className="form-input bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-500"
                   value={floor}
                   onChange={(e) => setFloor(e.target.value)}
                 />
@@ -178,7 +178,7 @@ export default function RoomDrawer({
               </div>
 
               <select
-                className="form-input bg-slate-950 text-slate-200"
+                className="form-input bg-slate-800 border-slate-700 text-slate-100"
                 value={roomType}
                 onChange={(e) => setRoomType(e.target.value)}
               >
@@ -193,7 +193,7 @@ export default function RoomDrawer({
             <div>
               <label className="input-label">Status</label>
               <select
-                className="form-input bg-slate-950 text-slate-200"
+                className="form-input bg-slate-800 border-slate-700 text-slate-100"
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
               >
@@ -219,7 +219,7 @@ export default function RoomDrawer({
                   type="number"
                   required
                   placeholder="8000"
-                  className="form-input bg-slate-950 pl-8 font-semibold text-slate-100"
+                  className="form-input bg-slate-800 border-slate-700 pl-8 font-semibold text-slate-100 placeholder:text-slate-500"
                   value={baseRent}
                   onChange={(e) => setBaseRent(e.target.value)}
                 />

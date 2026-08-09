@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -9,191 +9,222 @@ import {
   BarChart3,
   Receipt,
   Users,
-  CheckCircle,
-  Star,
-  Smartphone,
-  Globe,
-  Code2,
-  HeartHandshake,
-  MapPin,
-  Mail,
-  Github,
-  Linkedin,
-  Twitter,
+  Check,
   ChevronRight,
   Sparkles,
   Clock,
   FileText,
-  TrendingUp
+  TrendingUp,
+  Menu,
+  X,
+  Plus,
+  CheckCircle2,
+  ArrowUpRight
 } from 'lucide-react';
 import Logo from '../components/Logo';
 
+// 6 Core Features matching instructions
 const features = [
   {
     icon: Building2,
     accent: '#2d5a47',
     bg: '#edf5f1',
-    title: 'Multi-Property Management',
-    desc: 'Register unlimited properties. Group rooms by floor, type, and rent rate. Manage everything from one place.',
+    title: 'Multi-property management',
+    desc: 'Manage buildings, rooms, tenants and rent from one place.',
   },
   {
     icon: Zap,
-    accent: '#7c3aed',
-    bg: '#f5f3ff',
-    title: 'One-Click Smart Billing',
-    desc: 'Just enter current meter readings. Previous readings, tenant details, and rates autofill automatically.',
+    accent: '#2d5a47',
+    bg: '#edf5f1',
+    title: 'Flexible utility billing',
+    desc: 'Use submeter readings or add a direct electricity bill amount.',
   },
   {
     icon: Receipt,
-    accent: '#0891b2',
-    bg: '#ecfeff',
-    title: 'Instant PDF Receipts',
-    desc: 'Generate professional receipts. Download as PDF or share directly to WhatsApp with a single tap.',
+    accent: '#2d5a47',
+    bg: '#edf5f1',
+    title: 'Professional receipts',
+    desc: 'Generate clear receipts and share them with tenants through WhatsApp.',
   },
   {
     icon: Users,
-    accent: '#d97706',
-    bg: '#fffbeb',
-    title: 'Tenant Lease Tracking',
-    desc: 'Track active leases per room, tenant contacts, and who occupies which space with full history.',
+    accent: '#2d5a47',
+    bg: '#edf5f1',
+    title: 'Tenant & lease tracking',
+    desc: 'Keep tenant details, room assignments and lease records organized.',
   },
   {
     icon: BarChart3,
-    accent: '#2563eb',
-    bg: '#eff6ff',
-    title: 'Revenue Dashboard',
-    desc: 'See total expected rent, pending arrears, and occupancy rates at a glance across all properties.',
+    accent: '#2d5a47',
+    bg: '#edf5f1',
+    title: 'Revenue & collections',
+    desc: 'See expected rent, collected amounts and pending balances at a glance.',
   },
   {
     icon: Shield,
-    accent: '#dc2626',
-    bg: '#fef2f2',
-    title: 'Works Offline & Online',
-    desc: 'No internet? No problem. Runs locally on your device. Connect Supabase for cloud sync and backups.',
+    accent: '#2d5a47',
+    bg: '#edf5f1',
+    title: 'Offline & online',
+    desc: 'Keep working on phone, tablet or desktop, even when the internet drops.',
   },
 ];
 
+// 4-Step Setup Workflow
 const steps = [
-  { step: '01', icon: Building2, title: 'Register your property', desc: 'Add your building, rooms with rents, and initial meter readings in minutes.' },
-  { step: '02', icon: Users, title: 'Add tenants & allocate rooms', desc: 'Register tenants and link them to rooms with lease agreements.' },
-  { step: '03', icon: Zap, title: 'Enter current reading', desc: 'Select room, type the meter reading — everything else is calculated for you.' },
-  { step: '04', icon: FileText, title: 'Share & collect', desc: 'Download PDF or send directly to tenant on WhatsApp in one tap.' },
+  {
+    step: '01',
+    title: 'Add your property',
+    desc: 'Add buildings, rooms and rent details.',
+  },
+  {
+    step: '02',
+    title: 'Add tenants',
+    desc: 'Assign tenants to rooms and keep records current.',
+  },
+  {
+    step: '03',
+    title: 'Create a bill',
+    desc: 'Enter a meter reading or add a direct utility amount.',
+  },
+  {
+    step: '04',
+    title: 'Share & collect',
+    desc: 'Generate a receipt and share it with the tenant.',
+  },
 ];
 
-const stats = [
-  { value: '100%', label: 'Free to Use', icon: HeartHandshake },
-  { value: 'PWA', label: 'Works Offline', icon: Smartphone },
-  { value: '∞', label: 'Properties & Rooms', icon: Building2 },
-  { value: '<5 min', label: 'Setup Time', icon: Clock },
+// Target Property Types
+const propertyTypes = [
+  { label: 'Apartments' },
+  { label: 'Rental properties' },
+  { label: 'PGs' },
+  { label: 'Hostels' },
+  { label: 'Residential buildings' },
+  { label: 'Small landlords' },
 ];
 
 export default function Landing() {
   const { user } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const year = new Date().getFullYear();
 
   return (
-    <div className="relative overflow-hidden bg-[#f8faf9] text-slate-800" style={{ fontFamily: "'Inter', 'Outfit', system-ui, sans-serif" }}>
-
-      {/* ── Subtle Background Mesh ── */}
-      <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
-        <div style={{
-          position: 'absolute', top: '-10%', right: '-5%',
-          width: '600px', height: '600px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(45,90,71,0.06) 0%, transparent 70%)'
-        }} />
-        <div style={{
-          position: 'absolute', bottom: '10%', left: '-10%',
-          width: '500px', height: '500px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(37,99,235,0.05) 0%, transparent 70%)'
-        }} />
-      </div>
+    <div className="relative overflow-hidden bg-[#f8faf9] text-slate-800 font-sans selection:bg-[#2d5a47] selection:text-white" style={{ fontFamily: "'Inter', 'Outfit', system-ui, sans-serif" }}>
 
       {/* ══════════════════════════════════════════
-          NAVBAR
+          1. NAVBAR
       ══════════════════════════════════════════ */}
-      <nav className="relative z-30 sticky top-0 flex items-center justify-between px-6 lg:px-10 py-4 bg-white/80 backdrop-blur-xl border-b border-slate-200/80 shadow-sm">
-        <Link to="/" className="flex items-center gap-2">
-          <Logo size={34} />
-        </Link>
-
-        <div className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-500">
-          <a href="#features" className="hover:text-[#2d5a47] transition-colors">Features</a>
-          <a href="#how-it-works" className="hover:text-[#2d5a47] transition-colors">How it works</a>
-          <a href="#about" className="hover:text-[#2d5a47] transition-colors">About</a>
-        </div>
-
-        <div className="flex items-center gap-2.5">
-          <Link
-            to="/quick-calc"
-            className="hidden sm:inline-flex px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 font-semibold text-xs hover:bg-slate-50 hover:border-slate-300 transition-all"
-          >
-            Quick Calculator
+      <nav className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-slate-200/80 px-6 lg:px-12 py-3.5">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2">
+            <Logo size={34} />
           </Link>
-          {user ? (
+
+          {/* Desktop Nav Links */}
+          <div className="hidden md:flex items-center gap-8 text-xs font-semibold text-slate-600">
+            <a href="#features" className="hover:text-[#2d5a47] transition-colors">Features</a>
+            <a href="#how-it-works" className="hover:text-[#2d5a47] transition-colors">How it works</a>
+            <a href="#about" className="hover:text-[#2d5a47] transition-colors">About</a>
+          </div>
+
+          {/* Right Action Buttons */}
+          <div className="hidden sm:flex items-center gap-3">
             <Link
-              to="/dashboard"
-              className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all shadow-sm"
+              to="/quick-calc"
+              className="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-xs hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
             >
-              Dashboard <ArrowRight size={14} />
+              Quick Calculator
             </Link>
-          ) : (
-            <Link
-              to="/login"
-              className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all shadow-sm"
-            >
-              Get Started <ArrowRight size={14} />
-            </Link>
-          )}
+            {user ? (
+              <Link
+                to="/dashboard"
+                className="px-4 py-2 rounded-xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all shadow-sm flex items-center gap-1.5"
+              >
+                <span>Dashboard</span>
+                <ArrowRight size={14} />
+              </Link>
+            ) : (
+              <Link
+                to="/signup"
+                className="px-4 py-2 rounded-xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all shadow-sm flex items-center gap-1.5"
+              >
+                <span>Get started</span>
+                <ArrowRight size={14} />
+              </Link>
+            )}
+          </div>
+
+          {/* Mobile Hamburger Toggle */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="sm:hidden p-2 text-slate-600 hover:text-slate-900 focus:outline-none"
+          >
+            {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
         </div>
+
+        {/* Mobile Menu Drawer */}
+        {mobileMenuOpen && (
+          <div className="sm:hidden pt-4 pb-3 space-y-3 border-t border-slate-100 mt-3 text-xs font-semibold">
+            <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block px-2 text-slate-600 hover:text-[#2d5a47]">Features</a>
+            <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="block px-2 text-slate-600 hover:text-[#2d5a47]">How it works</a>
+            <a href="#about" onClick={() => setMobileMenuOpen(false)} className="block px-2 text-slate-600 hover:text-[#2d5a47]">About</a>
+            <div className="pt-2 flex flex-col gap-2">
+              <Link to="/quick-calc" className="w-full text-center py-2.5 rounded-xl border border-slate-200 bg-white font-bold text-slate-700">Quick Calculator</Link>
+              <Link to={user ? "/dashboard" : "/signup"} className="w-full text-center py-2.5 rounded-xl bg-[#2d5a47] font-bold text-white">
+                {user ? "Dashboard" : "Get started →"}
+              </Link>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* ══════════════════════════════════════════
-          HERO SECTION
+          2. HERO SECTION
       ══════════════════════════════════════════ */}
-      <section className="relative z-10 flex flex-col items-center text-center px-6 pt-28 pb-24">
-        {/* Pill badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 mb-8 rounded-full bg-[#edf5f1] border border-[#c8ddd4] text-[#2d5a47] text-xs font-bold tracking-wide">
+      <section className="relative z-10 px-6 pt-20 pb-16 text-center max-w-5xl mx-auto">
+        
+        {/* Eyebrow Badge */}
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 mb-6 rounded-full bg-[#edf5f1] border border-[#c8ddd4] text-[#2d5a47] text-xs font-bold tracking-wide">
           <Sparkles size={13} fill="currentColor" />
-          <span>Property Management + Smart Billing Platform</span>
+          <span>Property management, made practical</span>
         </div>
 
-        <h1 className="max-w-4xl text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.05] text-slate-900">
-          Manage Every Property.{' '}
-          <span style={{
-            background: 'linear-gradient(135deg, #2d5a47 0%, #3d7a62 50%, #2563eb 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text'
-          }}>
-            Bill Every Room.
-          </span>
+        {/* Main Headline */}
+        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-[#0f172a] tracking-tight leading-[1.05]">
+          Manage Every Property.<br />
+          <span className="text-[#2d5a47]">Bill Every Room.</span>
         </h1>
 
-        <p className="mt-6 max-w-2xl text-lg text-slate-500 leading-relaxed">
-          Manage apartments, PGs, hostels, and rental properties from one dashboard.
-          Automate electricity submeter billing, track tenants, collect payments, and
-          generate professional receipts in seconds.
+        {/* Supporting Copy */}
+        <p className="mt-6 max-w-2xl mx-auto text-base sm:text-lg text-slate-500 leading-relaxed font-medium">
+          Manage properties, tenants, rent and utility bills from one calm dashboard — built for landlords and property managers in India.
         </p>
 
-        <div className="mt-10 flex flex-col sm:flex-row gap-3 items-center justify-center">
+        {/* CTAs */}
+        <div className="mt-8 flex flex-col sm:flex-row gap-3 items-center justify-center">
           {user ? (
             <Link
               to="/dashboard"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-[#2d5a47] text-white font-bold text-sm hover:bg-[#234738] transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+              className="px-8 py-3.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-sm hover:bg-[#234738] transition-all shadow-md flex items-center gap-2"
             >
-              Open Dashboard <ArrowRight size={16} />
+              <span>Go to Dashboard</span>
+              <ArrowRight size={16} />
             </Link>
           ) : (
             <>
               <Link
-                to="/login"
-                className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-[#2d5a47] text-white font-bold text-sm hover:bg-[#234738] transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                to="/signup"
+                className="px-8 py-3.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-sm hover:bg-[#234738] transition-all shadow-md flex items-center gap-2 w-full sm:w-auto justify-center"
               >
-                Start for Free <ArrowRight size={16} />
+                <span>Start for Free</span>
+                <ArrowRight size={16} />
               </Link>
               <Link
                 to="/quick-calc"
-                className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-white text-slate-700 font-bold text-sm border border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
+                className="px-8 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-700 font-bold text-sm hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm w-full sm:w-auto text-center"
               >
                 Try Calculator
               </Link>
@@ -201,42 +232,162 @@ export default function Landing() {
           )}
         </div>
 
-        {/* Trust badges */}
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-500 font-medium">
+        {/* Trust / Value Row */}
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-500 font-medium">
           <div className="flex items-center gap-1.5">
-            <CheckCircle size={14} className="text-[#2d5a47]" />
-            No credit card required
+            <Check size={14} className="text-[#2d5a47]" /> Free to get started
           </div>
           <div className="flex items-center gap-1.5">
-            <CheckCircle size={14} className="text-[#2d5a47]" />
-            Works offline instantly
+            <Check size={14} className="text-[#2d5a47]" /> Works on your phone
           </div>
           <div className="flex items-center gap-1.5">
-            <CheckCircle size={14} className="text-[#2d5a47]" />
-            Installable PWA
-          </div>
-          <div className="flex items-center gap-1.5">
-            <CheckCircle size={14} className="text-[#2d5a47]" />
-            100% Free
+            <Check size={14} className="text-[#2d5a47]" /> WhatsApp-friendly receipts
           </div>
         </div>
+
+        {/* ══════════════════════════════════════════
+            3. DASHBOARD PRODUCT PREVIEW MOCKUP
+        ══════════════════════════════════════════ */}
+        <div className="mt-14 max-w-5xl mx-auto bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 text-left relative overflow-hidden">
+          
+          {/* Dashboard Header Bar */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              <Logo size={28} />
+              <span className="text-xs font-bold text-slate-400">Overview</span>
+            </div>
+            
+            <div className="flex items-center gap-3 text-xs">
+              <span className="flex items-center gap-1.5 text-emerald-700 font-semibold bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200/60">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                All changes saved
+              </span>
+              <div className="px-3 py-1 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700">
+                August 2026 ▾
+              </div>
+              <button className="px-3.5 py-1.5 bg-[#2d5a47] text-white rounded-xl font-bold text-xs flex items-center gap-1 shadow-sm">
+                <Plus size={13} /> Create bill
+              </button>
+            </div>
+          </div>
+
+          {/* Greeting */}
+          <div>
+            <h3 className="text-xl font-black text-slate-900 tracking-tight">Good morning, Farhan</h3>
+            <p className="text-xs text-slate-400 mt-0.5">Here's what's happening across your properties.</p>
+          </div>
+
+          {/* 4 Stat Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="p-4 bg-slate-50/70 border border-slate-100 rounded-2xl">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Properties</span>
+              <div className="text-2xl font-black text-slate-900 mt-1">3</div>
+              <span className="text-[10px] text-emerald-700 font-semibold block mt-0.5">↑ 1 this month</span>
+            </div>
+
+            <div className="p-4 bg-slate-50/70 border border-slate-100 rounded-2xl">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Rooms / Units</span>
+              <div className="text-2xl font-black text-slate-900 mt-1">24</div>
+              <span className="text-[10px] text-slate-500 font-medium block mt-0.5">21 occupied</span>
+            </div>
+
+            <div className="p-4 bg-slate-50/70 border border-slate-100 rounded-2xl">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Tenants</span>
+              <div className="text-2xl font-black text-slate-900 mt-1">21</div>
+              <span className="text-[10px] text-slate-500 font-medium block mt-0.5">3 move-ins soon</span>
+            </div>
+
+            <div className="p-4 bg-slate-50/70 border border-slate-100 rounded-2xl">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Expected rent</span>
+              <div className="text-2xl font-black text-slate-900 mt-1">₹1,24,500</div>
+              <span className="text-[10px] text-emerald-700 font-semibold block mt-0.5">↑ 8.4% collected</span>
+            </div>
+          </div>
+
+          {/* Collections Chart + Needs Attention Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 pt-2">
+            
+            {/* Collections Bar Chart Preview */}
+            <div className="lg:col-span-2 p-5 bg-slate-50/50 border border-slate-100 rounded-2xl space-y-4">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-extrabold text-slate-800">Collections</span>
+                <span className="font-bold text-[#2d5a47]">₹1,16,050 received</span>
+              </div>
+              
+              {/* Simulated Bar Chart */}
+              <div className="h-32 flex items-end justify-between gap-2 pt-4 px-2">
+                {[
+                  { month: 'Jan', height: '40%' },
+                  { month: 'Feb', height: '65%' },
+                  { month: 'Mar', height: '45%' },
+                  { month: 'Apr', height: '80%' },
+                  { month: 'May', height: '70%' },
+                  { month: 'Jun', height: '95%', active: true },
+                  { month: 'Jul', height: '60%' }
+                ].map((bar, idx) => (
+                  <div key={idx} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                    <div
+                      className={`w-full rounded-lg transition-all ${
+                        bar.active ? 'bg-[#2d5a47]' : 'bg-[#c8ddd4]'
+                      }`}
+                      style={{ height: bar.height }}
+                    />
+                    <span className="text-[10px] text-slate-400 font-semibold">{bar.month}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Needs Attention Widget */}
+            <div className="p-5 bg-slate-50/50 border border-slate-100 rounded-2xl space-y-3">
+              <span className="text-xs font-extrabold text-slate-800 block">Needs attention</span>
+              
+              <div className="space-y-2 text-xs font-medium pt-1">
+                <div className="flex justify-between items-center py-1.5 border-b border-slate-200/60">
+                  <span className="text-slate-500">Pending bills</span>
+                  <span className="font-extrabold text-amber-700">₹8,450</span>
+                </div>
+                <div className="flex justify-between items-center py-1.5 border-b border-slate-200/60">
+                  <span className="text-slate-500">Receipts to share</span>
+                  <span className="font-extrabold text-slate-800">4</span>
+                </div>
+                <div className="flex justify-between items-center py-1.5">
+                  <span className="text-slate-500">Vacant rooms</span>
+                  <span className="font-extrabold text-slate-800">3</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
       </section>
 
-      {/* ── Property Types Strip ── */}
-      <section className="relative z-10 border-y border-slate-200/80 bg-white py-5 px-6">
-        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-8">
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0">Perfect for</span>
-          <div className="flex flex-wrap items-center justify-center gap-2.5">
-            {[
-              { emoji: '🏢', label: 'Apartments' },
-              { emoji: '🏠', label: 'Rental Buildings' },
-              { emoji: '🛏', label: 'PGs' },
-              { emoji: '🎓', label: 'Hostels' },
-              { emoji: '🏘', label: 'Societies' },
-            ].map(({ emoji, label }) => (
-              <div key={label} className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-50 border border-slate-200 text-slate-600 text-xs font-semibold hover:border-[#2d5a47]/40 hover:text-[#2d5a47] hover:bg-[#edf5f1] transition-all">
-                <span>{emoji}</span>
+      {/* ══════════════════════════════════════════
+          4. PROPERTY TYPES SECTION
+      ══════════════════════════════════════════ */}
+      <section className="py-16 px-6 bg-white border-y border-slate-200/80 text-center">
+        <div className="max-w-4xl mx-auto space-y-4">
+          <span className="text-[10px] font-black text-[#2d5a47] uppercase tracking-widest block">
+            MADE FOR YOUR KIND OF PROPERTY
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            One workspace for the way you rent.
+          </h2>
+          <p className="text-slate-500 text-sm max-w-xl mx-auto leading-relaxed">
+            Whether you manage a single building or a growing portfolio, BillRoom keeps every room and rupee accounted for.
+          </p>
+
+          {/* Chips */}
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-4">
+            {propertyTypes.map(({ label }) => (
+              <div
+                key={label}
+                className="px-4 py-2 rounded-full bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold hover:border-[#2d5a47] hover:text-[#2d5a47] hover:bg-[#edf5f1] transition-all cursor-pointer flex items-center gap-1.5"
+              >
                 <span>{label}</span>
+                <ChevronRight size={13} className="text-slate-400" />
               </div>
             ))}
           </div>
@@ -244,53 +395,122 @@ export default function Landing() {
       </section>
 
       {/* ══════════════════════════════════════════
-          STATS BAR
+          5. SMART BILLING SECTION (Key Differentiator)
       ══════════════════════════════════════════ */}
-      <section className="relative z-10 py-16 px-6 bg-[#2d5a47]">
-        <div className="max-w-5xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-8">
-          {stats.map(({ value, label, icon: Icon }) => (
-            <div key={label} className="text-center">
-              <div className="flex justify-center mb-3">
-                <div className="w-10 h-10 rounded-2xl bg-white/10 text-white flex items-center justify-center">
-                  <Icon size={18} />
+      <section className="py-20 px-6 max-w-6xl mx-auto">
+        <div className="bg-[#edf5f1] border border-[#d8e7e0] rounded-3xl p-8 sm:p-12 lg:p-16">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+            
+            {/* Left Column Text */}
+            <div className="lg:col-span-5 space-y-5 text-left">
+              <span className="text-[10px] font-black text-[#2d5a47] uppercase tracking-widest block">
+                SMART BILLING, WITHOUT THE GUESSWORK
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                Electricity billing, your way.
+              </h2>
+              <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
+                Some rooms have submeters. Some properties receive one provider bill. BillRoom supports both — so your process fits the property, not the other way around.
+              </p>
+              <div className="pt-2">
+                <Link
+                  to="/quick-calc"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-[#2d5a47] hover:bg-[#234738] text-white font-bold text-xs transition-all shadow-sm"
+                >
+                  <span>Open calculator</span>
+                  <ArrowRight size={14} />
+                </Link>
+              </div>
+            </div>
+
+            {/* Right Column Visual Comparison Cards */}
+            <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              
+              {/* Card 01 — SUBMETER */}
+              <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm space-y-4 text-left">
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">01 · SUBMETER</span>
+                </div>
+                <h4 className="text-sm font-extrabold text-slate-900">Calculate from readings</h4>
+                
+                <div className="space-y-2 text-xs font-medium pt-1">
+                  <div className="flex justify-between text-slate-600">
+                    <span>Previous reading</span>
+                    <span className="font-mono font-bold text-slate-800">124</span>
+                  </div>
+                  <div className="flex justify-between text-slate-600">
+                    <span>Current reading</span>
+                    <span className="font-mono font-bold text-slate-800">168</span>
+                  </div>
+                  <div className="flex justify-between text-slate-500 text-[11px] pt-1 border-t border-slate-100">
+                    <span>Usage × ₹8/unit</span>
+                    <span className="font-mono">44 × ₹8</span>
+                  </div>
+                  <div className="flex justify-between text-slate-900 font-black text-sm pt-2 border-t border-slate-200">
+                    <span>Electricity</span>
+                    <span className="text-[#2d5a47]">₹352</span>
+                  </div>
                 </div>
               </div>
-              <div className="text-3xl font-black text-white">{value}</div>
-              <div className="text-sm text-white/60 font-medium mt-1">{label}</div>
+
+              {/* Card 02 — DIRECT BILL */}
+              <div className="bg-[#2d5a47] text-white rounded-2xl p-6 shadow-md space-y-4 text-left">
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] font-black text-white/60 uppercase tracking-wider">02 · DIRECT BILL</span>
+                </div>
+                <h4 className="text-sm font-extrabold text-white">Already have the amount?</h4>
+                
+                <div className="space-y-2 text-xs font-medium pt-1">
+                  <div className="flex justify-between text-white/80">
+                    <span>Electricity bill received</span>
+                    <span className="font-mono font-bold text-white">₹1,850</span>
+                  </div>
+                  <div className="flex justify-between text-white/80">
+                    <span>Added to tenant bill</span>
+                    <span className="font-mono font-bold text-white">₹1,850</span>
+                  </div>
+                  <div className="flex justify-between text-white font-black text-sm pt-4 border-t border-white/20">
+                    <span>Ready to share</span>
+                    <CheckCircle2 size={18} className="text-emerald-300" />
+                  </div>
+                </div>
+              </div>
+
             </div>
-          ))}
+
+          </div>
         </div>
       </section>
 
       {/* ══════════════════════════════════════════
-          FEATURES SECTION
+          6. FEATURES ("The Everyday Essentials")
       ══════════════════════════════════════════ */}
-      <section id="features" className="relative z-10 px-6 py-24 max-w-6xl mx-auto">
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 mb-5 rounded-full bg-[#edf5f1] border border-[#c8ddd4] text-[#2d5a47] text-xs font-bold tracking-wide">
-            <Sparkles size={12} fill="currentColor" />
-            <span>Built-in Features</span>
-          </div>
-          <h2 className="text-4xl font-extrabold text-slate-900">Everything you need to manage rentals</h2>
-          <p className="mt-3 text-slate-500 text-base max-w-xl mx-auto">Purpose-built features to replace spreadsheets and paperwork — designed for Indian landlords.</p>
+      <section id="features" className="py-20 px-6 max-w-6xl mx-auto text-center">
+        <div className="space-y-3 mb-14">
+          <span className="text-[10px] font-black text-[#2d5a47] uppercase tracking-widest block">
+            THE EVERYDAY ESSENTIALS
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            Everything you need to run rentals.
+          </h2>
+          <p className="text-slate-500 text-sm max-w-xl mx-auto leading-relaxed">
+            Purpose-built to replace notebooks, spreadsheets and WhatsApp calculations — without adding complexity.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 text-left">
           {features.map((f) => {
             const Icon = f.icon;
             return (
               <div
                 key={f.title}
-                className="bg-white border border-slate-100 rounded-3xl p-7 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group"
+                className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm hover:shadow-md transition-all space-y-3"
               >
-                <div
-                  className="w-12 h-12 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform"
-                  style={{ background: f.bg, color: f.accent }}
-                >
-                  <Icon size={22} />
+                <div className="w-10 h-10 rounded-2xl bg-[#edf5f1] text-[#2d5a47] flex items-center justify-center">
+                  <Icon size={20} />
                 </div>
-                <h3 className="font-extrabold text-slate-900 mb-2 text-base">{f.title}</h3>
-                <p className="text-sm text-slate-500 leading-relaxed">{f.desc}</p>
+                <h3 className="font-extrabold text-slate-900 text-base">{f.title}</h3>
+                <p className="text-xs text-slate-500 leading-relaxed">{f.desc}</p>
               </div>
             );
           })}
@@ -298,268 +518,174 @@ export default function Landing() {
       </section>
 
       {/* ══════════════════════════════════════════
-          HOW IT WORKS
+          7. QUICK SETUP / HOW IT WORKS
       ══════════════════════════════════════════ */}
-      <section id="how-it-works" className="relative z-10 px-6 py-24 bg-white border-y border-slate-100">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 mb-5 rounded-full bg-[#edf5f1] border border-[#c8ddd4] text-[#2d5a47] text-xs font-bold tracking-wide">
-              <Clock size={12} />
-              <span>Quick Setup</span>
-            </div>
-            <h2 className="text-4xl font-extrabold text-slate-900">Ready in under 5 minutes</h2>
-            <p className="mt-3 text-slate-500 text-base">No complex setup. Just register, configure, and bill.</p>
+      <section id="how-it-works" className="py-20 px-6 bg-white border-y border-slate-200/80">
+        <div className="max-w-5xl mx-auto text-center">
+          <div className="space-y-3 mb-14">
+            <span className="text-[10px] font-black text-[#2d5a47] uppercase tracking-widest block">
+              QUICK SETUP
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+              Ready in under 5 minutes.
+            </h2>
+            <p className="text-slate-500 text-sm max-w-xl mx-auto leading-relaxed">
+              No complex setup. Add your property, add tenants, and start billing.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {steps.map((s, i) => {
-              const Icon = s.icon;
-              return (
-                <div key={s.step} className="relative">
-                  {i < steps.length - 1 && (
-                    <div className="hidden lg:block absolute top-6 left-[calc(100%-0rem)] w-full h-px border-t-2 border-dashed border-slate-200 z-0" />
-                  )}
-                  <div className="relative z-10 bg-[#f8faf9] border border-slate-100 rounded-3xl p-6 hover:shadow-sm hover:-translate-y-0.5 transition-all">
-                    <div className="flex items-center gap-3 mb-4">
-                      <span className="text-3xl font-black text-slate-200 font-mono">{s.step}</span>
-                      <div className="w-9 h-9 rounded-xl bg-[#edf5f1] text-[#2d5a47] flex items-center justify-center">
-                        <Icon size={16} />
-                      </div>
-                    </div>
-                    <h4 className="font-extrabold text-slate-900 text-sm mb-2">{s.title}</h4>
-                    <p className="text-xs text-slate-500 leading-relaxed">{s.desc}</p>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-left">
+            {steps.map((s) => (
+              <div key={s.step} className="p-6 bg-[#f8faf9] border border-slate-100 rounded-3xl space-y-3">
+                <span className="text-3xl font-black text-[#2d5a47] font-mono block leading-none">{s.step}</span>
+                <h4 className="font-extrabold text-slate-900 text-sm">{s.title}</h4>
+                <p className="text-xs text-slate-500 leading-relaxed">{s.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* ══════════════════════════════════════════
-          ABOUT SECTION
+          8. FOUNDER / STORY SECTION ("A Tool With A Reason")
       ══════════════════════════════════════════ */}
-      <section id="about" className="relative z-10 px-6 py-24 max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+      <section id="about" className="py-20 px-6 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
-          {/* About Text */}
-          <div>
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 mb-6 rounded-full bg-[#edf5f1] border border-[#c8ddd4] text-[#2d5a47] text-xs font-bold tracking-wide">
-              <HeartHandshake size={12} />
-              <span>Our Story</span>
-            </div>
-            <h2 className="text-4xl font-extrabold text-slate-900 leading-tight mb-5">
-              Built for landlords <br/>
-              <span style={{
-                background: 'linear-gradient(135deg, #2d5a47, #2563eb)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text'
-              }}>by a developer who understands the problem.</span>
+          {/* Left Text */}
+          <div className="lg:col-span-7 space-y-5 text-left">
+            <span className="text-[10px] font-black text-[#2d5a47] uppercase tracking-widest block">
+              A TOOL WITH A REASON
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+              Built for landlords by someone who understands the problem.
             </h2>
-            <p className="text-slate-500 leading-relaxed mb-4 text-sm">
-              BillRoom was born from a real frustration — landlords in India spending hours every month juggling notebooks, Excel sheets, and WhatsApp messages to calculate rent, utility bills, and track tenants.
+            <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
+              BillRoom began with the everyday tangle of rent, utility bills, tenant records and collections spread across notebooks, spreadsheets and WhatsApp.
             </p>
-            <p className="text-slate-500 leading-relaxed mb-6 text-sm">
-              We built a simple, powerful tool that replaces all of that chaos. BillRoom is designed to be instant to set up, easy to use on any device, and works even without internet — because not everyone has reliable connectivity.
+            <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
+              It is designed to be instant to use on any device — because managing a property should feel clear, even on a busy day.
             </p>
-            <div className="flex flex-col gap-2.5">
-              {[
-                'No spreadsheets, no WhatsApp calculations',
-                'Works on any device — phone, tablet, desktop',
-                'Fully offline-capable with cloud sync option',
-                'Share receipts to WhatsApp in one tap',
-              ].map(item => (
-                <div key={item} className="flex items-center gap-2.5 text-sm text-slate-700 font-medium">
-                  <div className="w-5 h-5 rounded-full bg-[#edf5f1] text-[#2d5a47] flex items-center justify-center shrink-0">
-                    <CheckCircle size={12} />
-                  </div>
-                  {item}
-                </div>
-              ))}
-            </div>
-          </div>
 
-          {/* Founder Card */}
-          <div className="space-y-5">
-            <div className="bg-white border border-slate-100 rounded-3xl p-8 shadow-sm relative overflow-hidden">
-              {/* Decorative green corner */}
-              <div className="absolute top-0 right-0 w-32 h-32 rounded-bl-full bg-[#edf5f1] -z-0" />
-              
-              <div className="relative z-10">
-                <div className="inline-flex items-center gap-2 px-3 py-1 mb-5 rounded-full bg-[#edf5f1] text-[#2d5a47] text-[10px] font-black uppercase tracking-widest">
-                  <Star size={10} fill="currentColor" />
-                  Founder & Developer
-                </div>
-
-                <div className="flex items-center gap-4 mb-5">
-                  <div className="w-16 h-16 rounded-2xl bg-[#2d5a47] text-white flex items-center justify-center font-black text-xl shadow-lg">
-                    FA
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-extrabold text-slate-900">Farhan Ahmad Tufail</h3>
-                    <p className="text-sm text-slate-500 font-medium">Founder & Full-Stack Developer</p>
-                    <div className="flex items-center gap-1.5 mt-1">
-                      <MapPin size={11} className="text-slate-400" />
-                      <span className="text-[11px] text-slate-400">India</span>
-                    </div>
-                  </div>
-                </div>
-
-                <p className="text-sm text-slate-600 leading-relaxed mb-5">
-                  "I built BillRoom to solve a problem I saw firsthand — the hours wasted by landlords every month on manual rent calculations, utility billing, and chasing payments. BillRoom is my answer to that."
-                </p>
-
-                <div className="flex flex-wrap gap-2">
-                  <span className="px-3 py-1 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-600">React</span>
-                  <span className="px-3 py-1 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-600">Supabase</span>
-                  <span className="px-3 py-1 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-600">PWA</span>
-                  <span className="px-3 py-1 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-600">Property Tech</span>
-                </div>
+            <div className="space-y-2 pt-2 text-xs font-semibold text-slate-700">
+              <div className="flex items-center gap-2">
+                <Check size={14} className="text-[#2d5a47]" />
+                <span>No spreadsheets or manual calculations</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check size={14} className="text-[#2d5a47]" />
+                <span>Clear receipts tenants can understand</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check size={14} className="text-[#2d5a47]" />
+                <span>Works where your properties are</span>
               </div>
             </div>
+          </div>
 
-            {/* Vision card */}
-            <div className="bg-[#2d5a47] rounded-3xl p-6 text-white">
-              <div className="text-xs font-black uppercase tracking-widest text-white/50 mb-2">Our Mission</div>
-              <p className="text-sm font-medium text-white/80 leading-relaxed">
-                To make property management accessible to every landlord in India — from single-room rentals to large apartment complexes — with tools that are simple, fast, and free.
+          {/* Right Founder Card */}
+          <div className="lg:col-span-5">
+            <div className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 shadow-sm space-y-4 text-left">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-[#2d5a47] text-white flex items-center justify-center font-black text-base shadow-sm">
+                  FA
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-slate-900 text-sm">Farhan Ahmad Tufail</h4>
+                  <p className="text-xs text-slate-400 font-medium">Founder &amp; developer · India</p>
+                </div>
+              </div>
+
+              <p className="text-xs text-slate-600 leading-relaxed italic pt-2 border-t border-slate-100">
+                "I built BillRoom to make property management less scattered — and more dependable for the people doing the work every day."
               </p>
             </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════
+          9. FINAL CTA BANNER
+      ══════════════════════════════════════════ */}
+      <section className="py-12 px-6 max-w-5xl mx-auto text-center">
+        <div className="bg-gradient-to-br from-[#edf5f1] via-[#eff6ff] to-[#e4efe9] border border-[#d8e7e0] rounded-3xl p-10 sm:p-14 space-y-5">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            Stop managing your property on paper and WhatsApp.
+          </h2>
+          <p className="text-slate-600 text-sm max-w-xl mx-auto leading-relaxed font-medium">
+            Bring tenants, rent, utility bills and receipts into one simple dashboard.
+          </p>
+          <div className="pt-2">
+            <Link
+              to={user ? "/dashboard" : "/signup"}
+              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-[#2d5a47] hover:bg-[#234738] text-white font-bold text-sm shadow-md transition-all"
+            >
+              <span>Create free account</span>
+              <ArrowRight size={16} />
+            </Link>
           </div>
         </div>
       </section>
 
       {/* ══════════════════════════════════════════
-          CTA BANNER
+          10. FOOTER (Clean SaaS - NO "Made with Replit")
       ══════════════════════════════════════════ */}
-      <section className="relative z-10 px-6 py-16 bg-white border-y border-slate-100">
-        <div className="max-w-4xl mx-auto">
-          <div className="relative overflow-hidden rounded-3xl p-12 text-center" style={{
-            background: 'linear-gradient(135deg, #edf5f1 0%, #eff6ff 50%, #f5f3ff 100%)',
-            border: '1px solid #d8e7e0'
-          }}>
-            {/* Decorative blobs */}
-            <div className="pointer-events-none absolute -top-8 -right-8 w-40 h-40 rounded-full bg-[#2d5a47]/10 blur-2xl" />
-            <div className="pointer-events-none absolute -bottom-8 -left-8 w-40 h-40 rounded-full bg-blue-500/10 blur-2xl" />
-
-            <div className="relative">
-              <h2 className="text-3xl sm:text-4xl font-black text-slate-900 mb-4">
-                Upgrade from Notebooks to BillRoom
-              </h2>
-              <p className="text-slate-500 text-base mb-8 max-w-xl mx-auto leading-relaxed">
-                Stop managing tenant records, rent collections, and utility bills in notebooks, spreadsheets, and WhatsApp chats. BillRoom brings everything together in one secure dashboard.
-              </p>
-
-              {user ? (
-                <Link
-                  to="/dashboard"
-                  className="inline-flex items-center gap-2 px-10 py-4 rounded-2xl bg-[#2d5a47] text-white font-bold text-sm hover:bg-[#234738] transition-all shadow-lg hover:-translate-y-0.5"
-                >
-                  Go to Dashboard <ArrowRight size={16} />
-                </Link>
-              ) : (
-                <Link
-                  to="/login"
-                  className="inline-flex items-center gap-2 px-10 py-4 rounded-2xl bg-[#2d5a47] text-white font-bold text-sm hover:bg-[#234738] transition-all shadow-lg hover:-translate-y-0.5"
-                >
-                  Create Free Account <ArrowRight size={16} />
-                </Link>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════
-          FOOTER
-      ══════════════════════════════════════════ */}
-      <footer className="relative z-10 bg-slate-900 text-white px-6 lg:px-10 pt-16 pb-8">
-        <div className="max-w-6xl mx-auto">
+      <footer className="bg-[#0f172a] text-white px-6 lg:px-12 pt-16 pb-8 text-left">
+        <div className="max-w-7xl mx-auto space-y-12">
           
-          {/* Footer Top Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-slate-800">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-8 pb-10 border-b border-slate-800">
             
             {/* Brand Column */}
-            <div className="lg:col-span-2 space-y-4">
-              <Logo size={36} />
-              <p className="text-slate-400 text-sm leading-relaxed max-w-sm">
-                A smart property &amp; billing management platform for Indian landlords. Manage tenants, automate electricity billing, collect payments, and stay organized — all in one place.
+            <div className="lg:col-span-5 space-y-4">
+              <Logo size={34} />
+              <p className="text-slate-400 text-xs leading-relaxed max-w-sm">
+                A dependable property and billing workspace for Indian landlords and property managers.
               </p>
-              <div className="flex items-center gap-2 text-xs text-slate-500">
-                <MapPin size={12} />
-                Made with ❤️ in India
-              </div>
             </div>
 
-            {/* Product Column */}
-            <div>
-              <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Product</h4>
-              <ul className="space-y-2.5 text-sm text-slate-400">
-                <li><a href="#features" className="hover:text-white transition-colors flex items-center gap-1.5"><ChevronRight size={12} />Features</a></li>
-                <li><a href="#how-it-works" className="hover:text-white transition-colors flex items-center gap-1.5"><ChevronRight size={12} />How It Works</a></li>
-                <li><Link to="/quick-calc" className="hover:text-white transition-colors flex items-center gap-1.5"><ChevronRight size={12} />Quick Calculator</Link></li>
-                <li><Link to="/dashboard" className="hover:text-white transition-colors flex items-center gap-1.5"><ChevronRight size={12} />Dashboard</Link></li>
-                <li><Link to="/smart-calc" className="hover:text-white transition-colors flex items-center gap-1.5"><ChevronRight size={12} />Smart Billing</Link></li>
+            {/* Product Links */}
+            <div className="lg:col-span-2 space-y-3">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">Product</span>
+              <ul className="space-y-2 text-xs text-slate-400 font-medium">
+                <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
+                <li><a href="#how-it-works" className="hover:text-white transition-colors">How it works</a></li>
+                <li><Link to="/quick-calc" className="hover:text-white transition-colors">Smart billing</Link></li>
+                <li><Link to="/signup" className="hover:text-white transition-colors">Get started</Link></li>
               </ul>
             </div>
 
-            {/* About Column */}
-            <div>
-              <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Built By</h4>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#2d5a47] text-white flex items-center justify-center font-black text-sm shrink-0">
-                    FA
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-white">Farhan Ahmad Tufail</p>
-                    <p className="text-xs text-slate-500">Founder & Developer</p>
-                  </div>
-                </div>
-                <div className="text-xs text-slate-500 leading-relaxed">
-                  Full-stack developer passionate about building practical tools that solve real problems for everyday users.
-                </div>
-              </div>
-
-              <div className="mt-4 space-y-1.5 text-sm text-slate-400">
-                <div className="flex items-center gap-2">
-                  <Globe size={13} className="text-slate-500 shrink-0" />
-                  <span>BillRoom — Property Operations</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Code2 size={13} className="text-slate-500 shrink-0" />
-                  <span>React · Supabase · PWA</span>
-                </div>
-              </div>
+            {/* Built For */}
+            <div className="lg:col-span-3 space-y-3">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">Built For</span>
+              <ul className="space-y-2 text-xs text-slate-400 font-medium">
+                <li>Rental properties</li>
+                <li>PGs &amp; Hostels</li>
+                <li>Apartments</li>
+                <li>Small landlords</li>
+              </ul>
             </div>
+
+            {/* Company */}
+            <div className="lg:col-span-2 space-y-3">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">Company</span>
+              <ul className="space-y-2 text-xs text-slate-400 font-medium">
+                <li><a href="#about" className="hover:text-white transition-colors">About BillRoom</a></li>
+                <li><Link to="/quick-calc" className="hover:text-white transition-colors">Quick Calculator</Link></li>
+              </ul>
+            </div>
+
           </div>
 
-          {/* Footer Bottom */}
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-8">
-            <p className="text-xs text-slate-600">
-              © {year} BillRoom. Designed & built by{' '}
-              <span className="text-[#4a9978] font-bold">Farhan Ahmad Tufail</span>.
-              All rights reserved.
-            </p>
-            <div className="flex items-center gap-4 text-xs text-slate-600">
-              <span className="flex items-center gap-1.5">
-                <Smartphone size={12} className="text-[#4a9978]" />
-                PWA Installable
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Shield size={12} className="text-[#4a9978]" />
-                Offline Capable
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Globe size={12} className="text-[#4a9978]" />
-                Free Forever
-              </span>
-            </div>
+          {/* Bottom Row */}
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-500">
+            <p>© {year} BillRoom · Property Management Software</p>
+            <p className="text-[11px]">Designed &amp; built for property owners in India</p>
           </div>
 
         </div>
       </footer>
+
     </div>
   );
 }

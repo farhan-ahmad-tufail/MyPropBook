@@ -744,7 +744,7 @@ export default function Properties() {
                                       placeholder={`Enter ≥ ${prevReading}`}
                                       value={readings.currentReading}
                                       onChange={e => handleBulkReadingChange(room.id, 'currentReading', e.target.value)}
-                                      className="form-input bg-slate-950 border-slate-700 py-1.5 px-2 text-xs rounded-lg w-32 focus:border-violet-500 font-mono"
+                                      className="form-input bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-500 py-1.5 px-2 text-xs rounded-lg w-32 focus:border-violet-500 font-mono"
                                     />
                                   ) : (
                                     <span className="text-xs text-slate-500">N/A ({room.elec_mode || 'direct'})</span>
@@ -761,7 +761,7 @@ export default function Properties() {
                                     placeholder="₹0"
                                     value={readings.otherCharges}
                                     onChange={e => handleBulkReadingChange(room.id, 'otherCharges', e.target.value)}
-                                    className="form-input bg-slate-950 border-slate-700 py-1.5 px-2 text-xs rounded-lg w-24"
+                                    className="form-input bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-500 py-1.5 px-2 text-xs rounded-lg w-24"
                                   />
                                 </td>
                                 <td className="px-4 py-3 text-right">
@@ -810,7 +810,7 @@ export default function Properties() {
                                     placeholder={`Prev: ${prevReading}`}
                                     value={readings.currentReading}
                                     onChange={e => handleBulkReadingChange(room.id, 'currentReading', e.target.value)}
-                                    className="form-input bg-slate-950 border-slate-700 py-1.5 px-2 text-xs rounded-lg w-full mt-1"
+                                    className="form-input bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-500 py-1.5 px-2 text-xs rounded-lg w-full mt-1"
                                   />
                                 </div>
                                 <div className="flex-1">
@@ -821,7 +821,7 @@ export default function Properties() {
                                     placeholder="₹0"
                                     value={readings.otherCharges}
                                     onChange={e => handleBulkReadingChange(room.id, 'otherCharges', e.target.value)}
-                                    className="form-input bg-slate-950 border-slate-700 py-1.5 px-2 text-xs rounded-lg w-full mt-1"
+                                    className="form-input bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-500 py-1.5 px-2 text-xs rounded-lg w-full mt-1"
                                   />
                                 </div>
                               </div>
@@ -1243,7 +1243,7 @@ export default function Properties() {
                   type="text"
                   required
                   placeholder="e.g. Royal Heights or Supernova"
-                  className="form-input bg-slate-950 border-slate-800"
+                  className="form-input bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-500"
                   value={propName}
                   onChange={e => setPropName(e.target.value)}
                   autoFocus
@@ -1255,7 +1255,7 @@ export default function Properties() {
                 <input
                   type="text"
                   placeholder="e.g. Sector 62, Noida"
-                  className="form-input bg-slate-950 border-slate-800"
+                  className="form-input bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-500"
                   value={propAddress}
                   onChange={e => setPropAddress(e.target.value)}
                 />

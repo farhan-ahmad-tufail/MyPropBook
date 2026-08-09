@@ -170,7 +170,20 @@ export default function Dashboard() {
   }, [rooms, properties, bills, leases, tenants]);
 
 
-  const displayName = user?.user_metadata?.full_name?.split(' ')[0] || user?.fullName?.split(' ')[0] || user?.email?.split('@')[0] || 'there';
+  // Dynamic time-of-day greeting generator
+  const getTimeBasedGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return 'Good morning';
+    if (hour >= 12 && hour < 17) return 'Good afternoon';
+    if (hour >= 17 && hour < 22) return 'Good evening';
+    return 'Good night';
+  };
+
+  const savedProfile = JSON.parse(localStorage.getItem('billroom_user_profile') || '{}');
+  const rawName = savedProfile.fullName || user?.user_metadata?.full_name || user?.fullName || user?.email?.split('@')[0] || 'Farhan';
+  const cleanName = (rawName === 'Google Demo User' || rawName === 'Google') ? 'Farhan' : rawName.split(' ')[0];
+
+  const greetingPrefix = getTimeBasedGreeting();
   const currentDate = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
 
   if (loading) {
@@ -194,7 +207,7 @@ export default function Dashboard() {
             </span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-1">
-            Good morning, {displayName}.
+            {greetingPrefix}, {cleanName}.
           </h1>
           <p className="text-slate-500 text-sm mt-1">
             Here's what needs your attention across the portfolio.

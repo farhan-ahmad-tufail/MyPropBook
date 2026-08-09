@@ -19,6 +19,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import Logo from './Logo';
+import ProfileModal from './ProfileModal';
 
 const navSections = [
   {
@@ -45,8 +46,9 @@ export default function Layout({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
-  const isPlainPage = ['/', '/login'].includes(location.pathname);
+  const isPlainPage = ['/', '/login', '/signup'].includes(location.pathname);
 
   const handleLogout = async () => {
     await signOut();
@@ -54,11 +56,13 @@ export default function Layout({ children }) {
   };
 
   if (isPlainPage) {
-    return <div className="min-h-screen bg-[#f1f5f3] text-slate-800">{children}</div>;
+    return <div className="min-h-screen bg-[#f8faf9] text-slate-800">{children}</div>;
   }
 
-  const displayName = user?.user_metadata?.full_name || user?.fullName || user?.email?.split('@')[0] || 'Riya Malhotra';
-  const avatarLetter = (displayName[0] || 'R').toUpperCase() + (displayName.split(' ')[1]?.[0] || 'M').toUpperCase();
+  const savedProfile = JSON.parse(localStorage.getItem('billroom_user_profile') || '{}');
+  const rawName = savedProfile.fullName || user?.user_metadata?.full_name || user?.fullName || user?.email?.split('@')[0] || 'Farhan';
+  const displayName = (rawName === 'Google Demo User' || rawName === 'Google') ? 'Farhan Ahmad Tufail' : rawName;
+  const avatarLetter = (displayName[0] || 'F').toUpperCase() + (displayName.split(' ')[1]?.[0] || 'A').toUpperCase();
 
   const breadcrumbMap = {
     '/dashboard': 'Overview',
@@ -94,17 +98,24 @@ export default function Layout({ children }) {
         </div>
 
         {/* User Account Switcher Card */}
-        <div className="mt-4 p-2.5 bg-white border border-slate-200/80 rounded-2xl flex items-center justify-between shadow-sm cursor-pointer hover:border-slate-300 transition-all">
+        <div
+          className="mt-4 p-2.5 bg-white border border-slate-200/80 rounded-2xl flex items-center justify-between shadow-sm cursor-pointer hover:border-[#2d5a47]/40 hover:shadow-md transition-all group"
+          onClick={() => setShowProfileModal(true)}
+          title="Open profile & settings"
+        >
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-[#2d5a47] text-white flex items-center justify-center font-bold text-xs flex-shrink-0">
+            <div
+              className="w-9 h-9 rounded-xl text-white flex items-center justify-center font-bold text-xs flex-shrink-0 transition-transform group-hover:scale-105"
+              style={{ backgroundColor: savedProfile.avatarColor || '#2d5a47' }}
+            >
               {avatarLetter}
             </div>
             <div className="min-w-0">
               <p className="font-bold text-xs text-slate-800 truncate">{displayName}</p>
-              <p className="text-[10px] text-slate-400 truncate">Landlord workspace</p>
+              <p className="text-[10px] text-slate-400 truncate">{savedProfile.workspaceName || 'Landlord workspace'}</p>
             </div>
           </div>
-          <ChevronDown size={14} className="text-slate-400 flex-shrink-0 mr-1" />
+          <ChevronDown size={14} className="text-slate-400 flex-shrink-0 mr-1 group-hover:text-[#2d5a47] transition-colors" />
         </div>
 
         {/* Demo Mode Banner */}
@@ -204,9 +215,14 @@ export default function Layout({ children }) {
               <Bell size={15} />
               <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-amber-500 rounded-full" />
             </button>
-            <div className="w-8 h-8 rounded-full bg-[#2d5a47] text-white flex items-center justify-center font-bold text-xs shadow-sm">
+            <button
+              onClick={() => setShowProfileModal(true)}
+              title="Open profile & settings"
+              className="w-8 h-8 rounded-full text-white flex items-center justify-center font-bold text-xs shadow-sm hover:ring-2 hover:ring-[#2d5a47]/40 hover:scale-105 transition-all"
+              style={{ backgroundColor: savedProfile.avatarColor || '#2d5a47' }}
+            >
               {avatarLetter}
-            </div>
+            </button>
           </div>
         </header>
 
@@ -217,6 +233,11 @@ export default function Layout({ children }) {
           </div>
         </main>
       </div>
+
+      {/* Profile & Workspace Settings Modal */}
+      {showProfileModal && (
+        <ProfileModal onClose={() => setShowProfileModal(false)} />
+      )}
     </div>
   );
 }
