@@ -95,6 +95,7 @@ export default function SmartCalc() {
   const [activeTenant, setActiveTenant] = useState(null);
   const [activeRoom, setActiveRoom] = useState(null);
   const [calculatedArrears, setCalculatedArrears] = useState(0);
+  const [customArrears, setCustomArrears] = useState('');
 
   // Form Fields
   const currentDate = new Date();
@@ -110,6 +111,7 @@ export default function SmartCalc() {
   // Result & UI State
   const [result, setResult] = useState(null);
   const [isSaved, setIsSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [language, setLanguage] = useState('en');
   const [theme, setTheme] = useState('default');
   const receiptRef = useRef(null);
@@ -174,6 +176,7 @@ export default function SmartCalc() {
       setActiveRoom(null);
       setActiveTenant(null);
       setCalculatedArrears(0);
+      setCustomArrears('');
       setResult(null);
       setIsSaved(false);
       return;
@@ -193,9 +196,11 @@ export default function SmartCalc() {
         .filter(b => b.room_id === selectedRoomId && b.tenant_id === tenantObj.id && (b.payment_status === 'Unpaid' || b.payment_status === 'Partially Paid'))
         .reduce((sum, b) => sum + (parseFloat(b.total_payable || 0) - parseFloat(b.amount_paid || 0)), 0);
       setCalculatedArrears(roomArrears);
+      setCustomArrears(roomArrears.toString());
     } else {
       setActiveTenant(null);
       setCalculatedArrears(0);
+      setCustomArrears('');
     }
     
     // Clear previous input results
@@ -207,7 +212,7 @@ export default function SmartCalc() {
     setIsSaved(false);
   }, [selectedRoomId, rooms, leases, tenants, bills]);
 
-  const handleCalculate = (e) => {
+  const handleCalculate = async (e) => {
     e.preventDefault();
     setError('');
     setIsSaved(false);
@@ -219,6 +224,7 @@ export default function SmartCalc() {
 
     const rentAmount = parseFloat(activeRoom.base_rent) || 0;
     const other = parseFloat(otherCharges) || 0;
+    const arrearsVal = customArrears !== '' ? (parseFloat(customArrears) || 0) : calculatedArrears;
     let elecAmount = 0;
     let prevReading = 0;
     let currReading = 0;
@@ -250,7 +256,7 @@ export default function SmartCalc() {
     }
     // elecMode === 'none' → elecAmount stays 0
 
-    const total = elecAmount + rentAmount + calculatedArrears + other;
+    const total = elecAmount + rentAmount + arrearsVal + other;
 
     const calculatedBill = {
       room_id: activeRoom.id,
@@ -268,30 +274,26 @@ export default function SmartCalc() {
       rate_per_unit: rate,
       elec_amount: elecAmount,
       rent_amount: rentAmount,
-      arrears: calculatedArrears,
+      arrears: arrearsVal,
       other_charges: other,
       total_payable: total,
       payment_status: 'Unpaid'
     };
 
     setResult(calculatedBill);
-  };
 
-  const handleSaveBill = async () => {
-    if (!result) return;
-    setError('');
-    
+    // Auto-save bill to Billing Records database
     try {
-      await api.createBill(result);
+      setIsSaving(true);
+      await api.createBill(calculatedBill);
       setIsSaved(true);
-      
-      // Reload calculations data to update previous reading values and totals in cache
       await loadAllData();
-      
-      toast('Bill successfully saved to the database history!', 'success');
+      toast('Bill generated & saved to Billing Records!', 'success');
     } catch (err) {
       console.error('Error saving bill:', err);
-      setError('Failed to save bill to database.');
+      toast('Bill generated, but failed to save to database history.', 'warning');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -556,6 +558,33 @@ export default function SmartCalc() {
                 </div>
               )}
 
+              {/* Pending Balance (Editable) */}
+              <div className="form-group">
+                <div className="flex justify-between items-center mb-1">
+                  <label className="input-label mb-0">Pending Balance / Arrears (₹)</label>
+                  {calculatedArrears > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setCustomArrears(calculatedArrears.toString())}
+                      className="text-[11px] text-blue-400 hover:text-blue-300 underline"
+                    >
+                      Reset to System (₹{calculatedArrears})
+                    </button>
+                  )}
+                </div>
+                <input
+                  type="number"
+                  disabled={!selectedRoomId}
+                  placeholder="e.g. 0"
+                  className="form-input bg-slate-950 font-mono"
+                  value={customArrears}
+                  onChange={e => setCustomArrears(e.target.value)}
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  Default from system: <span className="font-semibold text-slate-400">₹{calculatedArrears}</span>. You can edit this amount if needed.
+                </p>
+              </div>
+
               {/* Other Charges */}
               <div className="form-group">
                 <label className="input-label">Other charges / Fees (₹)</label>
@@ -596,10 +625,11 @@ export default function SmartCalc() {
               <div className="pt-2">
                 <button 
                   type="submit" 
-                  disabled={!selectedRoomId}
+                  disabled={!selectedRoomId || isSaving}
                   className="w-full btn btn-primary py-3 rounded-xl justify-center text-base shadow-glow flex items-center gap-2"
                 >
-                  Generate Monthly Bill
+                  <Save size={18} />
+                  <span>{isSaving ? 'Generating & Saving...' : 'Generate & Save Monthly Bill'}</span>
                 </button>
               </div>
 
@@ -613,17 +643,22 @@ export default function SmartCalc() {
             <div className="space-y-4">
               <div className="card glass-card overflow-hidden">
                 {/* Actions row */}
-                <div className="card-header w-full">
+                <div className="card-header w-full flex-wrap gap-2">
                   <h2 className="text-sm font-bold text-slate-200">Receipt Generated</h2>
-                  <div className="flex gap-2">
-                    <button onClick={handlePrint} className="p-1.5 text-slate-400 hover:text-slate-200 bg-slate-900 border border-slate-800 rounded">
-                      <Printer size={14} />
+                  <div className="flex items-center gap-2">
+                    <button onClick={handlePrint} className="p-2 text-slate-400 hover:text-slate-200 bg-slate-900 border border-slate-800 rounded-lg" title="Print Receipt">
+                      <Printer size={16} />
                     </button>
-                    <button onClick={handleDownloadPDF} className="p-1.5 text-slate-400 hover:text-slate-200 bg-slate-900 border border-slate-800 rounded">
-                      <Download size={14} />
+                    <button onClick={handleDownloadPDF} className="p-2 text-slate-400 hover:text-slate-200 bg-slate-900 border border-slate-800 rounded-lg" title="Download PDF">
+                      <Download size={16} />
                     </button>
-                    <button onClick={handleShareWhatsapp} className="p-1.5 text-slate-400 hover:text-emerald-400 bg-slate-900 border border-slate-800 rounded">
-                      <Share2 size={14} />
+                    <button 
+                      onClick={handleShareWhatsapp} 
+                      className="px-3.5 py-2 text-xs font-bold text-emerald-300 hover:text-white bg-emerald-600/20 hover:bg-emerald-600 border border-emerald-500/30 rounded-xl flex items-center gap-1.5 transition-all shadow-sm"
+                      title="Share via WhatsApp"
+                    >
+                      <Share2 size={16} />
+                      <span>Share WhatsApp</span>
                     </button>
                   </div>
                 </div>
@@ -792,28 +827,6 @@ export default function SmartCalc() {
                     </div>
                   </div>
                 </div>
-              </div>
-
-              {/* Save/Submit Button to write to Database */}
-              <div className="card glass-card p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div>
-                  <h4 className="font-bold text-slate-200 text-sm">
-                    {isSaved ? 'Invoice Saved Successfully' : 'Finalize & Record Monthly Invoice'}
-                  </h4>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    {isSaved ? 'Bill has been recorded in your databases.' : 'Click to save bill data, update room meter levels, and commit statistics.'}
-                  </p>
-                </div>
-                <button
-                  onClick={handleSaveBill}
-                  disabled={isSaved}
-                  className={`btn w-full sm:w-auto py-2.5 px-6 rounded-xl flex items-center justify-center gap-2 ${
-                    isSaved ? 'bg-emerald-600 text-white cursor-default' : 'btn-primary shadow-glow'
-                  }`}
-                >
-                  {isSaved ? <CheckCircle size={18} /> : <Save size={18} />}
-                  <span>{isSaved ? 'Recorded' : 'Save Invoice'}</span>
-                </button>
               </div>
             </div>
           ) : (
