@@ -1293,53 +1293,53 @@ export default function Properties() {
                       const elecMode = room.elec_mode || (room.has_submeter !== false ? 'submeter' : 'direct');
 
                       return (
-                        <div key={room.id} className="card glass-card p-4 space-y-3 border-slate-800 relative">
+                        <div key={room.id} className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm space-y-3 relative">
                           <div className="flex justify-between items-start">
                             <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-xl bg-blue-600/10 text-blue-400 flex items-center justify-center font-bold text-sm border border-blue-500/20">
+                              <div className="w-9 h-9 rounded-xl bg-[#e2eee7] text-[#2d5a47] flex items-center justify-center font-bold text-sm">
                                 {room.room_number}
                               </div>
                               <div>
-                                <h3 className="font-bold text-slate-100 text-sm">Room {room.room_number}</h3>
+                                <h3 className="font-extrabold text-slate-900 text-sm">Room {room.room_number}</h3>
                                 <p className="text-xs text-slate-400">{room.room_type || 'Single Room'} • Floor {room.floor || 'G'}</p>
                               </div>
                             </div>
 
-                            <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
-                              isOccupied ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'
+                            <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                              isOccupied ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
                             }`}>
                               {isOccupied ? 'Occupied' : room.status || 'Vacant'}
                             </span>
                           </div>
 
-                          <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-slate-850">
+                          <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-100">
                             <div>
-                              <span className="text-[10px] font-semibold text-slate-500 uppercase">Tenant</span>
-                              <p className="font-medium text-slate-200 truncate">{tenant ? tenant.name : '— Vacant —'}</p>
+                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Tenant</span>
+                              <p className="font-semibold text-slate-800 truncate">{tenant ? tenant.name : '— Vacant —'}</p>
                             </div>
                             <div>
-                              <span className="text-[10px] font-semibold text-slate-500 uppercase">Monthly Rent</span>
-                              <p className="font-bold text-slate-100 font-mono">{formatINR(room.base_rent)}</p>
+                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Monthly Rent</span>
+                              <p className="font-black text-slate-900">{formatINR(room.base_rent)}</p>
                             </div>
                           </div>
 
-                          <div className="flex items-center justify-between pt-2 border-t border-slate-850 text-xs">
-                            <span className="text-slate-400">
-                              Elec: <strong className="text-blue-400 font-semibold">{elecMode}</strong>
+                          <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+                            <span className="text-slate-500 font-medium">
+                              Elec: <strong className="text-[#2d5a47] font-semibold">{elecMode}</strong>
                             </span>
 
                             <div className="flex gap-2">
                               {!isOccupied && (
                                 <button
                                   onClick={() => navigate(`/tenants?action=add&roomId=${room.id}`)}
-                                  className="px-2.5 py-1 text-xs bg-[#2d5a47] text-white font-bold rounded-lg hover:bg-[#234738] transition-all flex items-center gap-1"
+                                  className="px-2.5 py-1 text-xs bg-[#2d5a47] text-white font-bold rounded-xl hover:bg-[#234738] transition-all flex items-center gap-1 shadow-sm"
                                 >
                                   <UserPlus size={12} /> Add tenant
                                 </button>
                               )}
                               <button
                                 onClick={() => setInspectRoom(room)}
-                                className="px-2.5 py-1 text-xs bg-slate-100 text-slate-700 font-semibold rounded-lg hover:bg-slate-200 transition-all"
+                                className="px-2.5 py-1 text-xs bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-all"
                               >
                                 View
                               </button>
@@ -1348,7 +1348,7 @@ export default function Properties() {
                                   setEditingRoom(room);
                                   setShowRoomDrawer(true);
                                 }}
-                                className="px-2.5 py-1 text-xs bg-slate-100 text-slate-700 font-semibold rounded-lg hover:bg-slate-200 transition-all"
+                                className="px-2.5 py-1 text-xs bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-all"
                               >
                                 Edit
                               </button>
