@@ -21,7 +21,8 @@ import {
   X,
   PlusCircle,
   Calendar,
-  Palette
+  Palette,
+  Globe
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
@@ -38,6 +39,50 @@ const INVOICE_THEMES = [
   { id: 'purple', name: 'Deep Purple',    bg: '#581c87', border: '#6b21a8', textAccent: 'text-purple-200',  pillBg: 'bg-purple-100',  pillText: 'text-purple-900',  gradient: 'linear-gradient(135deg, #3b0764, #581c87)' },
   { id: 'slate',  name: 'Minimal Black',  bg: '#09090b', border: '#27272a', textAccent: 'text-zinc-300',    pillBg: 'bg-zinc-200',    pillText: 'text-zinc-900',    gradient: 'linear-gradient(135deg, #000000, #18181b)' }
 ];
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Bilingual Invoice Translations (English / Hindi)
+───────────────────────────────────────────────────────────────────────────*/
+const BILL_TRANSLATIONS = {
+  en: {
+    previewLabel: "INVOICE PREVIEW",
+    monthBill: (m) => `${m} bill`,
+    billedTo: "Billed to",
+    electricity: "Electricity",
+    previous: "Previous",
+    current: "Current",
+    usage: "Usage",
+    monthlyRent: "Monthly rent",
+    previousBalance: "Previous Balance",
+    otherCharges: "Other charges",
+    amountDue: "Amount due",
+    dueBadge: (m) => `DUE 10 ${m.substring(0,3).toUpperCase()}`,
+    thankYou: "Thank you for your payment.",
+    waTitle: "RENT RECEIPT",
+    waMonth: "Month",
+    waTenant: "Tenant",
+    waTotal: "Total"
+  },
+  hi: {
+    previewLabel: "किराया रसीद पूर्वावलोकन",
+    monthBill: (m) => `${m} का बिल`,
+    billedTo: "किरायेदार",
+    electricity: "बिजली बिल",
+    previous: "पिछला",
+    current: "वर्तमान",
+    usage: "उपयोग",
+    monthlyRent: "कमरा किराया",
+    previousBalance: "पिछला बकाया",
+    otherCharges: "अन्य शुल्क",
+    amountDue: "कुल देय राशि",
+    dueBadge: (m) => `10 ${m.substring(0,3).toUpperCase()} तक`,
+    thankYou: "भुगतान के लिए धन्यवाद।",
+    waTitle: "किराया रसीद",
+    waMonth: "महीना",
+    waTenant: "किरायेदार",
+    waTotal: "कुल राशि"
+  }
+};
 
 /* ─────────────────────────────────────────────────────────────────────────
    Reusable Custom SaaS Dropdown Component
@@ -200,6 +245,10 @@ export default function SmartCalc() {
   const [bills, setBills] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // Language State ('en' | 'hi')
+  const [billLanguage, setBillLanguage] = useState('en');
+  const t = BILL_TRANSLATIONS[billLanguage] || BILL_TRANSLATIONS.en;
 
   // Selected Theme State
   const [selectedThemeId, setSelectedThemeId] = useState('green');
@@ -426,7 +475,7 @@ export default function SmartCalc() {
   const handleShareWhatsapp = async () => {
     try {
       const tenantName = activeTenant?.name || 'Tenant';
-      const text = `RENT RECEIPT\nMonth: ${billMonth} ${billYear}\nTenant: ${tenantName}\nTotal: ₹${grandTotalAmount.toFixed(2)}`;
+      const text = `${t.waTitle}\n${t.waMonth}: ${billMonth} ${billYear}\n${t.waTenant}: ${tenantName}\n${t.waTotal}: ₹${grandTotalAmount.toFixed(2)}`;
 
       if (receiptRef.current) {
         const canvas = await html2canvas(receiptRef.current, { scale: 2, backgroundColor: activeTheme.bg });
@@ -434,7 +483,7 @@ export default function SmartCalc() {
         const file = new File([blob], `Bill_${tenantName}.png`, { type: 'image/png' });
 
         if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file], title: 'RENT RECEIPT', text });
+          await navigator.share({ files: [file], title: t.waTitle, text });
           return;
         }
       }
@@ -728,32 +777,66 @@ export default function SmartCalc() {
         {/* RIGHT COLUMN: Professional Themed Invoice Card */}
         <div className="lg:col-span-5 space-y-3 sticky top-4">
 
-          {/* CURATED COLOR THEMES SELECTOR */}
-          <div className="bg-white rounded-2xl p-3 border border-slate-200/80 shadow-sm flex items-center justify-between gap-2">
-            <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
-              <Palette size={13} className="text-slate-700" /> Bill Theme:
-            </span>
+          {/* CURATED COLOR THEMES & LANGUAGE SELECTOR BAR */}
+          <div className="bg-white rounded-2xl p-2.5 border border-slate-200/80 shadow-sm flex flex-wrap items-center justify-between gap-2">
+            
+            {/* Language Selector Toggle */}
             <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest flex items-center gap-1">
+                <Globe size={13} className="text-slate-700" /> Lang:
+              </span>
+              <div className="flex bg-slate-100 p-0.5 rounded-xl gap-0.5 border border-slate-200/60">
+                <button
+                  type="button"
+                  onClick={() => setBillLanguage('en')}
+                  className={`px-2.5 py-0.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                    billLanguage === 'en'
+                      ? 'bg-[#2d5a47] text-white shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  EN
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBillLanguage('hi')}
+                  className={`px-2.5 py-0.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                    billLanguage === 'hi'
+                      ? 'bg-[#2d5a47] text-white shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  हिंदी (HI)
+                </button>
+              </div>
+            </div>
+
+            {/* Theme Palette */}
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest hidden sm:inline-block mr-1">
+                Theme:
+              </span>
               {INVOICE_THEMES.map(theme => (
                 <button
                   key={theme.id}
                   type="button"
                   onClick={() => setSelectedThemeId(theme.id)}
                   title={theme.name}
-                  className={`w-6 h-6 rounded-full transition-all duration-150 flex items-center justify-center cursor-pointer ${
-                    selectedThemeId === theme.id ? 'ring-2 ring-offset-2 ring-slate-800 scale-110' : 'hover:scale-105 opacity-80 hover:opacity-100'
+                  className={`w-5 h-5 rounded-full transition-all duration-150 flex items-center justify-center cursor-pointer ${
+                    selectedThemeId === theme.id ? 'ring-2 ring-offset-1 ring-slate-800 scale-110' : 'hover:scale-105 opacity-80 hover:opacity-100'
                   }`}
                   style={{ background: theme.bg }}
                 >
                   {selectedThemeId === theme.id && (
-                    <Check size={11} className="text-white" />
+                    <Check size={10} className="text-white" />
                   )}
                 </button>
               ))}
             </div>
+
           </div>
 
-          {/* INVOICE CARD PREVIEW (Uses selected professional theme) */}
+          {/* INVOICE CARD PREVIEW (Uses selected professional theme & language) */}
           <div
             ref={receiptRef}
             className="text-white rounded-3xl p-6 shadow-xl relative overflow-hidden space-y-4 border transition-colors duration-200"
@@ -769,8 +852,10 @@ export default function SmartCalc() {
             {/* Top header row */}
             <div className="flex justify-between items-start relative z-10">
               <div>
-                <span className={`text-[10px] font-bold uppercase tracking-widest block ${activeTheme.textAccent}`}>INVOICE PREVIEW</span>
-                <h3 className="text-2xl font-black tracking-tight mt-0.5">{billMonth} bill</h3>
+                <span className={`text-[10px] font-bold uppercase tracking-widest block ${activeTheme.textAccent}`}>
+                  {t.previewLabel}
+                </span>
+                <h3 className="text-2xl font-black tracking-tight mt-0.5">{t.monthBill(billMonth)}</h3>
               </div>
               <div className="w-9 h-9 rounded-xl bg-white/10 text-white flex items-center justify-center backdrop-blur-sm">
                 <Receipt size={18} />
@@ -781,10 +866,10 @@ export default function SmartCalc() {
 
             {/* Billed To Section */}
             <div className="space-y-0.5 relative z-10">
-              <span className={`text-[10px] font-medium block ${activeTheme.textAccent}`}>Billed to</span>
-              <h4 className="text-lg font-extrabold text-white">{activeTenant?.name || 'Select a room'}</h4>
+              <span className={`text-[10px] font-medium block ${activeTheme.textAccent}`}>{t.billedTo}</span>
+              <h4 className="text-lg font-extrabold text-white">{activeTenant?.name || (billLanguage === 'hi' ? 'कमरा चुनें' : 'Select a room')}</h4>
               <p className="text-xs text-white/70">
-                {activeProperty?.name || 'Property'} · Room {activeRoom?.room_number || '00'}
+                {activeProperty?.name || 'Property'} · {billLanguage === 'hi' ? 'कमरा' : 'Room'} {activeRoom?.room_number || '00'}
               </p>
             </div>
 
@@ -794,7 +879,7 @@ export default function SmartCalc() {
               {/* Electricity Row + Breakdown */}
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
-                  <span className="font-semibold text-white/95">Electricity</span>
+                  <span className="font-semibold text-white/95">{t.electricity}</span>
                   <span className="font-black tracking-tight text-sm">₹{calculatedElecAmount.toLocaleString('en-IN')}</span>
                 </div>
 
@@ -802,11 +887,11 @@ export default function SmartCalc() {
                 {elecMode === 'submeter' && (
                   <div className="bg-black/20 border border-white/15 rounded-xl p-2.5 space-y-1 text-[11px] text-white/90">
                     <div className="flex justify-between text-[10px] text-white/70 font-medium">
-                      <span>Previous: <strong className="text-white">{prevReading} units</strong></span>
-                      <span>Current: <strong className="text-white">{currReading} units</strong></span>
+                      <span>{t.previous}: <strong className="text-white">{prevReading} units</strong></span>
+                      <span>{t.current}: <strong className="text-white">{currReading} units</strong></span>
                     </div>
                     <div className="pt-0.5 border-t border-white/10 flex justify-between items-center font-mono">
-                      <span>Usage: {unitsConsumed} units × ₹{rate}/unit</span>
+                      <span>{t.usage}: {unitsConsumed} units × ₹{rate}/unit</span>
                       <span className="font-bold text-white">₹{calculatedElecAmount.toLocaleString('en-IN')}</span>
                     </div>
                   </div>
@@ -815,14 +900,14 @@ export default function SmartCalc() {
 
               {/* Monthly Rent */}
               <div className="flex justify-between items-center">
-                <span className="text-white/90 font-medium">Monthly rent</span>
+                <span className="text-white/90 font-medium">{t.monthlyRent}</span>
                 <span className="font-black tracking-tight">₹{baseRentAmount.toLocaleString('en-IN')}</span>
               </div>
 
               {/* Previous Balance */}
               {arrearsAmount > 0 && (
                 <div className="flex justify-between items-center">
-                  <span className="text-white/90 font-medium">Previous Balance / पिछला बकाया</span>
+                  <span className="text-white/90 font-medium">{t.previousBalance}</span>
                   <span className="font-black tracking-tight">₹{arrearsAmount.toLocaleString('en-IN')}</span>
                 </div>
               )}
@@ -830,7 +915,7 @@ export default function SmartCalc() {
               {/* Other Charges */}
               {otherChargesAmount > 0 && (
                 <div className="flex justify-between items-center">
-                  <span className="text-white/90 font-medium">Other charges</span>
+                  <span className="text-white/90 font-medium">{t.otherCharges}</span>
                   <span className="font-black tracking-tight">₹{otherChargesAmount.toLocaleString('en-IN')}</span>
                 </div>
               )}
@@ -841,20 +926,20 @@ export default function SmartCalc() {
             {/* Amount Due Section */}
             <div className="flex justify-between items-end relative z-10 pt-0.5">
               <div>
-                <span className={`text-xs font-semibold block ${activeTheme.textAccent}`}>Amount due</span>
+                <span className={`text-xs font-semibold block ${activeTheme.textAccent}`}>{t.amountDue}</span>
                 <div className="text-3xl font-black tracking-tight text-white mt-0.5">
                   ₹{grandTotalAmount.toLocaleString('en-IN')}
                 </div>
               </div>
 
               <span className={`px-3 py-1 rounded-full font-extrabold text-[10px] tracking-wider uppercase shadow-sm ${activeTheme.pillBg} ${activeTheme.pillText}`}>
-                DUE 10 {billMonth.substring(0,3).toUpperCase()}
+                {t.dueBadge(billMonth)}
               </span>
             </div>
 
             {/* Footer */}
             <div className="flex justify-center items-center text-[10px] text-white/50 pt-3 border-t border-white/10 relative z-10 italic">
-              <span>Thank you for your payment.</span>
+              <span>{t.thankYou}</span>
             </div>
 
           </div>
