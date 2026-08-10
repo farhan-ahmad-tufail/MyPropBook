@@ -23,7 +23,8 @@ import {
   PlusCircle,
   IndianRupee,
   Palette,
-  Globe
+  Globe,
+  Plus
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
@@ -80,7 +81,17 @@ const translations = {
 };
 
 /* ─────────────────────────────────────────────────────────────────────────
-   Reusable Custom SaaS Dropdown Component
+   Standard Default Room Types
+───────────────────────────────────────────────────────────────────────────*/
+const DEFAULT_ROOM_TYPES = [
+  'Single Room',
+  '1 BHK',
+  '2 BHK',
+  'Shop / Commercial'
+];
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Reusable Custom SaaS Dropdown Component (with optional + Add New Action)
 ───────────────────────────────────────────────────────────────────────────*/
 function SaasDropdown({
   label,
@@ -91,7 +102,9 @@ function SaasDropdown({
   required = false,
   disabled = false,
   icon: IconComponent,
-  size = 'md'
+  size = 'md',
+  onAddNew,
+  addNewLabel = '+ Add Custom Type'
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -136,7 +149,7 @@ function SaasDropdown({
         }`}
       >
         <span className={`flex-1 truncate ${selected ? 'text-slate-900 font-bold' : 'text-slate-400'}`}>
-          {selected ? selected.label : placeholder}
+          {selected ? selected.label : (value || placeholder)}
         </span>
 
         <ChevronDown
@@ -183,6 +196,19 @@ function SaasDropdown({
               </button>
             ))}
           </div>
+
+          {onAddNew && (
+            <div className="p-1 border-t border-slate-100 bg-slate-50">
+              <button
+                type="button"
+                onClick={() => { setOpen(false); onAddNew(); }}
+                className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-[#2d5a47] hover:bg-emerald-100/60 transition-colors cursor-pointer"
+              >
+                <PlusCircle size={13} />
+                <span>{addNewLabel}</span>
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -193,6 +219,16 @@ export default function QuickCalc() {
   const toast = useToast();
   const confirm = useConfirm();
   const currentDate = new Date();
+
+  // Custom Room Types stored in localStorage
+  const [customRoomTypes, setCustomRoomTypes] = useState(() => {
+    const saved = localStorage.getItem('quickCalc_customRoomTypes');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const allRoomTypes = [...DEFAULT_ROOM_TYPES, ...customRoomTypes];
+  const roomTypeOptions = allRoomTypes.map(t => ({ value: t, label: t }));
+
   const [formData, setFormData] = useState({
     name: '',
     billMonth: currentDate.toLocaleString('default', { month: 'long' }),
@@ -203,7 +239,7 @@ export default function QuickCalc() {
 
   const defaultRoom = {
     floor: '',
-    roomType: 'Medium',
+    roomType: DEFAULT_ROOM_TYPES[0],
     rent: '',
     prevReading: '',
     currReading: '',
@@ -252,12 +288,22 @@ export default function QuickCalc() {
     "July", "August", "September", "October", "November", "December"
   ];
   const years = Array.from({ length: 6 }, (_, i) => (currentDate.getFullYear() - 1 + i).toString());
-  const roomTypeOptions = [
-    { value: 'Small', label: 'Small Room' },
-    { value: 'Medium', label: 'Medium Room' },
-    { value: 'Big(Window)', label: 'Big Room (Window)' },
-    { value: 'Shop', label: 'Shop / Commercial' }
-  ];
+
+  const handleAddCustomRoomType = (roomIndex) => {
+    const input = window.prompt("Enter new custom Room Type (e.g. 3 BHK, Studio Apartment, Penthouse, PG Bed):");
+    if (input && input.trim()) {
+      const newType = input.trim();
+      if (!allRoomTypes.includes(newType)) {
+        const updated = [...customRoomTypes, newType];
+        setCustomRoomTypes(updated);
+        localStorage.setItem('quickCalc_customRoomTypes', JSON.stringify(updated));
+      }
+      const newRooms = [...rooms];
+      newRooms[roomIndex].roomType = newType;
+      setRooms(newRooms);
+      toast(`Added "${newType}" room type!`, 'success');
+    }
+  };
 
   const handleCalculate = (e) => {
     e.preventDefault();
@@ -475,7 +521,7 @@ export default function QuickCalc() {
         </div>
       )}
 
-      {/* ── INPUT FORM CARD (Modern Frosted Glass SaaS Theme) ── */}
+      {/* ── INPUT FORM CARD ── */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-100 shadow-sm space-y-6">
 
         <form onSubmit={handleCalculate} className="space-y-6">
@@ -598,6 +644,7 @@ export default function QuickCalc() {
                     />
                   </div>
 
+                  {/* ROOM TYPE DROPDOWN WITH + ADD CUSTOM TYPE ACTION */}
                   <div>
                     <SaasDropdown
                       label="Room Type"
@@ -610,6 +657,8 @@ export default function QuickCalc() {
                       options={roomTypeOptions}
                       icon={Home}
                       size="sm"
+                      onAddNew={() => handleAddCustomRoomType(index)}
+                      addNewLabel="+ Add Room Type"
                     />
                   </div>
 
@@ -845,7 +894,7 @@ export default function QuickCalc() {
         </form>
       </div>
 
-      {/* ── GENERATED RECEIPT PREVIEW (Identical High-End Modern Receipt Card) ── */}
+      {/* ── GENERATED RECEIPT PREVIEW ── */}
       {result && (
         <div className="space-y-4 fade-in-up active">
 
@@ -1049,7 +1098,7 @@ export default function QuickCalc() {
         </div>
       )}
 
-      {/* ── RECENT HISTORY SIDE DRAWER (Modern Frosted Dark Theme) ── */}
+      {/* ── RECENT HISTORY SIDE DRAWER ── */}
       {showHistory && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[999] flex justify-end transition-opacity duration-300">
           <div className="w-full max-w-md bg-slate-900 h-full shadow-2xl overflow-y-auto border-l border-slate-800 flex flex-col">
