@@ -426,21 +426,7 @@ export default function SmartCalc() {
   const handleShareWhatsapp = async () => {
     try {
       const tenantName = activeTenant?.name || 'Tenant';
-      let elecDetailsText = '';
-      if (elecMode === 'submeter') {
-        elecDetailsText = `\n⚡ Electricity (${unitsConsumed} units @ ₹${rate}): ₹${calculatedElecAmount.toLocaleString('en-IN')}\n   • Previous: ${prevReading} units | Current: ${currReading} units`;
-      } else if (elecMode === 'direct') {
-        elecDetailsText = `\n⚡ Electricity: ₹${calculatedElecAmount.toLocaleString('en-IN')}`;
-      }
-
-      const text = `*RENT & UTILITY INVOICE*\nMonth: ${billMonth} ${billYear}\nTenant: ${tenantName}\nProperty: ${activeProperty?.name || 'Property'} (Room ${activeRoom?.room_number || ''})\n` +
-        `--------------------\n` +
-        `🏠 Base Rent: ₹${baseRentAmount.toLocaleString('en-IN')}` +
-        elecDetailsText +
-        (arrearsAmount > 0 ? `\n📌 Arrears: ₹${arrearsAmount.toLocaleString('en-IN')}` : '') +
-        (otherChargesAmount > 0 ? `\n➕ Other Charges: ₹${otherChargesAmount.toLocaleString('en-IN')}` : '') +
-        `\n--------------------\n` +
-        `💰 *TOTAL PAYABLE: ₹${grandTotalAmount.toLocaleString('en-IN')}*\nDue Date: 5th ${billMonth.substring(0,3)}`;
+      const text = `RENT RECEIPT\nMonth: ${billMonth} ${billYear}\nTenant: ${tenantName}\nTotal: ₹${grandTotalAmount.toFixed(2)}`;
 
       if (receiptRef.current) {
         const canvas = await html2canvas(receiptRef.current, { scale: 2, backgroundColor: activeTheme.bg });
@@ -448,7 +434,7 @@ export default function SmartCalc() {
         const file = new File([blob], `Bill_${tenantName}.png`, { type: 'image/png' });
 
         if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file], title: 'Rent Utility Bill', text });
+          await navigator.share({ files: [file], title: 'RENT RECEIPT', text });
           return;
         }
       }
@@ -862,13 +848,13 @@ export default function SmartCalc() {
               </div>
 
               <span className={`px-3 py-1 rounded-full font-extrabold text-[10px] tracking-wider uppercase shadow-sm ${activeTheme.pillBg} ${activeTheme.pillText}`}>
-                DUE 05 {billMonth.substring(0,3).toUpperCase()}
+                DUE 10 {billMonth.substring(0,3).toUpperCase()}
               </span>
             </div>
 
             {/* Clean Footer (Clean subtext without bill no / saved DB clutter) */}
             <div className="flex justify-between items-center text-[10px] text-white/50 pt-3 border-t border-white/10 relative z-10 font-mono">
-              <span>BillRoom Property Operations</span>
+              <span></span>
               <span>Generated for {activeTenant?.name || 'Tenant'}</span>
             </div>
 

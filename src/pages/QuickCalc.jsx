@@ -234,7 +234,7 @@ export default function QuickCalc() {
             const file = new File([blob], `Bill_${result.name}_${result.billMonth}.png`, { type: 'image/png' });
 
             // 3. Construct Text Message
-            const text = `*RENT RECEIPT*\nMonth: ${result.billMonth} ${result.billYear}\nTenant: ${result.name}\nTotal: ₹${result.total.toFixed(2)}`;
+            const text = `RENT RECEIPT\nMonth: ${result.billMonth} ${result.billYear}\nTenant: ${result.name}\nTotal: ₹${result.total.toFixed(2)}`;
 
             // 4. Try Web Share API (Mobile)
             if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
