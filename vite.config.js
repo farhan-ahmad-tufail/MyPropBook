@@ -13,8 +13,8 @@ export default defineConfig({
         name: 'BillRoom - Property & Submeter Billing',
         short_name: 'BillRoom',
         description: 'Instant electricity and rent bill calculator',
-        theme_color: '#0f172a',
-        background_color: '#0f172a',
+        theme_color: '#2d5a47',
+        background_color: '#f1f5f3',
         display: 'standalone',
         orientation: 'portrait',
         icons: [

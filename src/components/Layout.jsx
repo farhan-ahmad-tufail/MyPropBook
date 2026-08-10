@@ -183,7 +183,7 @@ export default function Layout({ children }) {
       )}
 
       {/* ── Main Area ── */}
-      <div className="flex-1 flex flex-col min-h-screen lg:ml-64">
+      <div className="flex-1 flex flex-col min-h-screen lg:ml-64 max-w-full overflow-x-hidden">
         
         {/* Top Header Bar */}
         <header className="sticky top-0 z-30 flex items-center justify-between px-6 lg:px-8 py-4 bg-[#f1f5f3]/90 backdrop-blur">
@@ -227,8 +227,8 @@ export default function Layout({ children }) {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 px-4 sm:px-6 lg:px-8 pb-12">
-          <div className="max-w-6xl mx-auto">
+        <main className="flex-1 px-4 sm:px-6 lg:px-8 pb-12 overflow-x-hidden">
+          <div className="max-w-6xl mx-auto w-full">
             {children}
           </div>
         </main>

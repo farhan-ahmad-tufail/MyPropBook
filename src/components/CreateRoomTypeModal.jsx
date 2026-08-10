@@ -21,22 +21,28 @@ export default function CreateRoomTypeModal({ isOpen, onClose, onCreate }) {
     onClose();
   };
 
+  const inputClass = `w-full px-3.5 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 text-[15px]
+    placeholder:text-slate-400 focus:outline-none focus:border-[#2d5a47] focus:ring-1 focus:ring-[#2d5a47]/20
+    transition-all duration-200`;
+
+  const labelClass = 'block text-[13px] font-semibold text-slate-700 mb-1.5';
+
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-[2px]">
+      <div className="relative w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
         
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950/40">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
-              <Tag size={18} />
+            <div className="w-9 h-9 rounded-xl bg-[#edf5f1] text-[#2d5a47] flex items-center justify-center">
+              <Tag size={16} />
             </div>
-            <h3 className="font-bold text-base text-slate-100">Create Custom Room Type</h3>
+            <h3 className="font-bold text-base text-slate-900">Create room type</h3>
           </div>
           
           <button 
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+            className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
           >
             <X size={18} />
           </button>
@@ -45,42 +51,43 @@ export default function CreateRoomTypeModal({ isOpen, onClose, onCreate }) {
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="input-label">Room Type Name *</label>
+            <label className={labelClass}>Room type name <span className="text-red-400">*</span></label>
             <input
               type="text"
               required
               placeholder="e.g. Premium AC Single, 2 BHK, 4 Sharing"
               value={typeName}
               onChange={(e) => setTypeName(e.target.value)}
-              className="form-input bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-500 focus:border-blue-500"
+              className={inputClass}
               autoFocus
             />
           </div>
 
           <div>
-            <label className="input-label">Description (Optional)</label>
+            <label className={labelClass}>Description <span className="text-slate-400 font-normal">(optional)</span></label>
             <input
               type="text"
               placeholder="e.g. Spacious room with attached balcony"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="form-input bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-500 focus:border-blue-500"
+              className={inputClass}
             />
           </div>
 
-          <div className="pt-2 flex gap-3">
-            <button
-              type="submit"
-              className="btn btn-primary flex-1 justify-center py-2.5 text-xs font-bold shadow-glow"
-            >
-              <Plus size={16} /> Create Room Type
-            </button>
+          <div className="pt-2 flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="btn btn-secondary px-4 py-2.5 text-xs"
+              className="px-4 py-2.5 text-sm font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors"
             >
               Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-5 py-2.5 bg-[#2d5a47] text-white text-sm font-semibold rounded-xl hover:bg-[#234738] transition-colors flex items-center gap-1.5 shadow-sm"
+            >
+              <Plus size={15} />
+              Create type
             </button>
           </div>
         </form>

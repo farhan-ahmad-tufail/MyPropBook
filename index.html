@@ -5,17 +5,136 @@
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#020617" />
+  <meta name="theme-color" content="#2d5a47" />
   <meta name="description" content="BillRoom - Professional Property & Submeter Bill Management System. Automate rent and electricity billing for multiple properties." />
   <title>BillRoom - Property & Bill Manager</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    /* Inline splash screen — eliminates the blue/white flash on refresh */
+    body {
+      margin: 0;
+      background-color: #f1f5f3;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    #billroom-splash {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-color: #f1f5f3;
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(16, 185, 129, 0.06), transparent),
+        radial-gradient(ellipse 60% 40% at 100% 40%, rgba(20, 184, 166, 0.04), transparent);
+      transition: opacity 0.3s ease-out;
+    }
+    #billroom-splash.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .splash-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: splashPulse 1.8s ease-in-out infinite;
+    }
+    .splash-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #2d5a47, #3d7a60);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .splash-icon svg {
+      width: 22px;
+      height: 22px;
+      fill: none;
+      stroke: white;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .splash-text {
+      font-size: 22px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.5px;
+    }
+    .splash-text span {
+      color: #2d5a47;
+    }
+    .splash-sub {
+      margin-top: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: #64748b;
+    }
+    .splash-bar {
+      margin-top: 28px;
+      width: 120px;
+      height: 3px;
+      background: #e2e8f0;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .splash-bar-fill {
+      height: 100%;
+      width: 40%;
+      background: linear-gradient(90deg, #2d5a47, #3d7a60);
+      border-radius: 3px;
+      animation: splashProgress 1.2s ease-in-out infinite alternate;
+    }
+    @keyframes splashPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    @keyframes splashProgress {
+      0% { transform: translateX(-20px); }
+      100% { transform: translateX(80px); }
+    }
+  </style>
 </head>
 
 <body>
+  <!-- Branded splash screen — visible until React mounts -->
+  <div id="billroom-splash">
+    <div class="splash-logo">
+      <div class="splash-icon">
+        <svg viewBox="0 0 24 24"><path d="M3 21h18M3 7v1a3 3 0 0 0 6 0V7m0 1a3 3 0 0 0 6 0V7m0 1a3 3 0 0 0 6 0V7H3l2-4h14l2 4M5 21V10.85M19 21V10.85M9 21v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4" /></svg>
+      </div>
+      <div>
+        <div class="splash-text">Bill<span>Room</span></div>
+      </div>
+    </div>
+    <div class="splash-sub">Property Operations</div>
+    <div class="splash-bar"><div class="splash-bar-fill"></div></div>
+  </div>
+
   <div id="root"></div>
   <script type="module" src="/src/main.jsx"></script>
+  <script>
+    // Fade out splash once React root renders content
+    const observer = new MutationObserver(() => {
+      const root = document.getElementById('root');
+      if (root && root.children.length > 0) {
+        const splash = document.getElementById('billroom-splash');
+        if (splash) {
+          splash.classList.add('fade-out');
+          setTimeout(() => splash.remove(), 350);
+        }
+        observer.disconnect();
+      }
+    });
+    observer.observe(document.getElementById('root'), { childList: true });
+  </script>
 </body>
 
 </html>

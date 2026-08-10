@@ -51,9 +51,26 @@ export async function generateBulkBills(propertyId, occupiedRooms, bulkReadings,
       const other = (otherRaw !== '' && otherRaw !== null && otherRaw !== undefined && !isNaN(otherRaw))
         ? parseFloat(otherRaw)
         : 0;
-      const total = rent + elec + other;
 
       const tenantId = await getTenantIdForRoom(room.id);
+
+      // Auto-calculate arrears from previous unpaid/partially paid bills for this room & tenant
+      let roomArrears = 0;
+      if (tenantId) {
+        try {
+          const allBills = await (api.getBills ? api.getBills(ownerId) : []);
+          roomArrears = allBills
+            .filter(b => b.room_id === room.id && b.tenant_id === tenantId && (b.payment_status === 'Unpaid' || b.payment_status === 'Partially Paid'))
+            .reduce((sum, b) => sum + (parseFloat(b.total_payable || 0) - parseFloat(b.amount_paid || 0)), 0);
+        } catch (_) {}
+      }
+
+      const customArrearsRaw = readings.arrears;
+      const arrears = (customArrearsRaw !== '' && customArrearsRaw !== null && customArrearsRaw !== undefined && !isNaN(customArrearsRaw))
+        ? parseFloat(customArrearsRaw)
+        : roomArrears;
+
+      const total = rent + elec + arrears + other;
 
       const billPayload = {
         room_id: room.id,
@@ -65,7 +82,7 @@ export async function generateBulkBills(propertyId, occupiedRooms, bulkReadings,
         units_consumed: units,
         rate_per_unit: rate,
         rent_amount: rent,
-        arrears: 0,
+        arrears: arrears,
         other_charges: other,
         total_payable: total,
         payment_status: total === 0 ? 'Paid' : 'Unpaid',
