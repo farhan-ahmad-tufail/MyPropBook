@@ -1093,25 +1093,26 @@ export default function Properties() {
               ) : (
                 <>
                   {/* DESKTOP ROOMS TABLE */}
-                  <div className="hidden md:block bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+                  <div className="hidden md:block bg-white rounded-3xl border border-slate-100 shadow-sm overflow-visible">
                     <div className="overflow-visible">
                       <table className="w-full text-left border-collapse">
                         <thead>
-                          <tr className="border-b border-slate-100 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50/50">
-                            <th className="px-6 py-4">ROOM</th>
+                          <tr className="border-b border-slate-100 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50/50 rounded-t-3xl">
+                            <th className="px-6 py-4 rounded-tl-3xl">ROOM</th>
                             <th className="px-6 py-4">TYPE</th>
                             <th className="px-6 py-4">TENANT</th>
                             <th className="px-6 py-4">MONTHLY RENT</th>
                             <th className="px-6 py-4">ELECTRICITY</th>
                             <th className="px-6 py-4">STATUS</th>
-                            <th className="px-6 py-4 text-right">ACTIONS</th>
+                            <th className="px-6 py-4 text-right rounded-tr-3xl">ACTIONS</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 font-medium text-xs">
-                          {filteredRooms.map(room => {
+                          {filteredRooms.map((room, roomIdx) => {
                             const tenant = getRoomTenant(room.id);
                             const isOccupied = room.status === 'Occupied' || !!tenant;
                             const elecMode = room.elec_mode || (room.has_submeter !== false ? 'submeter' : 'direct');
+                            const isNearBottom = roomIdx >= filteredRooms.length - 2 || filteredRooms.length <= 3;
 
                             return (
                               <tr key={room.id} className="hover:bg-slate-50/60 transition-colors">
@@ -1158,7 +1159,7 @@ export default function Properties() {
                                   )}
                                   {elecMode === 'shared' && (
                                     <span className="inline-flex items-center gap-1 text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full font-bold text-[10px]">
-                                      🤝 Shared
+                                      👥 Shared
                                     </span>
                                   )}
                                   {elecMode === 'none' && (
@@ -1196,7 +1197,7 @@ export default function Properties() {
 
                                     {/* Contextual Action Menu Dropdown — Light SaaS Style */}
                                     {activeMenuRoomId === room.id && (
-                                      <div className="absolute right-0 top-full mt-1.5 w-52 bg-white border border-slate-200/90 rounded-2xl shadow-xl shadow-slate-300/40 z-50 py-1.5 text-xs text-slate-700 animate-in fade-in slide-in-from-top-1 duration-150" style={{ animation: 'fadeSlideDown 0.15s ease-out' }}>
+                                      <div className={`absolute right-0 ${isNearBottom ? 'bottom-full mb-1.5' : 'top-full mt-1.5'} w-52 bg-white border border-slate-200/90 rounded-2xl shadow-xl shadow-slate-300/40 z-[99] py-1.5 text-xs text-slate-700 animate-in fade-in duration-150`} style={{ animation: 'fadeSlideDown 0.15s ease-out' }}>
                                         {/* View Specs */}
                                         <button
                                           onClick={() => {
