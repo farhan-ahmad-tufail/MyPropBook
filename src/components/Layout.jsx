@@ -28,6 +28,7 @@ const navSections = [
       { to: '/dashboard', icon: LayoutDashboard, label: 'Overview', protected: true },
       { to: '/properties', icon: Building2, label: 'Properties', protected: true },
       { to: '/tenants', icon: Users, label: 'Tenants', protected: true },
+      { to: '/smart-calc', icon: Zap, label: 'Create Bill', protected: true },
       { to: '/billing', icon: Receipt, label: 'Billing', protected: true },
     ]
   },
@@ -35,7 +36,6 @@ const navSections = [
     title: 'MANAGE',
     items: [
       { to: '/analytics', icon: BarChart3, label: 'Financial analytics', protected: true },
-      { to: '/smart-calc', icon: Zap, label: 'Create Bill', protected: true },
       { to: '/quick-calc', icon: Calculator, label: 'Quick Calculator', protected: false },
     ]
   }

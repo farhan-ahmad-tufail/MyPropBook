@@ -649,11 +649,11 @@ export default function SmartCalc() {
 
             {/* COMPACT INPUT FIELDS FOR ARREARS & OTHER CHARGES */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
-              {/* Previous Arrears Field */}
+              {/* Previous Balance Field */}
               <div className="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label className="text-[10px] font-extrabold text-amber-700 uppercase tracking-widest flex items-center gap-1">
-                    <IndianRupee size={12} className="text-amber-600" /> Previous Arrears
+                    <IndianRupee size={12} className="text-amber-600" /> Previous Balance
                   </label>
                   {calculatedArrears > 0 && (
                     <span className="text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
@@ -819,10 +819,10 @@ export default function SmartCalc() {
                 <span className="font-black tracking-tight">₹{baseRentAmount.toLocaleString('en-IN')}</span>
               </div>
 
-              {/* Arrears */}
+              {/* Previous Balance */}
               {arrearsAmount > 0 && (
                 <div className="flex justify-between items-center">
-                  <span className="text-white/90 font-medium">Previous balance (Arrears)</span>
+                  <span className="text-white/90 font-medium">Previous Balance / पिछला बकाया</span>
                   <span className="font-black tracking-tight">₹{arrearsAmount.toLocaleString('en-IN')}</span>
                 </div>
               )}
@@ -852,10 +852,9 @@ export default function SmartCalc() {
               </span>
             </div>
 
-            {/* Clean Footer (Clean subtext without bill no / saved DB clutter) */}
-            <div className="flex justify-between items-center text-[10px] text-white/50 pt-3 border-t border-white/10 relative z-10 font-mono">
-              <span></span>
-              <span>Generated for {activeTenant?.name || 'Tenant'}</span>
+            {/* Footer */}
+            <div className="flex justify-center items-center text-[10px] text-white/50 pt-3 border-t border-white/10 relative z-10 italic">
+              <span>Thank you for your payment.</span>
             </div>
 
           </div>
