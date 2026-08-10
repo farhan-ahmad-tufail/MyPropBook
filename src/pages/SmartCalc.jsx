@@ -2,26 +2,174 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import { useSearchParams } from 'react-router-dom';
-import { 
-  Zap, 
-  Sparkles, 
-  HelpCircle, 
-  ArrowRight, 
-  Download, 
-  Printer, 
-  Share2, 
-  CheckCircle2, 
+import {
+  Zap,
+  Sparkles,
+  HelpCircle,
+  ArrowRight,
+  Download,
+  Share2,
   AlertTriangle,
   Building,
   User,
   Home,
   IndianRupee,
   Receipt,
-  FileText
+  ChevronDown,
+  Search,
+  Check,
+  X,
+  PlusCircle,
+  Calendar
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { useToast } from '../components/Toast';
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Reusable Custom SaaS Dropdown Component
+───────────────────────────────────────────────────────────────────────────*/
+function SaasDropdown({
+  label,
+  value,
+  onChange,
+  options, // [{ value, label, sublabel?, disabled?, icon? }]
+  placeholder = 'Choose…',
+  required = false,
+  disabled = false,
+  icon: IconComponent,
+  subtext
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const selected = options.find(o => o.value === value);
+  const filtered = query.trim()
+    ? options.filter(o => o.label.toLowerCase().includes(query.toLowerCase()) || (o.sublabel && o.sublabel.toLowerCase().includes(query.toLowerCase())))
+    : options;
+
+  return (
+    <div ref={ref} className="relative">
+      {label && (
+        <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest block mb-1.5">
+          {label} {required && <span className="text-rose-500">*</span>}
+        </label>
+      )}
+
+      {/* Trigger Button */}
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => { if (!disabled) setOpen(v => !v); setQuery(''); }}
+        className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl border text-xs font-semibold text-left transition-all duration-150 ${
+          disabled
+            ? 'bg-slate-50 border-slate-200/60 text-slate-300 cursor-not-allowed'
+            : open
+            ? 'bg-white border-[#2d5a47] ring-2 ring-[#2d5a47]/10 shadow-sm'
+            : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-sm'
+        }`}
+      >
+        {IconComponent && (
+          <span className={`flex-shrink-0 ${selected ? 'text-[#2d5a47]' : 'text-slate-400'}`}>
+            <IconComponent size={15} />
+          </span>
+        )}
+
+        <span className={`flex-1 truncate ${selected ? 'text-slate-900 font-bold' : 'text-slate-400'}`}>
+          {selected ? selected.label : placeholder}
+        </span>
+
+        <span className="flex items-center gap-1 flex-shrink-0">
+          {selected && !disabled && (
+            <span
+              role="button"
+              onClick={(e) => { e.stopPropagation(); onChange(''); }}
+              className="p-0.5 rounded-md hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <X size={12} />
+            </span>
+          )}
+          <ChevronDown
+            size={14}
+            className={`text-slate-400 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
+          />
+        </span>
+      </button>
+
+      {subtext && (
+        <p className="text-[11px] text-slate-400 mt-1 px-1 truncate">
+          {subtext}
+        </p>
+      )}
+
+      {/* Dropdown Menu */}
+      {open && (
+        <div
+          className="absolute left-0 right-0 top-full mt-1.5 z-[200] bg-white rounded-2xl border border-slate-200/90 shadow-xl shadow-slate-300/40 overflow-hidden"
+          style={{ animation: 'fadeSlideDown 0.15s ease-out' }}
+        >
+          {options.length > 4 && (
+            <div className="px-3 pt-2.5 pb-2 border-b border-slate-100">
+              <div className="relative">
+                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <input
+                  autoFocus
+                  type="text"
+                  placeholder="Search…"
+                  value={query}
+                  onChange={e => setQuery(e.target.value)}
+                  className="w-full pl-8 pr-3 py-1.5 text-xs font-semibold text-slate-800 bg-slate-50 rounded-xl border border-slate-200 focus:outline-none focus:border-[#2d5a47]"
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="max-h-52 overflow-y-auto py-1 px-1">
+            {filtered.length === 0 ? (
+              <div className="px-4 py-3 text-xs text-slate-400 font-medium text-center">No options available</div>
+            ) : filtered.map(opt => (
+              <button
+                key={opt.value}
+                type="button"
+                disabled={opt.disabled}
+                onClick={() => { if (!opt.disabled) { onChange(opt.value); setOpen(false); } }}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left transition-all duration-100 text-xs ${
+                  opt.disabled
+                    ? 'text-slate-300 cursor-not-allowed'
+                    : opt.value === value
+                    ? 'bg-[#edf5f1] text-[#2d5a47] font-bold'
+                    : 'text-slate-700 hover:bg-slate-50 font-semibold'
+                }`}
+              >
+                {opt.icon && <span className="flex-shrink-0">{opt.icon}</span>}
+                <span className="flex-1 truncate">{opt.label}</span>
+                {opt.sublabel && (
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full flex-shrink-0 ${
+                    opt.disabled ? 'bg-slate-100 text-slate-400' : 'bg-slate-100 text-slate-500 font-medium'
+                  }`}>
+                    {opt.sublabel}
+                  </span>
+                )}
+                {opt.value === value && !opt.disabled && (
+                  <Check size={13} className="text-[#2d5a47] flex-shrink-0" />
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function SmartCalc() {
   const { user } = useAuth();
@@ -53,7 +201,7 @@ export default function SmartCalc() {
   // Form Fields
   const currentDate = new Date();
   const [billMonth, setBillMonth] = useState(currentDate.toLocaleString('default', { month: 'long' }));
-  const [billYear, setBillYear] = useState(currentDate.getFullYear());
+  const [billYear, setBillYear] = useState(currentDate.getFullYear().toString());
   const [currentReading, setCurrentReading] = useState('');
   const [otherCharges, setOtherCharges] = useState('');
 
@@ -72,7 +220,7 @@ export default function SmartCalc() {
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
   ];
-  const years = Array.from({ length: 5 }, (_, i) => currentDate.getFullYear() - 1 + i);
+  const years = Array.from({ length: 5 }, (_, i) => (currentDate.getFullYear() - 1 + i).toString());
 
   const loadAllData = useCallback(async () => {
     try {
@@ -94,7 +242,6 @@ export default function SmartCalc() {
       setLeases(leasesList);
       setBills(billsList);
 
-      // Handle route param roomId redirects
       if (urlRoomId && roomsList.length > 0) {
         const targetRoom = roomsList.find(r => r.id === urlRoomId);
         if (targetRoom) {
@@ -131,13 +278,11 @@ export default function SmartCalc() {
     const roomObj = rooms.find(r => r.id === selectedRoomId);
     setActiveRoom(roomObj);
 
-    // Find active lease for this room
     const activeLease = leases.find(l => l.room_id === selectedRoomId && l.is_active);
     if (activeLease) {
       const tenantObj = tenants.find(t => t.id === activeLease.tenant_id);
       setActiveTenant(tenantObj);
 
-      // Automatically calculate arrears (remaining balance of Unpaid/Partially Paid bills)
       const roomArrears = bills
         .filter(b => b.room_id === selectedRoomId && b.tenant_id === tenantObj.id && (b.payment_status === 'Unpaid' || b.payment_status === 'Partially Paid'))
         .reduce((sum, b) => sum + (parseFloat(b.total_payable || 0) - parseFloat(b.amount_paid || 0)), 0);
@@ -156,7 +301,7 @@ export default function SmartCalc() {
   const currReading = parseFloat(currentReading) || 0;
   const rate = parseFloat(activeRoom?.rate_per_unit) || 10;
   const unitsConsumed = (currentReading !== '' && currReading >= prevReading) ? (currReading - prevReading) : 0;
-  
+
   let calculatedElecAmount = 0;
   if (elecMode === 'submeter') {
     calculatedElecAmount = unitsConsumed * rate;
@@ -217,7 +362,6 @@ export default function SmartCalc() {
 
     setResult(calculatedBill);
 
-    // Save bill to database
     try {
       setIsSaving(true);
       await api.createBill(calculatedBill);
@@ -284,6 +428,28 @@ export default function SmartCalc() {
     }
   };
 
+  // Build Options for Custom SaaS Dropdowns
+  const propertyOptions = properties.map(p => ({
+    value: p.id,
+    label: p.name,
+    sublabel: p.address || undefined,
+    icon: <Building size={14} className="text-[#2d5a47]" />
+  }));
+
+  const roomOptions = rooms
+    .filter(r => r.property_id === selectedPropertyId)
+    .map(r => {
+      const activeLease = leases.find(l => l.room_id === r.id && l.is_active);
+      const tenant = activeLease ? tenants.find(t => t.id === activeLease.tenant_id) : null;
+      return {
+        value: r.id,
+        label: `Room ${r.room_number}`,
+        sublabel: tenant ? tenant.name : 'Vacant',
+        disabled: !activeLease,
+        icon: <Home size={14} className={activeLease ? 'text-emerald-600' : 'text-slate-300'} />
+      };
+    });
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
@@ -293,301 +459,246 @@ export default function SmartCalc() {
   }
 
   return (
-    <div className="space-y-6 fade-in-up active max-w-7xl mx-auto pb-12">
-      
-      {/* ── HEADER ── */}
-      <div>
-        <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-          <Sparkles size={13} className="text-emerald-600" />
-          <span>BILLING DESK / {billMonth.toUpperCase()} {billYear}</span>
+    <div className="space-y-5 fade-in-up active max-w-7xl mx-auto pb-8">
+
+      {/* ── COMPACT HEADER ── */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-1 border-b border-slate-200/60">
+        <div>
+          <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+            <Sparkles size={12} className="text-emerald-600" />
+            <span>CREATE BILL DESK</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            Create Bill
+          </h1>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-1">
-          Make the month add up.
-        </h1>
-        <p className="text-slate-500 text-sm mt-1 max-w-xl">
-          Choose a room, enter its latest meter reading, and BillRoom will prepare a clear bill in seconds.
-        </p>
+
+        {/* Compact Month & Year Selectors */}
+        <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-2xl border border-slate-200/80 shadow-sm text-xs font-semibold text-slate-700">
+          <Calendar size={14} className="text-[#2d5a47]" />
+          <select
+            value={billMonth}
+            onChange={e => setBillMonth(e.target.value)}
+            className="bg-transparent font-bold text-slate-900 outline-none cursor-pointer pr-1"
+          >
+            {months.map(m => <option key={m} value={m}>{m}</option>)}
+          </select>
+          <span className="text-slate-300">•</span>
+          <select
+            value={billYear}
+            onChange={e => setBillYear(e.target.value)}
+            className="bg-transparent font-bold text-slate-900 outline-none cursor-pointer"
+          >
+            {years.map(y => <option key={y} value={y}>{y}</option>)}
+          </select>
+        </div>
       </div>
 
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-xs flex items-center gap-2">
-          <AlertTriangle size={16} />
+        <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-xs flex items-center gap-2">
+          <AlertTriangle size={15} />
           <span>{error}</span>
         </div>
       )}
 
-      {/* ── MAIN 2-COLUMN GRID ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        
-        {/* LEFT COLUMN: Input Form Card (Sage Light Modern Theme) */}
-        <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-8 border border-slate-100 shadow-sm space-y-6">
-          
-          {/* Header Step Indicator */}
-          <div className="flex justify-between items-center border-b border-slate-100 pb-4">
-            <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">01 / 03</span>
-              <h2 className="text-xl font-bold text-slate-900 tracking-tight mt-0.5">Select a room</h2>
-            </div>
-            {/* Step Progress Pills */}
-            <div className="flex items-center gap-1.5">
-              <span className="w-8 h-2 rounded-full bg-[#2d5a47]" />
-              <span className="w-8 h-2 rounded-full bg-slate-200" />
-              <span className="w-8 h-2 rounded-full bg-slate-200" />
-            </div>
-          </div>
+      {/* ── MAIN 2-COLUMN COMPACT LAYOUT ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-          <form onSubmit={handleCalculate} className="space-y-6">
-            
-            {/* DROPDOWNS ROW */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              
+        {/* LEFT COLUMN: Compact Input Form Card */}
+        <div className="lg:col-span-7 bg-white rounded-3xl p-5 sm:p-6 border border-slate-100 shadow-sm space-y-5">
+
+          <form onSubmit={handleCalculate} className="space-y-4">
+
+            {/* CUSTOM DROPDOWNS ROW */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               {/* Property Selector */}
-              <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">
-                  PROPERTY
-                </label>
-                <select
-                  required
-                  className="w-full px-4 py-3 rounded-2xl bg-white border border-slate-200 text-sm font-semibold text-slate-800 outline-none focus:border-[#2d5a47] focus:ring-1 focus:ring-[#2d5a47] transition-all cursor-pointer"
-                  value={selectedPropertyId}
-                  onChange={e => {
-                    setSelectedPropertyId(e.target.value);
-                    setSelectedRoomId('');
-                  }}
-                >
-                  <option value="">-- Choose Property --</option>
-                  {properties.map(p => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
-                <p className="text-[11px] text-slate-400 mt-1.5 px-1 truncate">
-                  {activeProperty?.address || 'Select property location'}
-                </p>
-              </div>
+              <SaasDropdown
+                label="Property"
+                required
+                placeholder="Choose Property…"
+                value={selectedPropertyId}
+                onChange={(v) => {
+                  setSelectedPropertyId(v);
+                  setSelectedRoomId('');
+                }}
+                options={propertyOptions}
+                icon={Building}
+                subtext={activeProperty?.address || 'Select property location'}
+              />
 
               {/* Room & Tenant Selector */}
-              <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">
-                  ROOM / TENANT
-                </label>
-                <select
-                  required
-                  disabled={!selectedPropertyId}
-                  className="w-full px-4 py-3 rounded-2xl bg-white border border-slate-200 text-sm font-semibold text-slate-800 outline-none focus:border-[#2d5a47] focus:ring-1 focus:ring-[#2d5a47] transition-all cursor-pointer disabled:bg-slate-50 disabled:text-slate-400"
-                  value={selectedRoomId}
-                  onChange={e => {
-                    setSelectedRoomId(e.target.value);
-                    setCurrentReading('');
-                    setOtherCharges('');
-                    setDirectElecAmount('');
-                    setElecMode('submeter');
-                    setResult(null);
-                    setIsSaved(false);
-                  }}
-                >
-                  <option value="">-- Choose Room --</option>
-                  {rooms
-                    .filter(r => r.property_id === selectedPropertyId)
-                    .map(r => {
-                      const activeLease = leases.find(l => l.room_id === r.id && l.is_active);
-                      const tenant = activeLease ? tenants.find(t => t.id === activeLease.tenant_id) : null;
-                      return (
-                        <option key={r.id} value={r.id} disabled={!activeLease}>
-                          Room {r.room_number} {tenant ? `· ${tenant.name}` : '(Vacant)'}
-                        </option>
-                      );
-                    })}
-                </select>
-                <p className="text-[11px] text-slate-400 mt-1.5 px-1">
-                  Billing period · 01–31 {billMonth} {billYear}
-                </p>
-              </div>
-
+              <SaasDropdown
+                label="Room / Tenant"
+                required
+                placeholder={selectedPropertyId ? 'Choose Room / Tenant…' : 'Select property first'}
+                value={selectedRoomId}
+                onChange={(v) => {
+                  setSelectedRoomId(v);
+                  setCurrentReading('');
+                  setOtherCharges('');
+                  setDirectElecAmount('');
+                  setElecMode('submeter');
+                  setResult(null);
+                  setIsSaved(false);
+                }}
+                options={roomOptions}
+                disabled={!selectedPropertyId}
+                icon={Home}
+                subtext={`Billing period · 01–31 ${billMonth} ${billYear}`}
+              />
             </div>
 
-            {/* ELECTRICITY MODE TOGGLE */}
-            <div className="flex items-center justify-between text-xs pt-1">
-              <span className="font-bold text-slate-700">Electricity billing mode:</span>
-              <div className="flex bg-slate-100 p-1 rounded-xl gap-1">
-                {[
-                  { id: 'submeter', label: 'Submeter' },
-                  { id: 'direct', label: 'Direct Amount' },
-                  { id: 'none', label: 'Included in Rent' }
-                ].map(mode => (
-                  <button
-                    key={mode.id}
-                    type="button"
-                    onClick={() => setElecMode(mode.id)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      elecMode === mode.id
-                        ? 'bg-[#2d5a47] text-white shadow-sm'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    {mode.label}
-                  </button>
-                ))}
+            {/* ELECTRICITY MODE TOGGLE & COMPACT METER INPUT */}
+            <div className="p-4 rounded-2xl bg-[#edf5f1] border border-[#d8e7e0] space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                <span className="font-extrabold text-slate-900 flex items-center gap-1.5">
+                  <Zap size={14} className="text-[#2d5a47]" /> Electricity billing mode:
+                </span>
+                <div className="flex bg-white/80 p-0.5 rounded-xl gap-0.5 border border-slate-200/60">
+                  {[
+                    { id: 'submeter', label: 'Submeter' },
+                    { id: 'direct', label: 'Direct Amount' },
+                    { id: 'none', label: 'Included' }
+                  ].map(mode => (
+                    <button
+                      key={mode.id}
+                      type="button"
+                      onClick={() => setElecMode(mode.id)}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                        elecMode === mode.id
+                          ? 'bg-[#2d5a47] text-white shadow-sm'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      {mode.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* METER READING INPUT BOX (Identical to reference screenshot) */}
-            {elecMode === 'submeter' && (
-              <div className="p-5 rounded-3xl bg-[#edf5f1] border border-[#d8e7e0] space-y-4">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-[#2d5a47]/10 text-[#2d5a47] flex items-center justify-center">
-                      <Zap size={13} />
-                    </div>
-                    <div>
-                      <span className="text-xs font-extrabold text-slate-900">Meter reading</span>
-                      <p className="text-[11px] text-slate-500">Enter the current reading from the room.</p>
-                    </div>
-                  </div>
-                  <span className="px-3 py-1 rounded-full bg-slate-200/70 text-slate-700 font-bold text-xs">
-                    Previous · {prevReading} units
-                  </span>
-                </div>
-
-                {/* Big input field */}
-                <div className="relative bg-white rounded-2xl border border-slate-200/80 p-2 focus-within:border-[#2d5a47] focus-within:ring-1 focus-within:ring-[#2d5a47] transition-all">
-                  <input
-                    type="number"
-                    required
-                    disabled={!selectedRoomId}
-                    placeholder="e.g. 1482"
-                    className="w-full text-3xl font-black text-slate-900 bg-transparent px-3 py-2 outline-none font-mono tracking-tight"
-                    value={currentReading}
-                    onChange={e => setCurrentReading(e.target.value)}
-                  />
-                  <span className="absolute right-5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
-                    units
-                  </span>
-                </div>
-
-                <div className="flex justify-between items-center text-xs font-semibold pt-1">
-                  <span className="text-slate-500">Calculated usage</span>
-                  <div className="flex items-center gap-1">
-                    <span className="px-2.5 py-1 rounded-xl bg-white border border-slate-200 text-[#2d5a47] font-black text-xs">
-                      {unitsConsumed} units
+              {elecMode === 'submeter' && (
+                <div className="space-y-2.5">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-[11px] text-slate-500 font-medium">Enter current meter reading</span>
+                    <span className="px-2.5 py-0.5 rounded-full bg-slate-200/70 text-slate-700 font-extrabold text-[11px]">
+                      Prev: {prevReading} units
                     </span>
-                    <span className="text-slate-400 font-mono text-[11px]">× ₹{rate}</span>
+                  </div>
+
+                  <div className="relative bg-white rounded-xl border border-slate-200/80 px-3 py-1.5 focus-within:border-[#2d5a47] focus-within:ring-1 focus-within:ring-[#2d5a47] transition-all">
+                    <input
+                      type="number"
+                      required
+                      disabled={!selectedRoomId}
+                      placeholder="e.g. 1482"
+                      className="w-full text-2xl font-black text-slate-900 bg-transparent outline-none font-mono tracking-tight"
+                      value={currentReading}
+                      onChange={e => setCurrentReading(e.target.value)}
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                      units
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center text-xs font-semibold pt-0.5">
+                    <span className="text-slate-500 text-[11px]">Usage breakdown</span>
+                    <div className="flex items-center gap-1">
+                      <span className="px-2 py-0.5 rounded-lg bg-white border border-slate-200 text-[#2d5a47] font-black text-xs">
+                        {unitsConsumed} units
+                      </span>
+                      <span className="text-slate-400 font-mono text-[11px]">× ₹{rate}/unit</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {elecMode === 'direct' && (
-              <div className="p-5 rounded-3xl bg-[#edf5f1] border border-[#d8e7e0] space-y-3">
-                <label className="text-xs font-extrabold text-slate-900 block">Direct Electricity Amount (₹)</label>
-                <div className="relative bg-white rounded-2xl border border-slate-200/80 p-2">
-                  <input
-                    type="number"
-                    required
-                    disabled={!selectedRoomId}
-                    placeholder="e.g. 1007"
-                    className="w-full text-2xl font-black text-slate-900 bg-transparent px-3 py-1 outline-none font-mono"
-                    value={directElecAmount}
-                    onChange={e => setDirectElecAmount(e.target.value)}
-                  />
+              {elecMode === 'direct' && (
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-700 block">Direct Electricity Amount (₹)</label>
+                  <div className="relative bg-white rounded-xl border border-slate-200/80 px-3 py-1.5">
+                    <input
+                      type="number"
+                      required
+                      disabled={!selectedRoomId}
+                      placeholder="e.g. 1007"
+                      className="w-full text-xl font-black text-slate-900 bg-transparent outline-none font-mono"
+                      value={directElecAmount}
+                      onChange={e => setDirectElecAmount(e.target.value)}
+                    />
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
-            {/* 3 STAT SUMMARY CARDS AT BOTTOM OF FORM */}
-            <div className="grid grid-cols-3 gap-3">
-              
-              {/* Stat 1: Electricity */}
-              <div className="p-4 rounded-2xl bg-white border border-slate-100 shadow-sm space-y-2">
-                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-[#2d5a47] flex items-center justify-center">
-                  <Zap size={16} />
+            {/* COMPACT INPUT FIELDS FOR ARREARS & OTHER CHARGES (Replaces bulky cards to reduce height) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+              {/* Previous Arrears Field */}
+              <div className="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-extrabold text-amber-700 uppercase tracking-widest flex items-center gap-1">
+                    <IndianRupee size={12} className="text-amber-600" /> Previous Arrears
+                  </label>
+                  {calculatedArrears > 0 && (
+                    <span className="text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
+                      Auto-calculated
+                    </span>
+                  )}
                 </div>
-                <div>
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">ELECTRICITY</span>
-                  <p className="text-base sm:text-lg font-black text-slate-900 mt-0.5">
-                    ₹{calculatedElecAmount.toLocaleString('en-IN')}
-                  </p>
-                </div>
-              </div>
-
-              {/* Stat 2: Arrears */}
-              <div className="p-4 rounded-2xl bg-white border border-slate-100 shadow-sm space-y-2 relative">
-                <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                  <IndianRupee size={16} />
-                </div>
-                <div>
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">ARREARS</span>
+                <div className="relative">
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">₹</span>
                   <input
                     type="number"
                     disabled={!selectedRoomId}
-                    className="w-full text-base sm:text-lg font-black text-slate-900 bg-transparent outline-none border-b border-dashed border-slate-200 focus:border-[#2d5a47]"
+                    placeholder="0"
+                    className="w-full pl-7 pr-3 py-2 text-sm font-black text-slate-900 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-[#2d5a47]"
                     value={customArrears}
                     onChange={e => setCustomArrears(e.target.value)}
                   />
                 </div>
               </div>
 
-              {/* Stat 3: Monthly Rent */}
-              <div className="p-4 rounded-2xl bg-white border border-slate-100 shadow-sm space-y-2">
-                <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center">
-                  <Building size={16} />
+              {/* Other Charges Field */}
+              <div className="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-1.5">
+                <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest flex items-center gap-1">
+                  <PlusCircle size={12} className="text-slate-400" /> Other Charges
+                </label>
+                <div className="relative">
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">₹</span>
+                  <input
+                    type="number"
+                    disabled={!selectedRoomId}
+                    placeholder="e.g. Maintenance, Water"
+                    className="w-full pl-7 pr-3 py-2 text-sm font-black text-slate-900 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-[#2d5a47]"
+                    value={otherCharges}
+                    onChange={e => setOtherCharges(e.target.value)}
+                  />
                 </div>
-                <div>
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">MONTHLY RENT</span>
-                  <p className="text-base sm:text-lg font-black text-slate-900 mt-0.5">
-                    ₹{baseRentAmount.toLocaleString('en-IN')}
-                  </p>
-                </div>
-              </div>
-
-            </div>
-
-            {/* MONTH & YEAR CONTROLS */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">BILLING MONTH</label>
-                <select
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 outline-none cursor-pointer"
-                  value={billMonth}
-                  onChange={e => setBillMonth(e.target.value)}
-                >
-                  {months.map(m => <option key={m} value={m}>{m}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">BILLING YEAR</label>
-                <select
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 outline-none cursor-pointer"
-                  value={billYear}
-                  onChange={e => setBillYear(e.target.value)}
-                >
-                  {years.map(y => <option key={y} value={y}>{y}</option>)}
-                </select>
               </div>
             </div>
 
-            {/* BOTTOM ACTIONS ROW */}
+            {/* ACTION BUTTONS & HOW IT WORKS */}
             <div className="flex justify-between items-center pt-2">
               <button
                 type="button"
                 onClick={() => setShowHowItWorks(!showHowItWorks)}
                 className="text-xs font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-1 cursor-pointer"
               >
-                <HelpCircle size={14} />
+                <HelpCircle size={13} />
                 <span>How is this calculated?</span>
               </button>
 
               <button
                 type="submit"
                 disabled={!selectedRoomId || isSaving}
-                className="px-6 py-3 rounded-2xl bg-[#2d5a47] text-white font-bold text-sm hover:bg-[#234738] transition-all flex items-center gap-2 shadow-sm cursor-pointer disabled:opacity-50"
+                className="px-6 py-2.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all flex items-center gap-2 shadow-sm cursor-pointer disabled:opacity-50"
               >
-                <span>{isSaving ? 'Saving...' : 'Save bill'}</span>
-                <ArrowRight size={16} />
+                <span>{isSaving ? 'Saving...' : 'Save & Generate Bill'}</span>
+                <ArrowRight size={15} />
               </button>
             </div>
 
             {showHowItWorks && (
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs text-slate-600 space-y-1.5">
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs text-slate-600 space-y-1">
                 <p className="font-bold text-slate-900">Calculation breakdown:</p>
                 <p>• <strong>Electricity:</strong> (Current Reading - Previous Reading) × Unit Rate</p>
                 <p>• <strong>Total Payable:</strong> Monthly Rent + Electricity + Arrears + Other Charges</p>
@@ -597,12 +708,12 @@ export default function SmartCalc() {
           </form>
         </div>
 
-        {/* RIGHT COLUMN: Dark Green Invoice Preview Card (Exact target design) */}
-        <div className="lg:col-span-5 space-y-4 sticky top-6">
-          
-          <div 
+        {/* RIGHT COLUMN: Dark Green Invoice Preview Card */}
+        <div className="lg:col-span-5 space-y-3 sticky top-4">
+
+          <div
             ref={receiptRef}
-            className="bg-[#2d5a47] text-white rounded-3xl p-8 shadow-xl relative overflow-hidden space-y-6 border border-[#234738]"
+            className="bg-[#2d5a47] text-white rounded-3xl p-6 shadow-xl relative overflow-hidden space-y-5 border border-[#234738]"
           >
             {/* Background Decorative Rings */}
             <div className="absolute -top-12 -right-12 w-44 h-44 rounded-full bg-white/5 pointer-events-none" />
@@ -612,31 +723,31 @@ export default function SmartCalc() {
             <div className="flex justify-between items-start relative z-10">
               <div>
                 <span className="text-[10px] font-bold text-emerald-200 uppercase tracking-widest block">INVOICE PREVIEW</span>
-                <h3 className="text-3xl font-black tracking-tight mt-1">{billMonth} bill</h3>
+                <h3 className="text-2xl font-black tracking-tight mt-0.5">{billMonth} bill</h3>
               </div>
-              <div className="w-10 h-10 rounded-2xl bg-white/10 text-white flex items-center justify-center backdrop-blur-sm">
-                <Receipt size={20} />
+              <div className="w-9 h-9 rounded-xl bg-white/10 text-white flex items-center justify-center backdrop-blur-sm">
+                <Receipt size={18} />
               </div>
             </div>
 
             <div className="h-px bg-white/15 w-full" />
 
             {/* Billed To Section */}
-            <div className="space-y-1 relative z-10">
-              <span className="text-[11px] font-medium text-emerald-200/80 block">Billed to</span>
-              <h4 className="text-xl font-extrabold text-white">{activeTenant?.name || 'Select a room'}</h4>
+            <div className="space-y-0.5 relative z-10">
+              <span className="text-[10px] font-medium text-emerald-200/80 block">Billed to</span>
+              <h4 className="text-lg font-extrabold text-white">{activeTenant?.name || 'Select a room'}</h4>
               <p className="text-xs text-emerald-100/70">
                 {activeProperty?.name || 'Property'} · Room {activeRoom?.room_number || '00'}
               </p>
             </div>
 
             {/* Itemized charges list */}
-            <div className="space-y-3.5 pt-2 relative z-10 text-sm">
+            <div className="space-y-2.5 pt-1 relative z-10 text-xs">
               <div className="flex justify-between items-center">
                 <span className="text-emerald-100/90 font-medium">Electricity · {unitsConsumed} units</span>
                 <span className="font-black tracking-tight">₹{calculatedElecAmount.toLocaleString('en-IN')}</span>
               </div>
-              
+
               <div className="flex justify-between items-center">
                 <span className="text-emerald-100/90 font-medium">Monthly rent</span>
                 <span className="font-black tracking-tight">₹{baseRentAmount.toLocaleString('en-IN')}</span>
@@ -644,7 +755,7 @@ export default function SmartCalc() {
 
               {arrearsAmount > 0 && (
                 <div className="flex justify-between items-center">
-                  <span className="text-emerald-100/90 font-medium">Previous balance</span>
+                  <span className="text-emerald-100/90 font-medium">Previous balance (Arrears)</span>
                   <span className="font-black tracking-tight">₹{arrearsAmount.toLocaleString('en-IN')}</span>
                 </div>
               )}
@@ -660,21 +771,21 @@ export default function SmartCalc() {
             <div className="h-px bg-white/15 w-full" />
 
             {/* Amount Due Section */}
-            <div className="flex justify-between items-end relative z-10 pt-1">
+            <div className="flex justify-between items-end relative z-10 pt-0.5">
               <div>
                 <span className="text-xs font-semibold text-emerald-200/80 block">Amount due</span>
-                <div className="text-4xl font-black tracking-tight text-white mt-1">
+                <div className="text-3xl font-black tracking-tight text-white mt-0.5">
                   ₹{grandTotalAmount.toLocaleString('en-IN')}
                 </div>
               </div>
 
-              <span className="px-3.5 py-1.5 rounded-full bg-emerald-100 text-[#2d5a47] font-extrabold text-[11px] tracking-wider uppercase shadow-sm">
+              <span className="px-3 py-1 rounded-full bg-emerald-100 text-[#2d5a47] font-extrabold text-[10px] tracking-wider uppercase shadow-sm">
                 DUE 05 {billMonth.substring(0,3).toUpperCase()}
               </span>
             </div>
 
             {/* Footer subtext */}
-            <div className="flex justify-between items-center text-[10px] text-emerald-200/60 pt-4 border-t border-white/10 relative z-10 font-mono">
+            <div className="flex justify-between items-center text-[10px] text-emerald-200/60 pt-3 border-t border-white/10 relative z-10 font-mono">
               <span>Bill no. BR-{billYear}-0826</span>
               <span>{isSaved ? 'Saved to DB ✓' : 'Live preview'}</span>
             </div>
@@ -682,20 +793,20 @@ export default function SmartCalc() {
           </div>
 
           {/* Quick Action Toolbar underneath preview */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <button
               onClick={handleDownloadPDF}
-              className="flex-1 py-3 px-4 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs border border-slate-200 transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+              className="flex-1 py-2.5 px-3 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs border border-slate-200 transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
             >
-              <Download size={15} />
+              <Download size={14} />
               <span>Download PDF</span>
             </button>
 
             <button
               onClick={handleShareWhatsapp}
-              className="flex-1 py-3 px-4 rounded-2xl bg-[#2d5a47] hover:bg-[#234738] text-white font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+              className="flex-1 py-2.5 px-3 rounded-2xl bg-[#2d5a47] hover:bg-[#234738] text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
             >
-              <Share2 size={15} />
+              <Share2 size={14} />
               <span>Share WhatsApp</span>
             </button>
           </div>

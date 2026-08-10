@@ -35,7 +35,7 @@ const navSections = [
     title: 'MANAGE',
     items: [
       { to: '/analytics', icon: BarChart3, label: 'Financial analytics', protected: true },
-      { to: '/smart-calc', icon: Zap, label: 'Smart Calculator', protected: true },
+      { to: '/smart-calc', icon: Zap, label: 'Create Bill', protected: true },
       { to: '/quick-calc', icon: Calculator, label: 'Quick Calculator', protected: false },
     ]
   }
@@ -70,7 +70,7 @@ export default function Layout({ children }) {
     '/tenants': 'Tenants & Leases',
     '/billing': 'Billing & Invoices',
     '/analytics': 'Financial Analytics',
-    '/smart-calc': 'Smart Calculator',
+    '/smart-calc': 'Create Bill',
     '/quick-calc': 'Quick Calculator'
   };
   const currentBreadcrumb = breadcrumbMap[location.pathname] || 'Overview';
