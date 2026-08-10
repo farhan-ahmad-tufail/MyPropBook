@@ -27,6 +27,7 @@ function App() {
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/properties" element={<ProtectedRoute><Properties /></ProtectedRoute>} />
             <Route path="/tenants" element={<ProtectedRoute><Tenants /></ProtectedRoute>} />
+            <Route path="/create-bill" element={<ProtectedRoute><SmartCalc /></ProtectedRoute>} />
             <Route path="/smart-calc" element={<ProtectedRoute><SmartCalc /></ProtectedRoute>} />
             <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />

@@ -211,7 +211,7 @@ export default function RoomDetailsModal({ isOpen, onClose, room, tenant, onEdit
           <button
             onClick={() => {
               onClose();
-              navigate(`/smart-calc?roomId=${room.id}`);
+              navigate(`/create-bill?roomId=${room.id}`);
             }}
             className="px-4 py-2.5 text-xs font-bold text-white bg-[#2d5a47] hover:bg-[#234738] rounded-xl shadow-sm transition-all flex-1 flex items-center justify-center gap-1.5 cursor-pointer"
           >

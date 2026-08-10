@@ -28,7 +28,7 @@ const navSections = [
       { to: '/dashboard', icon: LayoutDashboard, label: 'Overview', protected: true },
       { to: '/properties', icon: Building2, label: 'Properties', protected: true },
       { to: '/tenants', icon: Users, label: 'Tenants', protected: true },
-      { to: '/smart-calc', icon: Zap, label: 'Create Bill', protected: true },
+      { to: '/create-bill', icon: Zap, label: 'Create Bill', protected: true },
       { to: '/billing', icon: Receipt, label: 'Billing', protected: true },
     ]
   },
@@ -70,6 +70,7 @@ export default function Layout({ children }) {
     '/tenants': 'Tenants & Leases',
     '/billing': 'Billing & Invoices',
     '/analytics': 'Financial Analytics',
+    '/create-bill': 'Create Bill',
     '/smart-calc': 'Create Bill',
     '/quick-calc': 'Quick Calculator'
   };

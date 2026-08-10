@@ -1264,7 +1264,7 @@ export default function Properties() {
                                         <button
                                           onClick={() => {
                                             setActiveMenuRoomId(null);
-                                            navigate(`/smart-calc?roomId=${room.id}`);
+                                            navigate(`/create-bill?roomId=${room.id}`);
                                           }}
                                           className="w-full px-3.5 py-2.5 text-left hover:bg-amber-50 text-amber-900 flex items-center gap-2.5 font-semibold transition-colors"
                                         >

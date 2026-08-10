@@ -309,7 +309,7 @@ export default function Dashboard() {
 
         <div className="flex items-center gap-3">
           <button
-            onClick={() => navigate('/smart-calc')}
+            onClick={() => navigate('/create-bill')}
             className="px-5 py-3 rounded-2xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all flex items-center gap-2 shadow-sm cursor-pointer"
           >
             <Zap size={14} fill="currentColor" />
