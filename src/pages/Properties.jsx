@@ -102,7 +102,7 @@ export default function Properties() {
   const monthDropdownRef = React.useRef(null);
   const yearDropdownRef = React.useRef(null);
 
-  // Close dropdowns & action menus on outside click
+  // Close dropdowns & action menus on outside click or Escape key
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (monthDropdownRef.current && !monthDropdownRef.current.contains(e.target)) {
@@ -115,8 +115,20 @@ export default function Properties() {
         setActiveMenuRoomId(null);
       }
     };
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setShowPropModal(false);
+        setActiveMenuRoomId(null);
+        setMonthDropdownOpen(false);
+        setYearDropdownOpen(false);
+      }
+    };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   const selectedProperty = properties.find(p => p.id === selectedPropertyId) || null;
@@ -1372,54 +1384,157 @@ export default function Properties() {
         </div>
       )}
 
-      {/* ── NEW / EDIT PROPERTY MODAL ── */}
+      {/* ── NEW / EDIT PROPERTY MODAL (PREMIUM SAAS STYLE) ── */}
       {showPropModal && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
-          <div className="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden my-auto">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950/40">
-              <h3 className="font-bold text-base text-slate-100">
-                {editingPropId ? 'Edit Property Details' : 'Add New Property'}
-              </h3>
-              <button onClick={() => setShowPropModal(false)} className="p-1 text-slate-400 hover:text-white">
-                <X size={18} />
-              </button>
+        <div
+          className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center sm:p-4"
+          style={{ background: 'rgba(15,23,42,0.55)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', animation: 'fadeIn 0.18s ease-out' }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowPropModal(false); }}
+        >
+          <div
+            className="relative w-full sm:max-w-lg bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
+            style={{ animation: 'slideUpModal 0.22s cubic-bezier(0.34,1.56,0.64,1)', maxHeight: '96vh' }}
+          >
+            {/* Premium Gradient Header */}
+            <div
+              className="relative px-6 pt-7 pb-6 overflow-hidden"
+              style={{ background: 'linear-gradient(135deg, #1a3a2b 0%, #2d5a47 55%, #3a7a5c 100%)' }}
+            >
+              {/* Decorative blobs */}
+              <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #a8ffce, transparent 70%)', transform: 'translate(40%, -40%)' }} />
+              <div className="absolute bottom-0 left-0 w-28 h-28 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #7fffd4, transparent 70%)', transform: 'translate(-30%, 40%)' }} />
+
+              <div className="relative flex items-start justify-between">
+                <div className="flex items-center gap-4">
+                  {/* Animated icon */}
+                  <div
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', border: '1.5px solid rgba(255,255,255,0.25)' }}
+                  >
+                    <Building size={26} className="text-white" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-300/80 mb-0.5">
+                      {editingPropId ? 'Update Property' : 'New Property'}
+                    </div>
+                    <h2 className="text-lg font-extrabold text-white leading-tight">
+                      {editingPropId ? 'Edit Property Details' : 'Add New Property'}
+                    </h2>
+                    <p className="text-xs text-emerald-200/70 mt-0.5 font-medium">
+                      Configure building name &amp; location
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setShowPropModal(false)}
+                  className="flex-shrink-0 p-2 rounded-xl transition-all cursor-pointer"
+                  style={{ background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.7)' }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.22)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              {/* Feature chips */}
+              {!editingPropId && (
+                <div className="relative flex flex-wrap gap-2 mt-5">
+                  {[
+                    { icon: '🏠', label: 'Manage rooms' },
+                    { icon: '👤', label: 'Track tenants' },
+                    { icon: '⚡', label: 'Smart billing' },
+                  ].map(chip => (
+                    <span
+                      key={chip.label}
+                      className="text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1"
+                      style={{ background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.85)', border: '1px solid rgba(255,255,255,0.18)' }}
+                    >
+                      {chip.icon} {chip.label}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
-            <form onSubmit={handlePropSubmit} className="p-6 space-y-4">
+            {/* Form Body */}
+            <form onSubmit={handlePropSubmit} className="p-6 space-y-5">
+              {/* Property Name */}
               <div>
-                <label className="input-label">Property / Building Name *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Royal Heights or Supernova"
-                  className="form-input bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-500"
-                  value={propName}
-                  onChange={e => setPropName(e.target.value)}
-                  autoFocus
-                />
+                <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest block mb-2">
+                  Property / Building Name <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <Building size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Royal Heights, Sunrise Apartments…"
+                    className="w-full pl-9 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#2d5a47] focus:bg-white transition-all"
+                    style={{ boxShadow: 'none' }}
+                    onFocus={e => { e.target.style.boxShadow = '0 0 0 3px rgba(45,90,71,0.12)'; e.target.style.borderColor = '#2d5a47'; }}
+                    onBlur={e => { e.target.style.boxShadow = 'none'; e.target.style.borderColor = ''; }}
+                    value={propName}
+                    onChange={e => setPropName(e.target.value)}
+                    autoFocus
+                  />
+                </div>
+                <p className="text-[10px] text-slate-400 mt-1.5 ml-1">This will appear as the property title across your dashboard.</p>
               </div>
 
+              {/* Address */}
               <div>
-                <label className="input-label">Address / Location (Optional)</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Sector 62, Noida"
-                  className="form-input bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-500"
-                  value={propAddress}
-                  onChange={e => setPropAddress(e.target.value)}
-                />
+                <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest block mb-2">
+                  Address / Location <span className="text-slate-400 font-medium normal-case">(optional)</span>
+                </label>
+                <div className="relative">
+                  <MapPin size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="e.g. Sector 62, Noida, UP"
+                    className="w-full pl-9 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#2d5a47] focus:bg-white transition-all"
+                    style={{ boxShadow: 'none' }}
+                    onFocus={e => { e.target.style.boxShadow = '0 0 0 3px rgba(45,90,71,0.12)'; e.target.style.borderColor = '#2d5a47'; }}
+                    onBlur={e => { e.target.style.boxShadow = 'none'; e.target.style.borderColor = ''; }}
+                    value={propAddress}
+                    onChange={e => setPropAddress(e.target.value)}
+                  />
+                </div>
               </div>
 
-              <div className="pt-2 flex gap-3">
-                <button type="submit" className="btn btn-primary flex-1 justify-center py-2.5 text-xs font-bold shadow-glow">
-                  Save Property
-                </button>
-                <button type="button" onClick={() => setShowPropModal(false)} className="btn btn-secondary px-4 py-2.5 text-xs">
+              {/* Divider */}
+              <div className="border-t border-slate-100" />
+
+              {/* Footer Actions */}
+              <div className="flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowPropModal(false)}
+                  className="flex-1 py-2.5 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-2xl transition-all cursor-pointer"
+                >
                   Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2.5 text-sm font-bold text-white rounded-2xl transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm"
+                  style={{ background: 'linear-gradient(135deg, #2d5a47, #3a7a5c)' }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, #234738, #2d5a47)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(135deg, #2d5a47, #3a7a5c)'}
+                >
+                  <Building size={15} />
+                  {editingPropId ? 'Save Changes' : 'Create Property'}
                 </button>
               </div>
             </form>
           </div>
+
+          <style>{`
+            @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+            @keyframes slideUpModal {
+              from { opacity: 0; transform: translateY(32px) scale(0.97) }
+              to   { opacity: 1; transform: translateY(0)    scale(1)    }
+            }
+          `}</style>
         </div>,
         document.body
       )}
