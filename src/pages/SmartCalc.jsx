@@ -20,11 +20,24 @@ import {
   Check,
   X,
   PlusCircle,
-  Calendar
+  Calendar,
+  Palette
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { useToast } from '../components/Toast';
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Curated Professional Invoice Color Themes
+───────────────────────────────────────────────────────────────────────────*/
+const INVOICE_THEMES = [
+  { id: 'green',  name: 'BillRoom Green', bg: '#2d5a47', border: '#234738', textAccent: 'text-emerald-200', pillBg: 'bg-emerald-100', pillText: 'text-[#2d5a47]', gradient: 'linear-gradient(135deg, #1a3a2b, #2d5a47)' },
+  { id: 'navy',   name: 'Classic Navy',   bg: '#0f172a', border: '#1e293b', textAccent: 'text-slate-300',   pillBg: 'bg-slate-200',   pillText: 'text-slate-900',   gradient: 'linear-gradient(135deg, #020617, #0f172a)' },
+  { id: 'blue',   name: 'Royal Blue',     bg: '#1e40af', border: '#1d4ed8', textAccent: 'text-blue-200',    pillBg: 'bg-blue-100',    pillText: 'text-blue-900',    gradient: 'linear-gradient(135deg, #1e3a8a, #1e40af)' },
+  { id: 'maroon', name: 'Burgundy',       bg: '#881337', border: '#9f1239', textAccent: 'text-rose-200',    pillBg: 'bg-rose-100',    pillText: 'text-rose-900',    gradient: 'linear-gradient(135deg, #4c0519, #881337)' },
+  { id: 'purple', name: 'Deep Purple',    bg: '#581c87', border: '#6b21a8', textAccent: 'text-purple-200',  pillBg: 'bg-purple-100',  pillText: 'text-purple-900',  gradient: 'linear-gradient(135deg, #3b0764, #581c87)' },
+  { id: 'slate',  name: 'Minimal Black',  bg: '#09090b', border: '#27272a', textAccent: 'text-zinc-300',    pillBg: 'bg-zinc-200',    pillText: 'text-zinc-900',    gradient: 'linear-gradient(135deg, #000000, #18181b)' }
+];
 
 /* ─────────────────────────────────────────────────────────────────────────
    Reusable Custom SaaS Dropdown Component
@@ -33,7 +46,7 @@ function SaasDropdown({
   label,
   value,
   onChange,
-  options, // [{ value, label, sublabel?, disabled?, icon? }]
+  options,
   placeholder = 'Choose…',
   required = false,
   disabled = false,
@@ -187,6 +200,10 @@ export default function SmartCalc() {
   const [bills, setBills] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // Selected Theme State
+  const [selectedThemeId, setSelectedThemeId] = useState('green');
+  const activeTheme = INVOICE_THEMES.find(t => t.id === selectedThemeId) || INVOICE_THEMES[0];
 
   // Dropdown Selection States
   const [selectedPropertyId, setSelectedPropertyId] = useState('');
@@ -384,7 +401,7 @@ export default function SmartCalc() {
     try {
       const canvas = await html2canvas(receiptRef.current, {
         scale: 2,
-        backgroundColor: '#2d5a47',
+        backgroundColor: activeTheme.bg,
         logging: false,
         useCORS: true
       });
@@ -409,10 +426,24 @@ export default function SmartCalc() {
   const handleShareWhatsapp = async () => {
     try {
       const tenantName = activeTenant?.name || 'Tenant';
-      const text = `*RENT & UTILITY INVOICE*\nMonth: ${billMonth} ${billYear}\nTenant: ${tenantName}\nAmount Due: ₹${grandTotalAmount.toLocaleString('en-IN')}\nDue Date: 5th ${billMonth.substring(0,3)}`;
+      let elecDetailsText = '';
+      if (elecMode === 'submeter') {
+        elecDetailsText = `\n⚡ Electricity (${unitsConsumed} units @ ₹${rate}): ₹${calculatedElecAmount.toLocaleString('en-IN')}\n   • Previous: ${prevReading} units | Current: ${currReading} units`;
+      } else if (elecMode === 'direct') {
+        elecDetailsText = `\n⚡ Electricity: ₹${calculatedElecAmount.toLocaleString('en-IN')}`;
+      }
+
+      const text = `*RENT & UTILITY INVOICE*\nMonth: ${billMonth} ${billYear}\nTenant: ${tenantName}\nProperty: ${activeProperty?.name || 'Property'} (Room ${activeRoom?.room_number || ''})\n` +
+        `--------------------\n` +
+        `🏠 Base Rent: ₹${baseRentAmount.toLocaleString('en-IN')}` +
+        elecDetailsText +
+        (arrearsAmount > 0 ? `\n📌 Arrears: ₹${arrearsAmount.toLocaleString('en-IN')}` : '') +
+        (otherChargesAmount > 0 ? `\n➕ Other Charges: ₹${otherChargesAmount.toLocaleString('en-IN')}` : '') +
+        `\n--------------------\n` +
+        `💰 *TOTAL PAYABLE: ₹${grandTotalAmount.toLocaleString('en-IN')}*\nDue Date: 5th ${billMonth.substring(0,3)}`;
 
       if (receiptRef.current) {
-        const canvas = await html2canvas(receiptRef.current, { scale: 2, backgroundColor: '#2d5a47' });
+        const canvas = await html2canvas(receiptRef.current, { scale: 2, backgroundColor: activeTheme.bg });
         const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
         const file = new File([blob], `Bill_${tenantName}.png`, { type: 'image/png' });
 
@@ -630,7 +661,7 @@ export default function SmartCalc() {
               )}
             </div>
 
-            {/* COMPACT INPUT FIELDS FOR ARREARS & OTHER CHARGES (Replaces bulky cards to reduce height) */}
+            {/* COMPACT INPUT FIELDS FOR ARREARS & OTHER CHARGES */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
               {/* Previous Arrears Field */}
               <div className="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-1.5">
@@ -708,12 +739,42 @@ export default function SmartCalc() {
           </form>
         </div>
 
-        {/* RIGHT COLUMN: Dark Green Invoice Preview Card */}
+        {/* RIGHT COLUMN: Professional Themed Invoice Card */}
         <div className="lg:col-span-5 space-y-3 sticky top-4">
 
+          {/* CURATED COLOR THEMES SELECTOR */}
+          <div className="bg-white rounded-2xl p-3 border border-slate-200/80 shadow-sm flex items-center justify-between gap-2">
+            <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+              <Palette size={13} className="text-slate-700" /> Bill Theme:
+            </span>
+            <div className="flex items-center gap-1.5">
+              {INVOICE_THEMES.map(theme => (
+                <button
+                  key={theme.id}
+                  type="button"
+                  onClick={() => setSelectedThemeId(theme.id)}
+                  title={theme.name}
+                  className={`w-6 h-6 rounded-full transition-all duration-150 flex items-center justify-center cursor-pointer ${
+                    selectedThemeId === theme.id ? 'ring-2 ring-offset-2 ring-slate-800 scale-110' : 'hover:scale-105 opacity-80 hover:opacity-100'
+                  }`}
+                  style={{ background: theme.bg }}
+                >
+                  {selectedThemeId === theme.id && (
+                    <Check size={11} className="text-white" />
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* INVOICE CARD PREVIEW (Uses selected professional theme) */}
           <div
             ref={receiptRef}
-            className="bg-[#2d5a47] text-white rounded-3xl p-6 shadow-xl relative overflow-hidden space-y-5 border border-[#234738]"
+            className="text-white rounded-3xl p-6 shadow-xl relative overflow-hidden space-y-4 border transition-colors duration-200"
+            style={{
+              background: activeTheme.gradient,
+              borderColor: activeTheme.border
+            }}
           >
             {/* Background Decorative Rings */}
             <div className="absolute -top-12 -right-12 w-44 h-44 rounded-full bg-white/5 pointer-events-none" />
@@ -722,7 +783,7 @@ export default function SmartCalc() {
             {/* Top header row */}
             <div className="flex justify-between items-start relative z-10">
               <div>
-                <span className="text-[10px] font-bold text-emerald-200 uppercase tracking-widest block">INVOICE PREVIEW</span>
+                <span className={`text-[10px] font-bold uppercase tracking-widest block ${activeTheme.textAccent}`}>INVOICE PREVIEW</span>
                 <h3 className="text-2xl font-black tracking-tight mt-0.5">{billMonth} bill</h3>
               </div>
               <div className="w-9 h-9 rounded-xl bg-white/10 text-white flex items-center justify-center backdrop-blur-sm">
@@ -734,35 +795,56 @@ export default function SmartCalc() {
 
             {/* Billed To Section */}
             <div className="space-y-0.5 relative z-10">
-              <span className="text-[10px] font-medium text-emerald-200/80 block">Billed to</span>
+              <span className={`text-[10px] font-medium block ${activeTheme.textAccent}`}>Billed to</span>
               <h4 className="text-lg font-extrabold text-white">{activeTenant?.name || 'Select a room'}</h4>
-              <p className="text-xs text-emerald-100/70">
+              <p className="text-xs text-white/70">
                 {activeProperty?.name || 'Property'} · Room {activeRoom?.room_number || '00'}
               </p>
             </div>
 
-            {/* Itemized charges list */}
-            <div className="space-y-2.5 pt-1 relative z-10 text-xs">
-              <div className="flex justify-between items-center">
-                <span className="text-emerald-100/90 font-medium">Electricity · {unitsConsumed} units</span>
-                <span className="font-black tracking-tight">₹{calculatedElecAmount.toLocaleString('en-IN')}</span>
+            {/* Itemized charges list with TRANSPARENT METER READING BREAKDOWN */}
+            <div className="space-y-3 pt-1 relative z-10 text-xs">
+              
+              {/* Electricity Row + Breakdown */}
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold text-white/95">Electricity</span>
+                  <span className="font-black tracking-tight text-sm">₹{calculatedElecAmount.toLocaleString('en-IN')}</span>
+                </div>
+
+                {/* Submeter transparent calculation box (Previous, Current, Usage) */}
+                {elecMode === 'submeter' && (
+                  <div className="bg-black/20 border border-white/15 rounded-xl p-2.5 space-y-1 text-[11px] text-white/90">
+                    <div className="flex justify-between text-[10px] text-white/70 font-medium">
+                      <span>Previous: <strong className="text-white">{prevReading} units</strong></span>
+                      <span>Current: <strong className="text-white">{currReading} units</strong></span>
+                    </div>
+                    <div className="pt-0.5 border-t border-white/10 flex justify-between items-center font-mono">
+                      <span>Usage: {unitsConsumed} units × ₹{rate}/unit</span>
+                      <span className="font-bold text-white">₹{calculatedElecAmount.toLocaleString('en-IN')}</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
+              {/* Monthly Rent */}
               <div className="flex justify-between items-center">
-                <span className="text-emerald-100/90 font-medium">Monthly rent</span>
+                <span className="text-white/90 font-medium">Monthly rent</span>
                 <span className="font-black tracking-tight">₹{baseRentAmount.toLocaleString('en-IN')}</span>
               </div>
 
+              {/* Arrears */}
               {arrearsAmount > 0 && (
                 <div className="flex justify-between items-center">
-                  <span className="text-emerald-100/90 font-medium">Previous balance (Arrears)</span>
+                  <span className="text-white/90 font-medium">Previous balance (Arrears)</span>
                   <span className="font-black tracking-tight">₹{arrearsAmount.toLocaleString('en-IN')}</span>
                 </div>
               )}
 
+              {/* Other Charges */}
               {otherChargesAmount > 0 && (
                 <div className="flex justify-between items-center">
-                  <span className="text-emerald-100/90 font-medium">Other charges</span>
+                  <span className="text-white/90 font-medium">Other charges</span>
                   <span className="font-black tracking-tight">₹{otherChargesAmount.toLocaleString('en-IN')}</span>
                 </div>
               )}
@@ -773,21 +855,21 @@ export default function SmartCalc() {
             {/* Amount Due Section */}
             <div className="flex justify-between items-end relative z-10 pt-0.5">
               <div>
-                <span className="text-xs font-semibold text-emerald-200/80 block">Amount due</span>
+                <span className={`text-xs font-semibold block ${activeTheme.textAccent}`}>Amount due</span>
                 <div className="text-3xl font-black tracking-tight text-white mt-0.5">
                   ₹{grandTotalAmount.toLocaleString('en-IN')}
                 </div>
               </div>
 
-              <span className="px-3 py-1 rounded-full bg-emerald-100 text-[#2d5a47] font-extrabold text-[10px] tracking-wider uppercase shadow-sm">
+              <span className={`px-3 py-1 rounded-full font-extrabold text-[10px] tracking-wider uppercase shadow-sm ${activeTheme.pillBg} ${activeTheme.pillText}`}>
                 DUE 05 {billMonth.substring(0,3).toUpperCase()}
               </span>
             </div>
 
-            {/* Footer subtext */}
-            <div className="flex justify-between items-center text-[10px] text-emerald-200/60 pt-3 border-t border-white/10 relative z-10 font-mono">
-              <span>Bill no. BR-{billYear}-0826</span>
-              <span>{isSaved ? 'Saved to DB ✓' : 'Live preview'}</span>
+            {/* Clean Footer (Clean subtext without bill no / saved DB clutter) */}
+            <div className="flex justify-between items-center text-[10px] text-white/50 pt-3 border-t border-white/10 relative z-10 font-mono">
+              <span>BillRoom Property Operations</span>
+              <span>Generated for {activeTenant?.name || 'Tenant'}</span>
             </div>
 
           </div>
@@ -804,7 +886,8 @@ export default function SmartCalc() {
 
             <button
               onClick={handleShareWhatsapp}
-              className="flex-1 py-2.5 px-3 rounded-2xl bg-[#2d5a47] hover:bg-[#234738] text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+              className="flex-1 py-2.5 px-3 rounded-2xl text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+              style={{ background: activeTheme.bg }}
             >
               <Share2 size={14} />
               <span>Share WhatsApp</span>
