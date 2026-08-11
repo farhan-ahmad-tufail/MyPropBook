@@ -32,12 +32,12 @@ import { useToast } from '../components/Toast';
    Curated Professional Invoice Color Themes
 ───────────────────────────────────────────────────────────────────────────*/
 const INVOICE_THEMES = [
-  { id: 'green',  name: 'BillRoom Green', bg: '#2d5a47', border: '#234738', textAccent: 'text-emerald-200', pillBg: 'bg-emerald-100', pillText: 'text-[#2d5a47]', gradient: 'linear-gradient(135deg, #1a3a2b, #2d5a47)' },
-  { id: 'navy',   name: 'Classic Navy',   bg: '#0f172a', border: '#1e293b', textAccent: 'text-slate-300',   pillBg: 'bg-slate-200',   pillText: 'text-slate-900',   gradient: 'linear-gradient(135deg, #020617, #0f172a)' },
-  { id: 'blue',   name: 'Royal Blue',     bg: '#1e40af', border: '#1d4ed8', textAccent: 'text-blue-200',    pillBg: 'bg-blue-100',    pillText: 'text-blue-900',    gradient: 'linear-gradient(135deg, #1e3a8a, #1e40af)' },
-  { id: 'maroon', name: 'Burgundy',       bg: '#881337', border: '#9f1239', textAccent: 'text-rose-200',    pillBg: 'bg-rose-100',    pillText: 'text-rose-900',    gradient: 'linear-gradient(135deg, #4c0519, #881337)' },
-  { id: 'purple', name: 'Deep Purple',    bg: '#581c87', border: '#6b21a8', textAccent: 'text-purple-200',  pillBg: 'bg-purple-100',  pillText: 'text-purple-900',  gradient: 'linear-gradient(135deg, #3b0764, #581c87)' },
-  { id: 'slate',  name: 'Minimal Black',  bg: '#09090b', border: '#27272a', textAccent: 'text-zinc-300',    pillBg: 'bg-zinc-200',    pillText: 'text-zinc-900',    gradient: 'linear-gradient(135deg, #000000, #18181b)' }
+  { id: 'green', name: 'BillRoom Green', bg: '#2d5a47', border: '#234738', textAccent: 'text-emerald-200', pillBg: 'bg-emerald-100', pillText: 'text-[#2d5a47]', gradient: 'linear-gradient(135deg, #1a3a2b, #2d5a47)' },
+  { id: 'navy', name: 'Classic Navy', bg: '#0f172a', border: '#1e293b', textAccent: 'text-slate-300', pillBg: 'bg-slate-200', pillText: 'text-slate-900', gradient: 'linear-gradient(135deg, #020617, #0f172a)' },
+  { id: 'blue', name: 'Royal Blue', bg: '#1e40af', border: '#1d4ed8', textAccent: 'text-blue-200', pillBg: 'bg-blue-100', pillText: 'text-blue-900', gradient: 'linear-gradient(135deg, #1e3a8a, #1e40af)' },
+  { id: 'maroon', name: 'Burgundy', bg: '#881337', border: '#9f1239', textAccent: 'text-rose-200', pillBg: 'bg-rose-100', pillText: 'text-rose-900', gradient: 'linear-gradient(135deg, #4c0519, #881337)' },
+  { id: 'purple', name: 'Deep Purple', bg: '#581c87', border: '#6b21a8', textAccent: 'text-purple-200', pillBg: 'bg-purple-100', pillText: 'text-purple-900', gradient: 'linear-gradient(135deg, #3b0764, #581c87)' },
+  { id: 'slate', name: 'Minimal Black', bg: '#09090b', border: '#27272a', textAccent: 'text-zinc-300', pillBg: 'bg-zinc-200', pillText: 'text-zinc-900', gradient: 'linear-gradient(135deg, #000000, #18181b)' }
 ];
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -56,7 +56,7 @@ const BILL_TRANSLATIONS = {
     previousBalance: "Previous Balance",
     otherCharges: "Other charges",
     amountDue: "Amount due",
-    dueBadge: (m) => `DUE 10 ${m.substring(0,3).toUpperCase()}`,
+    dueBadge: (m) => `DUE 10 ${m.substring(0, 3).toUpperCase()}`,
     thankYou: "Thank you for your payment.",
     waTitle: "RENT RECEIPT",
     waMonth: "Month",
@@ -75,7 +75,7 @@ const BILL_TRANSLATIONS = {
     previousBalance: "पिछला बकाया",
     otherCharges: "अन्य खर्चे",
     amountDue: "कुल किराया देना है",
-    dueBadge: (m) => `लास्ट डेट: 10 ${m.substring(0,3).toUpperCase()}`,
+    dueBadge: (m) => `लास्ट डेट: 10 ${m.substring(0, 3).toUpperCase()}`,
     thankYou: "समय पर भुगतान के लिए धन्यवाद।",
     waTitle: "किराया रसीद",
     waMonth: "महीना",
@@ -128,13 +128,12 @@ function SaasDropdown({
         type="button"
         disabled={disabled}
         onClick={() => { if (!disabled) setOpen(v => !v); setQuery(''); }}
-        className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl border text-xs font-semibold text-left transition-all duration-150 ${
-          disabled
+        className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl border text-xs font-semibold text-left transition-all duration-150 ${disabled
             ? 'bg-slate-50 border-slate-200/60 text-slate-300 cursor-not-allowed'
             : open
-            ? 'bg-white border-[#2d5a47] ring-2 ring-[#2d5a47]/10 shadow-sm'
-            : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-sm'
-        }`}
+              ? 'bg-white border-[#2d5a47] ring-2 ring-[#2d5a47]/10 shadow-sm'
+              : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-sm'
+          }`}
       >
         {IconComponent && (
           <span className={`flex-shrink-0 ${selected ? 'text-[#2d5a47]' : 'text-slate-400'}`}>
@@ -200,20 +199,18 @@ function SaasDropdown({
                 type="button"
                 disabled={opt.disabled}
                 onClick={() => { if (!opt.disabled) { onChange(opt.value); setOpen(false); } }}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left transition-all duration-100 text-xs ${
-                  opt.disabled
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left transition-all duration-100 text-xs ${opt.disabled
                     ? 'text-slate-300 cursor-not-allowed'
                     : opt.value === value
-                    ? 'bg-[#edf5f1] text-[#2d5a47] font-bold'
-                    : 'text-slate-700 hover:bg-slate-50 font-semibold'
-                }`}
+                      ? 'bg-[#edf5f1] text-[#2d5a47] font-bold'
+                      : 'text-slate-700 hover:bg-slate-50 font-semibold'
+                  }`}
               >
                 {opt.icon && <span className="flex-shrink-0">{opt.icon}</span>}
                 <span className="flex-1 truncate">{opt.label}</span>
                 {opt.sublabel && (
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full flex-shrink-0 ${
-                    opt.disabled ? 'bg-slate-100 text-slate-400' : 'bg-slate-100 text-slate-500 font-medium'
-                  }`}>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full flex-shrink-0 ${opt.disabled ? 'bg-slate-100 text-slate-400' : 'bg-slate-100 text-slate-500 font-medium'
+                    }`}>
                     {opt.sublabel}
                   </span>
                 )}
@@ -560,453 +557,449 @@ export default function SmartCalc() {
           </div>
 
           {/* Compact Month & Year Selectors */}
-        <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-2xl border border-slate-200/80 shadow-sm text-xs font-semibold text-slate-700">
-          <Calendar size={14} className="text-[#2d5a47]" />
-          <select
-            value={billMonth}
-            onChange={e => setBillMonth(e.target.value)}
-            className="bg-transparent font-bold text-slate-900 outline-none cursor-pointer pr-1"
-          >
-            {months.map(m => <option key={m} value={m}>{m}</option>)}
-          </select>
-          <span className="text-slate-300">•</span>
-          <select
-            value={billYear}
-            onChange={e => setBillYear(e.target.value)}
-            className="bg-transparent font-bold text-slate-900 outline-none cursor-pointer"
-          >
-            {years.map(y => <option key={y} value={y}>{y}</option>)}
-          </select>
-        </div>
-      </div>
-
-      {/* ⚡ Bulk Billing Recommendation Banner */}
-      <div className="p-3.5 bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-transparent border border-amber-500/20 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-xl bg-amber-500/20 text-amber-700 flex items-center justify-center flex-shrink-0 font-bold">
-            ⚡
-          </div>
-          <div>
-            <p className="font-extrabold text-slate-800">Billing multiple rooms this month?</p>
-            <p className="text-[#4b5563] text-[11px]">Save time by entering all meter readings together in Bulk Billing mode.</p>
+          <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-2xl border border-slate-200/80 shadow-sm text-xs font-semibold text-slate-700">
+            <Calendar size={14} className="text-[#2d5a47]" />
+            <select
+              value={billMonth}
+              onChange={e => setBillMonth(e.target.value)}
+              className="bg-transparent font-bold text-slate-900 outline-none cursor-pointer pr-1"
+            >
+              {months.map(m => <option key={m} value={m}>{m}</option>)}
+            </select>
+            <span className="text-slate-300">•</span>
+            <select
+              value={billYear}
+              onChange={e => setBillYear(e.target.value)}
+              className="bg-transparent font-bold text-slate-900 outline-none cursor-pointer"
+            >
+              {years.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
           </div>
         </div>
-        <button
-          onClick={() => navigate('/properties?tab=bulk')}
-          className="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5 flex-shrink-0 shadow-2xs"
-        >
-          <span>Open Bulk Billing Matrix</span>
-          <ArrowRight size={13} />
-        </button>
-      </div>
 
-      {/* ── MAIN 2-COLUMN COMPACT LAYOUT ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-
-        {/* LEFT COLUMN: Compact Input Form Card */}
-        <div className="lg:col-span-7 bg-white rounded-3xl p-5 sm:p-6 border border-slate-100 shadow-sm space-y-5">
-
-          <form onSubmit={handleCalculate} className="space-y-4">
-
-            {/* CUSTOM DROPDOWNS ROW */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-              {/* Property Selector */}
-              <SaasDropdown
-                label="Property"
-                required
-                placeholder="Choose Property…"
-                value={selectedPropertyId}
-                onChange={(v) => {
-                  setSelectedPropertyId(v);
-                  setSelectedRoomId('');
-                }}
-                options={propertyOptions}
-                icon={Building}
-                subtext={activeProperty?.address || 'Select property location'}
-              />
-
-              {/* Room & Tenant Selector */}
-              <SaasDropdown
-                label="Room / Tenant"
-                required
-                placeholder={selectedPropertyId ? 'Choose Room / Tenant…' : 'Select property first'}
-                value={selectedRoomId}
-                onChange={(v) => {
-                  setSelectedRoomId(v);
-                  setCurrentReading('');
-                  setOtherCharges('');
-                  setDirectElecAmount('');
-                  setElecMode('submeter');
-                  setResult(null);
-                  setIsSaved(false);
-                }}
-                options={roomOptions}
-                disabled={!selectedPropertyId}
-                icon={Home}
-                subtext={`Billing period · 01–31 ${billMonth} ${billYear}`}
-              />
+        {/* ⚡ Bulk Billing Recommendation Banner */}
+        <div className="p-3.5 bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-transparent border border-amber-500/20 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-xl bg-amber-500/20 text-amber-700 flex items-center justify-center flex-shrink-0 font-bold">
+              ⚡
             </div>
-
-            {/* ELECTRICITY MODE TOGGLE & COMPACT METER INPUT */}
-            <div className="p-4 rounded-2xl bg-[#edf5f1] border border-[#d8e7e0] space-y-3">
-              <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-                <span className="font-extrabold text-slate-900 flex items-center gap-1.5">
-                  <Zap size={14} className="text-[#2d5a47]" /> Electricity billing mode:
-                </span>
-                <div className="flex bg-white/80 p-0.5 rounded-xl gap-0.5 border border-slate-200/60">
-                  {[
-                    { id: 'submeter', label: 'Submeter' },
-                    { id: 'direct', label: 'Direct Amount' },
-                    { id: 'none', label: 'Included' }
-                  ].map(mode => (
-                    <button
-                      key={mode.id}
-                      type="button"
-                      onClick={() => setElecMode(mode.id)}
-                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                        elecMode === mode.id
-                          ? 'bg-[#2d5a47] text-white shadow-sm'
-                          : 'text-slate-600 hover:text-slate-900'
-                      }`}
-                    >
-                      {mode.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {elecMode === 'submeter' && (
-                <div className="space-y-2.5">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-[11px] text-slate-500 font-medium">Enter current meter reading</span>
-                    <span className="px-2.5 py-0.5 rounded-full bg-slate-200/70 text-slate-700 font-extrabold text-[11px]">
-                      Prev: {prevReading} units
-                    </span>
-                  </div>
-
-                  <div className="relative bg-white rounded-xl border border-slate-200/80 px-3 py-1.5 focus-within:border-[#2d5a47] focus-within:ring-1 focus-within:ring-[#2d5a47] transition-all">
-                    <input
-                      type="number"
-                      required
-                      disabled={!selectedRoomId}
-                      placeholder={`e.g. ≥ ${prevReading || 0}`}
-                      className="w-full text-2xl font-black text-slate-900 bg-transparent outline-none font-mono tracking-tight placeholder:text-slate-300"
-                      value={currentReading}
-                      onChange={e => setCurrentReading(e.target.value)}
-                    />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
-                      units
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between items-center text-xs font-semibold pt-0.5">
-                    <span className="text-slate-500 text-[11px]">Usage breakdown</span>
-                    <div className="flex items-center gap-1">
-                      <span className="px-2 py-0.5 rounded-lg bg-white border border-slate-200 text-[#2d5a47] font-black text-xs">
-                        {unitsConsumed} units
-                      </span>
-                      <span className="text-slate-400 font-mono text-[11px]">× ₹{rate}/unit</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {elecMode === 'direct' && (
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-700 block">Direct Electricity Amount (₹)</label>
-                  <div className="relative bg-white rounded-xl border border-slate-200/80 px-3 py-1.5">
-                    <input
-                      type="number"
-                      required
-                      disabled={!selectedRoomId}
-                      placeholder="e.g. 1007"
-                      className="w-full text-xl font-black text-slate-900 bg-transparent outline-none font-mono"
-                      value={directElecAmount}
-                      onChange={e => setDirectElecAmount(e.target.value)}
-                    />
-                  </div>
-                </div>
-              )}
+            <div>
+              <p className="font-extrabold text-slate-800">Billing multiple rooms this month?</p>
+              <p className="text-[#4b5563] text-[11px]">Save time by entering all meter readings together in Bulk Billing mode.</p>
             </div>
-
-            {/* COMPACT INPUT FIELDS FOR ARREARS & OTHER CHARGES */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
-              {/* Previous Balance Field */}
-              <div className="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-[10px] font-extrabold text-amber-700 uppercase tracking-widest flex items-center gap-1">
-                    <IndianRupee size={12} className="text-amber-600" /> Previous Balance
-                  </label>
-                  {calculatedArrears > 0 && (
-                    <span className="text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
-                      Auto-calculated
-                    </span>
-                  )}
-                </div>
-                <div className="relative">
-                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">₹</span>
-                  <input
-                    type="number"
-                    disabled={!selectedRoomId}
-                    placeholder="0"
-                    className="w-full pl-7 pr-3 py-2 text-sm font-black text-slate-900 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-[#2d5a47]"
-                    value={customArrears}
-                    onChange={e => setCustomArrears(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              {/* Other Charges Field */}
-              <div className="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-1.5">
-                <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest flex items-center gap-1">
-                  <PlusCircle size={12} className="text-slate-400" /> Other Charges
-                </label>
-                <div className="relative">
-                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">₹</span>
-                  <input
-                    type="number"
-                    disabled={!selectedRoomId}
-                    placeholder="e.g. Maintenance, Water"
-                    className="w-full pl-7 pr-3 py-2 text-sm font-black text-slate-900 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-[#2d5a47]"
-                    value={otherCharges}
-                    onChange={e => setOtherCharges(e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* ACTION BUTTONS & HOW IT WORKS */}
-            <div className="flex justify-between items-center pt-2">
-              <button
-                type="button"
-                onClick={() => setShowHowItWorks(!showHowItWorks)}
-                className="text-xs font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-1 cursor-pointer"
-              >
-                <HelpCircle size={13} />
-                <span>How is this calculated?</span>
-              </button>
-
-              <button
-                type="submit"
-                disabled={!selectedRoomId || isSaving}
-                className="px-6 py-2.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all flex items-center gap-2 shadow-sm cursor-pointer disabled:opacity-50"
-              >
-                <span>{isSaving ? 'Saving...' : 'Save Bill Record'}</span>
-                <ArrowRight size={15} />
-              </button>
-            </div>
-
-            {showHowItWorks && (
-              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs text-slate-600 space-y-1">
-                <p className="font-bold text-slate-900">Calculation breakdown:</p>
-                <p>• <strong>Electricity:</strong> (Current Reading - Previous Reading) × Unit Rate</p>
-                <p>• <strong>Total Payable:</strong> Monthly Rent + Electricity + Arrears + Other Charges</p>
-              </div>
-            )}
-
-          </form>
+          </div>
+          <button
+            onClick={() => navigate('/properties?tab=bulk')}
+            className="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5 flex-shrink-0 shadow-2xs"
+          >
+            <span>Open Bulk Billing Matrix</span>
+            <ArrowRight size={13} />
+          </button>
         </div>
 
-        {/* RIGHT COLUMN: Professional Themed Invoice Card */}
-        <div className="lg:col-span-5 space-y-3 sticky top-4">
+        {/* ── MAIN 2-COLUMN COMPACT LAYOUT ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-          {/* CURATED COLOR THEMES & LANGUAGE SELECTOR BAR */}
-          <div className="bg-white rounded-2xl p-2.5 border border-slate-200/80 shadow-sm flex flex-wrap items-center justify-between gap-2">
-            
-            {/* Language Selector Toggle */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest flex items-center gap-1">
-                <Globe size={13} className="text-slate-700" /> Lang:
-              </span>
-              <div className="flex bg-slate-100 p-0.5 rounded-xl gap-0.5 border border-slate-200/60">
-                <button
-                  type="button"
-                  onClick={() => setBillLanguage('en')}
-                  className={`px-2.5 py-0.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    billLanguage === 'en'
-                      ? 'bg-[#2d5a47] text-white shadow-sm'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  EN
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setBillLanguage('hi')}
-                  className={`px-2.5 py-0.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    billLanguage === 'hi'
-                      ? 'bg-[#2d5a47] text-white shadow-sm'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  हिंदी (HI)
-                </button>
+          {/* LEFT COLUMN: Compact Input Form Card */}
+          <div className="lg:col-span-7 bg-white rounded-3xl p-5 sm:p-6 border border-slate-100 shadow-sm space-y-5">
+
+            <form onSubmit={handleCalculate} className="space-y-4">
+
+              {/* CUSTOM DROPDOWNS ROW */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                {/* Property Selector */}
+                <SaasDropdown
+                  label="Property"
+                  required
+                  placeholder="Choose Property…"
+                  value={selectedPropertyId}
+                  onChange={(v) => {
+                    setSelectedPropertyId(v);
+                    setSelectedRoomId('');
+                  }}
+                  options={propertyOptions}
+                  icon={Building}
+                  subtext={activeProperty?.address || 'Select property location'}
+                />
+
+                {/* Room & Tenant Selector */}
+                <SaasDropdown
+                  label="Room / Tenant"
+                  required
+                  placeholder={selectedPropertyId ? 'Choose Room / Tenant…' : 'Select property first'}
+                  value={selectedRoomId}
+                  onChange={(v) => {
+                    setSelectedRoomId(v);
+                    setCurrentReading('');
+                    setOtherCharges('');
+                    setDirectElecAmount('');
+                    setElecMode('submeter');
+                    setResult(null);
+                    setIsSaved(false);
+                  }}
+                  options={roomOptions}
+                  disabled={!selectedPropertyId}
+                  icon={Home}
+                  subtext={`Billing period · 01–31 ${billMonth} ${billYear}`}
+                />
               </div>
-            </div>
 
-            {/* Theme Palette */}
-            <div className="flex items-center gap-1">
-              <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest hidden sm:inline-block mr-1">
-                Theme:
-              </span>
-              {INVOICE_THEMES.map(theme => (
-                <button
-                  key={theme.id}
-                  type="button"
-                  onClick={() => setSelectedThemeId(theme.id)}
-                  title={theme.name}
-                  className={`w-5 h-5 rounded-full transition-all duration-150 flex items-center justify-center cursor-pointer ${
-                    selectedThemeId === theme.id ? 'ring-2 ring-offset-1 ring-slate-800 scale-110' : 'hover:scale-105 opacity-80 hover:opacity-100'
-                  }`}
-                  style={{ background: theme.bg }}
-                >
-                  {selectedThemeId === theme.id && (
-                    <Check size={10} className="text-white" />
-                  )}
-                </button>
-              ))}
-            </div>
-
-          </div>
-
-          {/* INVOICE CARD PREVIEW (Uses selected professional theme & language) */}
-          <div
-            ref={receiptRef}
-            className="text-white rounded-3xl p-6 shadow-xl relative overflow-hidden space-y-4 border transition-colors duration-200"
-            style={{
-              background: activeTheme.gradient,
-              borderColor: activeTheme.border
-            }}
-          >
-            {/* Background Decorative Rings */}
-            <div className="absolute -top-12 -right-12 w-44 h-44 rounded-full bg-white/5 pointer-events-none" />
-            <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-white/5 pointer-events-none" />
-
-            {/* Top header row */}
-            <div className="flex justify-between items-start relative z-10">
-              <div>
-                <span className={`text-[10px] font-bold uppercase tracking-widest block ${activeTheme.textAccent}`}>
-                  {t.previewLabel}
-                </span>
-                <h3 className="text-2xl font-black tracking-tight mt-0.5">{t.monthBill(billMonth)}</h3>
-              </div>
-              <div className="w-9 h-9 rounded-xl bg-white/10 text-white flex items-center justify-center backdrop-blur-sm">
-                <Receipt size={18} />
-              </div>
-            </div>
-
-            <div className="h-px bg-white/15 w-full" />
-
-            {/* Billed To Section */}
-            <div className="space-y-0.5 relative z-10">
-              <span className={`text-[10px] font-medium block ${activeTheme.textAccent}`}>{t.billedTo}</span>
-              <h4 className="text-lg font-extrabold text-white">{activeTenant?.name || (billLanguage === 'hi' ? 'कमरा चुनें' : 'Select a room')}</h4>
-              <p className="text-xs text-white/70">
-                {activeProperty?.name || 'Property'} · {billLanguage === 'hi' ? 'कमरा' : 'Room'} {activeRoom?.room_number || '00'}
-              </p>
-            </div>
-
-            {/* Itemized charges list with TRANSPARENT METER READING BREAKDOWN */}
-            <div className="space-y-3 pt-1 relative z-10 text-xs">
-              
-              {/* Electricity Row + Breakdown */}
-              <div className="space-y-1.5">
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold text-white/95">{t.electricity}</span>
-                  <span className="font-black tracking-tight text-sm">₹{calculatedElecAmount.toLocaleString('en-IN')}</span>
+              {/* ELECTRICITY MODE TOGGLE & COMPACT METER INPUT */}
+              <div className="p-4 rounded-2xl bg-[#edf5f1] border border-[#d8e7e0] space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                  <span className="font-extrabold text-slate-900 flex items-center gap-1.5">
+                    <Zap size={14} className="text-[#2d5a47]" /> Electricity billing mode:
+                  </span>
+                  <div className="flex bg-white/80 p-0.5 rounded-xl gap-0.5 border border-slate-200/60">
+                    {[
+                      { id: 'submeter', label: 'Submeter' },
+                      { id: 'direct', label: 'Direct Amount' },
+                      { id: 'none', label: 'Included' }
+                    ].map(mode => (
+                      <button
+                        key={mode.id}
+                        type="button"
+                        onClick={() => setElecMode(mode.id)}
+                        className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${elecMode === mode.id
+                            ? 'bg-[#2d5a47] text-white shadow-sm'
+                            : 'text-slate-600 hover:text-slate-900'
+                          }`}
+                      >
+                        {mode.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
-                {/* Submeter transparent calculation box (Previous, Current, Usage) */}
                 {elecMode === 'submeter' && (
-                  <div className="bg-black/20 border border-white/15 rounded-xl p-2.5 space-y-1 text-[11px] text-white/90">
-                    <div className="flex justify-between text-[10px] text-white/70 font-medium">
-                      <span>{t.previous}: <strong className="text-white">{prevReading} units</strong></span>
-                      <span>{t.current}: <strong className="text-white">{currReading} units</strong></span>
+                  <div className="space-y-2.5">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-[11px] text-slate-500 font-medium">Enter current meter reading</span>
+                      <span className="px-2.5 py-0.5 rounded-full bg-slate-200/70 text-slate-700 font-extrabold text-[11px]">
+                        Prev: {prevReading} units
+                      </span>
                     </div>
-                    <div className="pt-0.5 border-t border-white/10 flex justify-between items-center font-mono">
-                      <span>{t.usage}: {unitsConsumed} units × ₹{rate}/unit</span>
-                      <span className="font-bold text-white">₹{calculatedElecAmount.toLocaleString('en-IN')}</span>
+
+                    <div className="relative bg-white rounded-xl border border-slate-200/80 px-3 py-1.5 focus-within:border-[#2d5a47] focus-within:ring-1 focus-within:ring-[#2d5a47] transition-all">
+                      <input
+                        type="number"
+                        required
+                        disabled={!selectedRoomId}
+                        placeholder={`e.g. ≥ ${prevReading || 0}`}
+                        className="w-full text-2xl font-black text-slate-900 bg-transparent outline-none font-mono tracking-tight placeholder:text-slate-300"
+                        value={currentReading}
+                        onChange={e => setCurrentReading(e.target.value)}
+                      />
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                        units
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center text-xs font-semibold pt-0.5">
+                      <span className="text-slate-500 text-[11px]">Usage breakdown</span>
+                      <div className="flex items-center gap-1">
+                        <span className="px-2 py-0.5 rounded-lg bg-white border border-slate-200 text-[#2d5a47] font-black text-xs">
+                          {unitsConsumed} units
+                        </span>
+                        <span className="text-slate-400 font-mono text-[11px]">× ₹{rate}/unit</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {elecMode === 'direct' && (
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-700 block">Direct Electricity Amount (₹)</label>
+                    <div className="relative bg-white rounded-xl border border-slate-200/80 px-3 py-1.5">
+                      <input
+                        type="number"
+                        required
+                        disabled={!selectedRoomId}
+                        placeholder="e.g. 1007"
+                        className="w-full text-xl font-black text-slate-900 bg-transparent outline-none font-mono"
+                        value={directElecAmount}
+                        onChange={e => setDirectElecAmount(e.target.value)}
+                      />
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Monthly Rent */}
-              <div className="flex justify-between items-center">
-                <span className="text-white/90 font-medium">{t.monthlyRent}</span>
-                <span className="font-black tracking-tight">₹{baseRentAmount.toLocaleString('en-IN')}</span>
+              {/* COMPACT INPUT FIELDS FOR ARREARS & OTHER CHARGES */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+                {/* Previous Balance Field */}
+                <div className="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-extrabold text-amber-700 uppercase tracking-widest flex items-center gap-1">
+                      <IndianRupee size={12} className="text-amber-600" /> Previous Balance
+                    </label>
+                    {calculatedArrears > 0 && (
+                      <span className="text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
+                        Auto-calculated
+                      </span>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">₹</span>
+                    <input
+                      type="number"
+                      disabled={!selectedRoomId}
+                      placeholder="0"
+                      className="w-full pl-7 pr-3 py-2 text-sm font-black text-slate-900 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-[#2d5a47]"
+                      value={customArrears}
+                      onChange={e => setCustomArrears(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Other Charges Field */}
+                <div className="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-1.5">
+                  <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest flex items-center gap-1">
+                    <PlusCircle size={12} className="text-slate-400" /> Other Charges
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">₹</span>
+                    <input
+                      type="number"
+                      disabled={!selectedRoomId}
+                      placeholder="e.g. Maintenance, Water"
+                      className="w-full pl-7 pr-3 py-2 text-sm font-black text-slate-900 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-[#2d5a47]"
+                      value={otherCharges}
+                      onChange={e => setOtherCharges(e.target.value)}
+                    />
+                  </div>
+                </div>
               </div>
 
-              {/* Previous Balance */}
-              {arrearsAmount > 0 && (
-                <div className="flex justify-between items-center">
-                  <span className="text-white/90 font-medium">{t.previousBalance}</span>
-                  <span className="font-black tracking-tight">₹{arrearsAmount.toLocaleString('en-IN')}</span>
+              {/* ACTION BUTTONS & HOW IT WORKS */}
+              <div className="flex justify-between items-center pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowHowItWorks(!showHowItWorks)}
+                  className="text-xs font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-1 cursor-pointer"
+                >
+                  <HelpCircle size={13} />
+                  <span>How is this calculated?</span>
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={!selectedRoomId || isSaving}
+                  className="px-6 py-2.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all flex items-center gap-2 shadow-sm cursor-pointer disabled:opacity-50"
+                >
+                  <span>{isSaving ? 'Saving...' : 'Save Bill Record'}</span>
+                  <ArrowRight size={15} />
+                </button>
+              </div>
+
+              {showHowItWorks && (
+                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs text-slate-600 space-y-1">
+                  <p className="font-bold text-slate-900">Calculation breakdown:</p>
+                  <p>• <strong>Electricity:</strong> (Current Reading - Previous Reading) × Unit Rate</p>
+                  <p>• <strong>Total Payable:</strong> Monthly Rent + Electricity + Arrears + Other Charges</p>
                 </div>
               )}
 
-              {/* Other Charges */}
-              {otherChargesAmount > 0 && (
-                <div className="flex justify-between items-center">
-                  <span className="text-white/90 font-medium">{t.otherCharges}</span>
-                  <span className="font-black tracking-tight">₹{otherChargesAmount.toLocaleString('en-IN')}</span>
-                </div>
-              )}
-            </div>
-
-            <div className="h-px bg-white/15 w-full" />
-
-            {/* Amount Due Section */}
-            <div className="flex justify-between items-end relative z-10 pt-0.5">
-              <div>
-                <span className={`text-xs font-semibold block ${activeTheme.textAccent}`}>{t.amountDue}</span>
-                <div className="text-3xl font-black tracking-tight text-white mt-0.5">
-                  ₹{grandTotalAmount.toLocaleString('en-IN')}
-                </div>
-              </div>
-
-              <span className={`px-3 py-1 rounded-full font-extrabold text-[10px] tracking-wider uppercase shadow-sm ${activeTheme.pillBg} ${activeTheme.pillText}`}>
-                {t.dueBadge(billMonth)}
-              </span>
-            </div>
-
-            {/* Footer */}
-            <div className="flex justify-center items-center text-[10px] text-white/50 pt-3 border-t border-white/10 relative z-10 italic">
-              <span>{t.thankYou}</span>
-            </div>
-
+            </form>
           </div>
 
-          {/* Quick Action Toolbar underneath preview */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2.5">
-              <button
-                onClick={handleDownloadPDF}
-                className="flex-1 py-2.5 px-3 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs border border-slate-200 transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
-              >
-                <Download size={14} />
-                <span>Download PDF</span>
-              </button>
+          {/* RIGHT COLUMN: Professional Themed Invoice Card */}
+          <div className="lg:col-span-5 space-y-3 sticky top-4">
 
-              <button
-                onClick={handleShareWhatsapp}
-                className="flex-1 py-2.5 px-3 rounded-2xl text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
-                style={{ background: activeTheme.bg }}
-              >
-                <Share2 size={14} />
-                <span>Share WhatsApp</span>
-              </button>
+            {/* CURATED COLOR THEMES & LANGUAGE SELECTOR BAR */}
+            <div className="bg-white rounded-2xl p-2.5 border border-slate-200/80 shadow-sm flex flex-wrap items-center justify-between gap-2">
+
+              {/* Language Selector Toggle */}
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest flex items-center gap-1">
+                  <Globe size={13} className="text-slate-700" /> Lang:
+                </span>
+                <div className="flex bg-slate-100 p-0.5 rounded-xl gap-0.5 border border-slate-200/60">
+                  <button
+                    type="button"
+                    onClick={() => setBillLanguage('en')}
+                    className={`px-2.5 py-0.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${billLanguage === 'en'
+                        ? 'bg-[#2d5a47] text-white shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                  >
+                    EN
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBillLanguage('hi')}
+                    className={`px-2.5 py-0.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${billLanguage === 'hi'
+                        ? 'bg-[#2d5a47] text-white shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                  >
+                    हिंदी (HI)
+                  </button>
+                </div>
+              </div>
+
+              {/* Theme Palette */}
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest hidden sm:inline-block mr-1">
+                  Theme:
+                </span>
+                {INVOICE_THEMES.map(theme => (
+                  <button
+                    key={theme.id}
+                    type="button"
+                    onClick={() => setSelectedThemeId(theme.id)}
+                    title={theme.name}
+                    className={`w-5 h-5 rounded-full transition-all duration-150 flex items-center justify-center cursor-pointer ${selectedThemeId === theme.id ? 'ring-2 ring-offset-1 ring-slate-800 scale-110' : 'hover:scale-105 opacity-80 hover:opacity-100'
+                      }`}
+                    style={{ background: theme.bg }}
+                  >
+                    {selectedThemeId === theme.id && (
+                      <Check size={10} className="text-white" />
+                    )}
+                  </button>
+                ))}
+              </div>
+
             </div>
 
-            <p className="text-[11px] text-center font-medium text-slate-500 bg-slate-100/70 py-1.5 px-2.5 rounded-xl border border-slate-200/60">
-              💡 <strong>Tip:</strong> Share or download receipt now before clicking <em>Save Bill Record</em>. (Saved bills can also be shared anytime from <strong>Billing</strong> page).
-            </p>
+            {/* INVOICE CARD PREVIEW (Uses selected professional theme & language) */}
+            <div
+              ref={receiptRef}
+              className="text-white rounded-3xl p-6 shadow-xl relative overflow-hidden space-y-4 border transition-colors duration-200"
+              style={{
+                background: activeTheme.gradient,
+                borderColor: activeTheme.border
+              }}
+            >
+              {/* Background Decorative Rings */}
+              <div className="absolute -top-12 -right-12 w-44 h-44 rounded-full bg-white/5 pointer-events-none" />
+              <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-white/5 pointer-events-none" />
+
+              {/* Top header row */}
+              <div className="flex justify-between items-start relative z-10">
+                <div>
+                  <span className={`text-[10px] font-bold uppercase tracking-widest block ${activeTheme.textAccent}`}>
+                    {t.previewLabel}
+                  </span>
+                  <h3 className="text-2xl font-black tracking-tight mt-0.5">{t.monthBill(billMonth)}</h3>
+                </div>
+                <div className="w-9 h-9 rounded-xl bg-white/10 text-white flex items-center justify-center backdrop-blur-sm">
+                  <Receipt size={18} />
+                </div>
+              </div>
+
+              <div className="h-px bg-white/15 w-full" />
+
+              {/* Billed To Section */}
+              <div className="space-y-0.5 relative z-10">
+                <span className={`text-[10px] font-medium block ${activeTheme.textAccent}`}>{t.billedTo}</span>
+                <h4 className="text-lg font-extrabold text-white">{activeTenant?.name || (billLanguage === 'hi' ? 'कमरा चुनें' : 'Select a room')}</h4>
+                <p className="text-xs text-white/70">
+                  {activeProperty?.name || 'Property'} · {billLanguage === 'hi' ? 'कमरा' : 'Room'} {activeRoom?.room_number || '00'}
+                </p>
+              </div>
+
+              {/* Itemized charges list with TRANSPARENT METER READING BREAKDOWN */}
+              <div className="space-y-3 pt-1 relative z-10 text-xs">
+
+                {/* Electricity Row + Breakdown */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-white/95">{t.electricity}</span>
+                    <span className="font-black tracking-tight text-sm">₹{calculatedElecAmount.toLocaleString('en-IN')}</span>
+                  </div>
+
+                  {/* Submeter transparent calculation box (Previous, Current, Usage) */}
+                  {elecMode === 'submeter' && (
+                    <div className="bg-black/20 border border-white/15 rounded-xl p-2.5 space-y-1 text-[11px] text-white/90">
+                      <div className="flex justify-between text-[10px] text-white/70 font-medium">
+                        <span>{t.previous}: <strong className="text-white">{prevReading} units</strong></span>
+                        <span>{t.current}: <strong className="text-white">{currReading} units</strong></span>
+                      </div>
+                      <div className="pt-0.5 border-t border-white/10 flex justify-between items-center font-mono">
+                        <span>{t.usage}: {unitsConsumed} units × ₹{rate}/unit</span>
+                        <span className="font-bold text-white">₹{calculatedElecAmount.toLocaleString('en-IN')}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Monthly Rent */}
+                <div className="flex justify-between items-center">
+                  <span className="text-white/90 font-medium">{t.monthlyRent}</span>
+                  <span className="font-black tracking-tight">₹{baseRentAmount.toLocaleString('en-IN')}</span>
+                </div>
+
+                {/* Previous Balance */}
+                {arrearsAmount > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-white/90 font-medium">{t.previousBalance}</span>
+                    <span className="font-black tracking-tight">₹{arrearsAmount.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
+
+                {/* Other Charges */}
+                {otherChargesAmount > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-white/90 font-medium">{t.otherCharges}</span>
+                    <span className="font-black tracking-tight">₹{otherChargesAmount.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="h-px bg-white/15 w-full" />
+
+              {/* Amount Due Section */}
+              <div className="flex justify-between items-end relative z-10 pt-0.5">
+                <div>
+                  <span className={`text-xs font-semibold block ${activeTheme.textAccent}`}>{t.amountDue}</span>
+                  <div className="text-3xl font-black tracking-tight text-white mt-0.5">
+                    ₹{grandTotalAmount.toLocaleString('en-IN')}
+                  </div>
+                </div>
+
+                <span className={`px-3 py-1 rounded-full font-extrabold text-[10px] tracking-wider uppercase shadow-sm ${activeTheme.pillBg} ${activeTheme.pillText}`}>
+                  {t.dueBadge(billMonth)}
+                </span>
+              </div>
+
+              {/* Footer */}
+              <div className="flex justify-center items-center text-[10px] text-white/50 pt-3 border-t border-white/10 relative z-10 italic">
+                <span>{t.thankYou}</span>
+              </div>
+
+            </div>
+
+            {/* Quick Action Toolbar underneath preview */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2.5">
+                <button
+                  onClick={handleDownloadPDF}
+                  className="flex-1 py-2.5 px-3 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs border border-slate-200 transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  <Download size={14} />
+                  <span>Download PDF</span>
+                </button>
+
+                <button
+                  onClick={handleShareWhatsapp}
+                  className="flex-1 py-2.5 px-3 rounded-2xl text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+                  style={{ background: activeTheme.bg }}
+                >
+                  <Share2 size={14} />
+                  <span>Share WhatsApp</span>
+                </button>
+              </div>
+
+              <p className="text-[11px] text-center font-medium text-slate-500 bg-slate-100/70 py-1.5 px-2.5 rounded-xl border border-slate-200/60">
+                💡 <strong>Tip:</strong> Share or download receipt now before clicking <em>Save Bill Record</em>. (Saved bills can also be shared anytime from <strong>Billing</strong> page).
+              </p>
+            </div>
+
           </div>
 
         </div>
-
       </div>
-
     </div>
   );
 }
