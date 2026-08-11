@@ -28,10 +28,13 @@ import {
   IndianRupee,
   Share2,
   Sparkles,
-  Home
+  Home,
+  Search,
+  Command
 } from 'lucide-react';
 import Logo from './Logo';
 import ProfileModal from './ProfileModal';
+import CommandPalette from './CommandPalette';
 
 const navSections = [
   {
@@ -119,8 +122,21 @@ export default function Layout({ children }) {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [showCmdPalette, setShowCmdPalette] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [notifLoaded, setNotifLoaded] = useState(false);
+
+  /* Ctrl+K / Cmd+K listener */
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setShowCmdPalette(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const isPlainPage = ['/', '/login', '/signup'].includes(location.pathname);
 
@@ -320,6 +336,19 @@ export default function Layout({ children }) {
           {/* Header Controls */}
           <div className="flex items-center gap-2 ml-auto">
 
+            {/* Quick Command Palette Button (Ctrl+K) */}
+            <button
+              onClick={() => setShowCmdPalette(true)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:border-[#2d5a47]/40 hover:text-[#2d5a47] transition-all shadow-sm cursor-pointer group"
+              title="Search or jump to... (Ctrl+K)"
+            >
+              <Search size={13} className="text-slate-400 group-hover:text-[#2d5a47] transition-colors" />
+              <span className="hidden sm:inline">Search...</span>
+              <kbd className="px-1.5 py-0.5 text-[9px] font-mono font-bold text-slate-400 bg-slate-100 rounded border border-slate-200">
+                ⌘K
+              </kbd>
+            </button>
+
             {/* Help Centre Button */}
             <button
               onClick={() => setShowHelp(true)}
@@ -427,6 +456,12 @@ export default function Layout({ children }) {
       {showProfileModal && (
         <ProfileModal onClose={() => setShowProfileModal(false)} />
       )}
+
+      {/* ── Command Palette (Ctrl+K) ── */}
+      <CommandPalette
+        isOpen={showCmdPalette}
+        onClose={() => setShowCmdPalette(false)}
+      />
 
       {/* ── Help Centre Modal ── */}
       {showHelp && createPortal(

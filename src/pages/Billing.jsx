@@ -32,6 +32,7 @@ import { useToast } from '../components/Toast';
 import { formatINR, formatINRShort } from '../utils/formatters';
 import BillReceiptModal from '../components/BillReceiptModal';
 import ReminderModal from '../components/ReminderModal';
+import SkeletonLoader from '../components/SkeletonLoader';
 import { MessageSquare, BellRing } from 'lucide-react';
 
 export default function Billing() {
@@ -335,8 +336,9 @@ export default function Billing() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <div className="w-10 h-10 rounded-full border-4 border-slate-200 border-t-[#2d5a47] animate-spin" />
+      <div className="space-y-6 max-w-7xl mx-auto">
+        <div className="h-16 bg-slate-200/50 rounded-2xl animate-pulse w-1/3" />
+        <SkeletonLoader count={4} />
       </div>
     );
   }

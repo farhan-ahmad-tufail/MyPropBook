@@ -32,6 +32,8 @@ import {
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import OnboardingModal from '../components/OnboardingModal';
 import { formatINR } from '../utils/formatters';
+import AnimatedCounter from '../components/AnimatedCounter';
+import SkeletonLoader from '../components/SkeletonLoader';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -281,8 +283,9 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <div className="w-9 h-9 rounded-full border-3 border-emerald-200 border-t-[#2d5a47] animate-spin" />
+      <div className="space-y-6">
+        <div className="h-16 bg-slate-200/50 rounded-2xl animate-pulse w-1/3" />
+        <SkeletonLoader count={4} />
       </div>
     );
   }
@@ -330,7 +333,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* KPI 1: Properties */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
+        <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
           <div className="flex justify-between items-start">
             <div className="w-10 h-10 rounded-2xl bg-[#e2eee7] text-[#2d5a47] flex items-center justify-center">
               <Building size={18} />
@@ -338,13 +341,15 @@ export default function Dashboard() {
           </div>
           <div className="mt-6">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">PROPERTIES</span>
-            <div className="text-3xl font-black text-slate-900 mt-1">{totalProperties}</div>
+            <div className="text-3xl font-black text-slate-900 mt-1">
+              <AnimatedCounter value={totalProperties} />
+            </div>
             <span className="text-xs text-slate-400 font-medium block mt-1">All active</span>
           </div>
         </div>
 
         {/* KPI 2: Occupied Rooms */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between relative">
+        <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between relative hover:shadow-md transition-shadow">
           <div className="flex justify-between items-start">
             <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
               <Users size={18} />
@@ -353,14 +358,14 @@ export default function Dashboard() {
           <div className="mt-6">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">OCCUPIED ROOMS</span>
             <div className="text-3xl font-black text-slate-900 mt-1">
-              {activeLeaseRoomIds.length} <span className="text-xl text-slate-400 font-normal">/ {totalRooms}</span>
+              <AnimatedCounter value={activeLeaseRoomIds.length} /> <span className="text-xl text-slate-400 font-normal">/ {totalRooms}</span>
             </div>
             <span className="text-xs text-slate-400 font-medium block mt-1">{totalRooms > 0 ? `${Math.round((activeLeaseRoomIds.length / totalRooms) * 100)}% occupancy rate` : 'No rooms yet'}</span>
           </div>
         </div>
 
         {/* KPI 3: Expected Rent */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
+        <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
           <div className="flex justify-between items-start">
             <div className="w-10 h-10 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-base">
               ₹
@@ -369,7 +374,7 @@ export default function Dashboard() {
           <div className="mt-6">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">EXPECTED RENT</span>
             <div className="text-3xl font-black text-slate-900 mt-1">
-              {formatINR(expectedMonthlyRevenue)}
+              <AnimatedCounter value={expectedMonthlyRevenue} formatter={v => formatINR(v)} />
             </div>
             <span className="text-xs text-slate-400 font-medium block mt-1">{new Date().toLocaleString('en-IN', { month: 'long' })} cycle</span>
           </div>
