@@ -435,8 +435,9 @@ export default function SmartCalc() {
       if (elecMode === 'submeter') {
         setActiveRoom(prev => prev ? { ...prev, current_meter_reading: currReading } : prev);
         setRooms(prevRooms => prevRooms.map(r => r.id === activeRoom.id ? { ...r, current_meter_reading: currReading } : r));
+        setCurrentReading('');
       }
-      toast('Bill generated & saved to Billing Records!', 'success');
+      toast('Bill saved to Billing Records!', 'success');
     } catch (err) {
       console.error('Error saving bill:', err);
       toast('Bill generated, but failed to save to database history.', 'warning');
@@ -656,8 +657,8 @@ export default function SmartCalc() {
                       type="number"
                       required
                       disabled={!selectedRoomId}
-                      placeholder="e.g. 1482"
-                      className="w-full text-2xl font-black text-slate-900 bg-transparent outline-none font-mono tracking-tight"
+                      placeholder={`e.g. ≥ ${prevReading || 0}`}
+                      className="w-full text-2xl font-black text-slate-900 bg-transparent outline-none font-mono tracking-tight placeholder:text-slate-300"
                       value={currentReading}
                       onChange={e => setCurrentReading(e.target.value)}
                     />
@@ -758,7 +759,7 @@ export default function SmartCalc() {
                 disabled={!selectedRoomId || isSaving}
                 className="px-6 py-2.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all flex items-center gap-2 shadow-sm cursor-pointer disabled:opacity-50"
               >
-                <span>{isSaving ? 'Saving...' : 'Save & Generate Bill'}</span>
+                <span>{isSaving ? 'Saving...' : 'Save Bill Record'}</span>
                 <ArrowRight size={15} />
               </button>
             </div>
@@ -945,23 +946,29 @@ export default function SmartCalc() {
           </div>
 
           {/* Quick Action Toolbar underneath preview */}
-          <div className="flex items-center gap-2.5">
-            <button
-              onClick={handleDownloadPDF}
-              className="flex-1 py-2.5 px-3 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs border border-slate-200 transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
-            >
-              <Download size={14} />
-              <span>Download PDF</span>
-            </button>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2.5">
+              <button
+                onClick={handleDownloadPDF}
+                className="flex-1 py-2.5 px-3 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs border border-slate-200 transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+              >
+                <Download size={14} />
+                <span>Download PDF</span>
+              </button>
 
-            <button
-              onClick={handleShareWhatsapp}
-              className="flex-1 py-2.5 px-3 rounded-2xl text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
-              style={{ background: activeTheme.bg }}
-            >
-              <Share2 size={14} />
-              <span>Share WhatsApp</span>
-            </button>
+              <button
+                onClick={handleShareWhatsapp}
+                className="flex-1 py-2.5 px-3 rounded-2xl text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+                style={{ background: activeTheme.bg }}
+              >
+                <Share2 size={14} />
+                <span>Share WhatsApp</span>
+              </button>
+            </div>
+
+            <p className="text-[11px] text-center font-medium text-slate-500 bg-slate-100/70 py-1.5 px-2.5 rounded-xl border border-slate-200/60">
+              💡 <strong>Tip:</strong> Share or download receipt now before clicking <em>Save Bill Record</em>. (Saved bills can also be shared anytime from <strong>Billing</strong> page).
+            </p>
           </div>
 
         </div>

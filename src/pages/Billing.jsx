@@ -30,6 +30,9 @@ import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { useToast } from '../components/Toast';
 import { formatINR, formatINRShort } from '../utils/formatters';
+import BillReceiptModal from '../components/BillReceiptModal';
+import ReminderModal from '../components/ReminderModal';
+import { MessageSquare, BellRing } from 'lucide-react';
 
 export default function Billing() {
   const { user } = useAuth();
@@ -55,6 +58,8 @@ export default function Billing() {
   // Payment Modal & History state
   const [showPayModal, setShowPayModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showReminderModal, setShowReminderModal] = useState(false);
+  const [selectedReminderBill, setSelectedReminderBill] = useState(null);
   const [payAmount, setPayAmount] = useState('');
   const [payMethod, setPayMethod] = useState('UPI');
   const [billPayments, setBillPayments] = useState([]);
@@ -216,18 +221,29 @@ export default function Billing() {
 
   const handleOpenHistoryModal = async (bill) => {
     setSelectedBill(bill);
-    setBillPayments([]);
-    setLoadingPayments(true);
     setShowHistoryModal(true);
+    setShowPayModal(false);
 
     try {
-      const list = await api.getPayments(bill.id);
-      setBillPayments(list || []);
+      setLoadingPayments(true);
+      const payments = await api.getBillPayments(bill.id);
+      setBillPayments(payments);
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching payments:', err);
+      toast('Failed to load payment history', 'error');
     } finally {
       setLoadingPayments(false);
     }
+  };
+
+  const handleOpenReminderModal = (bill) => {
+    setSelectedReminderBill(bill);
+    setShowReminderModal(true);
+  };
+
+  const handleCloseReminderModal = () => {
+    setShowReminderModal(false);
+    setSelectedReminderBill(null);
   };
 
   const handleCloseHistoryModal = () => {
@@ -631,6 +647,16 @@ export default function Billing() {
                             <History size={15} />
                           </button>
 
+                          {remaining > 0 && (
+                            <button
+                              onClick={() => handleOpenReminderModal(bill)}
+                              className="p-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
+                              title="Send WhatsApp Reminder (English/Hindi)"
+                            >
+                              <MessageSquare size={15} />
+                            </button>
+                          )}
+
                           {bill.payment_status !== 'Paid' && (
                             <button
                               onClick={() => handleOpenPayModal(bill)}
@@ -653,128 +679,47 @@ export default function Billing() {
 
       {/* ── MODALS ── */}
 
-      {/* 1. Bill View Receipt Modal */}
-      {selectedBill && !showPayModal && !showHistoryModal && createPortal(
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] overflow-y-auto p-4 sm:p-6 flex items-center justify-center">
-          <div className="bg-white rounded-3xl w-full max-w-lg border border-slate-100 shadow-2xl relative my-auto overflow-hidden">
-            <button 
-              onClick={handleCloseViewModal} 
-              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 z-10 cursor-pointer"
-            >
-              <X size={20} />
-            </button>
+      {/* 1. Bill View Receipt Modal — Premium themed receipt */}
+      <BillReceiptModal
+        isOpen={!!(selectedBill && !showPayModal && !showHistoryModal)}
+        onClose={handleCloseViewModal}
+        bill={selectedBill}
+        room={selectedBill ? rooms.find(r => r.id === selectedBill.room_id) : null}
+        tenant={selectedBill ? (() => {
+          // Try direct tenant match first
+          let t = tenants.find(ten => String(ten.id) === String(selectedBill.tenant_id));
+          if (!t && selectedBill.room_id) {
+            const lease = leases.find(l => String(l.room_id) === String(selectedBill.room_id));
+            if (lease) t = tenants.find(ten => String(ten.id) === String(lease.tenant_id));
+          }
+          // Fallback: return object with name from bill
+          return t || { name: selectedBill.tenant_name || getTenantName(selectedBill), phone: '' };
+        })() : null}
+        property={selectedBill ? properties.find(p => {
+          const r = rooms.find(r => r.id === selectedBill.room_id);
+          return r && p.id === r.property_id;
+        }) : null}
+      />
 
-            <div className="p-6 space-y-5">
-              <h3 className="font-extrabold text-slate-900 text-lg pr-8">Invoice Details &amp; Receipt</h3>
-              
-              <div className="border border-slate-200 rounded-2xl max-h-[60vh] overflow-y-auto bg-slate-50 p-3">
-                <div ref={receiptRef} className="receipt-paper w-full bg-white p-6 rounded-xl border border-slate-100 text-slate-800 space-y-4">
-                  <div className="text-center pb-3 border-b border-slate-200">
-                    <div className="text-xl font-black uppercase tracking-wider text-slate-900">INVOICE RECEIPT</div>
-                    <div className="text-xs font-semibold text-slate-500 mt-0.5">{selectedBill.bill_month} {selectedBill.bill_year}</div>
-                  </div>
-
-                  <div className="flex justify-between items-start gap-4 p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs">
-                    <div>
-                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">TENANT</span>
-                      <span className="font-bold text-slate-900 text-sm">{getTenantName(selectedBill)}</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">ROOM</span>
-                      <span className="font-bold text-slate-800 text-sm">Room {getRoomInfo(selectedBill.room_id).number}</span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 text-xs text-slate-600 bg-slate-50/50 border border-slate-100 rounded-xl p-3">
-                    <div className="flex justify-between">
-                      <span>Base Monthly Rent:</span>
-                      <span className="font-bold text-slate-800">{formatINR(selectedBill.rent_amount)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Consumed Electricity Units:</span>
-                      <span className="font-bold text-slate-800">{parseFloat(selectedBill.units_consumed || 0).toFixed(1)} units</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Rate Per Unit:</span>
-                      <span className="font-bold text-slate-800">₹{selectedBill.rate_per_unit || 0}/unit</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Electricity Charges:</span>
-                      <span className="font-bold text-slate-800">{formatINR((parseFloat(selectedBill.units_consumed || 0) * parseFloat(selectedBill.rate_per_unit || 0)))}</span>
-                    </div>
-                    {selectedBill.other_charges > 0 && (
-                      <div className="flex justify-between">
-                        <span>Other Charges:</span>
-                        <span className="font-bold text-slate-800">{formatINR(selectedBill.other_charges)}</span>
-                      </div>
-                    )}
-                    {selectedBill.arrears > 0 && (
-                      <div className="flex justify-between text-amber-700">
-                        <span>Arrears / Unpaid Balance:</span>
-                        <span className="font-bold">{formatINR(selectedBill.arrears)}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="pt-3 border-t border-slate-200 space-y-1 text-xs font-semibold">
-                    <div className="flex justify-between items-center font-black text-slate-900 text-sm">
-                      <span>TOTAL PAYABLE:</span>
-                      <span className="text-[#2d5a47] text-base">{formatINR(selectedBill.total_payable)}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-emerald-700 font-bold">
-                      <span>Amount Received:</span>
-                      <span>{formatINR(selectedBill.amount_paid || 0)}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-amber-700 font-bold">
-                      <span>Remaining Due:</span>
-                      <span>{formatINR(Math.max(0, parseFloat(selectedBill.total_payable) - parseFloat(selectedBill.amount_paid || 0)))}</span>
-                    </div>
-                  </div>
-
-                  {/* Payment History Log */}
-                  {billPayments.length > 0 && (
-                    <div className="pt-3 border-t border-dashed border-slate-200 text-xs">
-                      <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Payment History</div>
-                      <div className="space-y-1">
-                        {billPayments.map((p, idx) => (
-                          <div key={p.id || idx} className="flex justify-between text-slate-600 text-[11px]">
-                            <span>{p.payment_date} ({p.payment_method})</span>
-                            <span className="font-bold text-emerald-700">+{formatINR(p.amount_paid)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                </div>
-              </div>
-
-              {/* Toolbar Buttons */}
-              <div className="flex flex-wrap gap-2 pt-1">
-                <button 
-                  onClick={handleDownloadPDF} 
-                  className="flex-1 py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-                >
-                  <Download size={15} /> Download PDF
-                </button>
-                <button 
-                  onClick={handleShareWhatsApp} 
-                  className="flex-1 py-3 px-4 rounded-xl bg-[#2d5a47] hover:bg-[#234738] text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm cursor-pointer"
-                >
-                  <Share2 size={15} /> Share WhatsApp
-                </button>
-                <button 
-                  onClick={handleCloseViewModal} 
-                  className="py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all cursor-pointer"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+      {/* WhatsApp Payment Reminder Modal */}
+      <ReminderModal
+        isOpen={showReminderModal}
+        onClose={handleCloseReminderModal}
+        bill={selectedReminderBill}
+        tenant={selectedReminderBill ? (() => {
+          let t = tenants.find(ten => String(ten.id) === String(selectedReminderBill.tenant_id));
+          if (!t && selectedReminderBill.room_id) {
+            const lease = leases.find(l => String(l.room_id) === String(selectedReminderBill.room_id));
+            if (lease) t = tenants.find(ten => String(ten.id) === String(lease.tenant_id));
+          }
+          return t || { name: selectedReminderBill.tenant_name || getTenantName(selectedReminderBill), phone: '' };
+        })() : null}
+        room={selectedReminderBill ? rooms.find(r => r.id === selectedReminderBill.room_id) : null}
+        property={selectedReminderBill ? properties.find(p => {
+          const r = rooms.find(r => r.id === selectedReminderBill.room_id);
+          return r && p.id === r.property_id;
+        }) : null}
+      />
 
       {/* 2. Record Payment Modal */}
       {showPayModal && selectedBill && createPortal(

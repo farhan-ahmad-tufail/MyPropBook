@@ -1,377 +1,390 @@
-import React, { useState, useRef } from 'react';
-import { 
-  X, 
-  Printer, 
-  Download, 
-  Share2, 
-  Building, 
-  Home, 
-  CheckCircle,
-  Zap,
-  Calendar
+import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import {
+  X,
+  Download,
+  Share2,
+  Receipt,
+  Check,
+  ChevronDown
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { useToast } from './Toast';
 
-const translations = {
+/* ─── Color Themes ─── */
+const THEMES = [
+  {
+    id: 'green', name: 'BillRoom Green', hex: '#2d5a47',
+    gradient: 'linear-gradient(150deg, #1a3a2b 0%, #2d5a47 55%, #214035 100%)',
+    border: 'rgba(255,255,255,0.10)',
+    accent: '#6ee7b7', pill: { bg: '#d1fae5', text: '#065f46' },
+    glow: 'rgba(45,90,71,0.5)'
+  },
+  {
+    id: 'navy', name: 'Classic Navy', hex: '#0f172a',
+    gradient: 'linear-gradient(150deg, #020617 0%, #0f172a 55%, #1e293b 100%)',
+    border: 'rgba(255,255,255,0.08)',
+    accent: '#94a3b8', pill: { bg: '#e2e8f0', text: '#0f172a' },
+    glow: 'rgba(15,23,42,0.6)'
+  },
+  {
+    id: 'blue', name: 'Royal Blue', hex: '#1e40af',
+    gradient: 'linear-gradient(150deg, #1e3a8a 0%, #1e40af 55%, #2563eb 100%)',
+    border: 'rgba(255,255,255,0.10)',
+    accent: '#93c5fd', pill: { bg: '#dbeafe', text: '#1e3a8a' },
+    glow: 'rgba(30,64,175,0.5)'
+  },
+  {
+    id: 'maroon', name: 'Burgundy', hex: '#881337',
+    gradient: 'linear-gradient(150deg, #4c0519 0%, #881337 55%, #9f1239 100%)',
+    border: 'rgba(255,255,255,0.10)',
+    accent: '#fda4af', pill: { bg: '#ffe4e6', text: '#881337' },
+    glow: 'rgba(136,19,55,0.5)'
+  },
+  {
+    id: 'purple', name: 'Deep Purple', hex: '#581c87',
+    gradient: 'linear-gradient(150deg, #3b0764 0%, #581c87 55%, #6b21a8 100%)',
+    border: 'rgba(255,255,255,0.10)',
+    accent: '#d8b4fe', pill: { bg: '#f3e8ff', text: '#581c87' },
+    glow: 'rgba(88,28,135,0.5)'
+  },
+  {
+    id: 'slate', name: 'Minimal Black', hex: '#18181b',
+    gradient: 'linear-gradient(150deg, #000000 0%, #18181b 55%, #27272a 100%)',
+    border: 'rgba(255,255,255,0.08)',
+    accent: '#a1a1aa', pill: { bg: '#f4f4f5', text: '#18181b' },
+    glow: 'rgba(24,24,27,0.6)'
+  },
+];
+
+/* ─── Labels ─── */
+const L = {
   en: {
-    receiptTitle: "RENT & UTILITY BILL",
-    tenant: "TENANT",
-    rooms: "ROOM",
-    total: "Total",
-    rent: "RENT",
-    readings: "READINGS",
-    units: "UNITS",
-    rate: "RATE",
-    elec: "ELEC",
-    cur: "Cur",
-    pre: "Pre",
-    totalRent: "Total Rent",
-    totalElectricity: "Total Electricity",
-    otherCharges: "Other Charges",
-    currentMonth: "CURRENT MONTH",
-    oldPendingBalance: "Old Pending Balance",
-    totalPayable: "TOTAL PAYABLE AMOUNT",
-    payByDueDate: "Please pay by due date",
-    thankYou: "Thank you for your timely payment.",
-    generatedOn: "Generated electronically on"
+    tag: 'INVOICE PREVIEW', billedTo: 'Billed to',
+    electricity: 'Electricity', prev: 'Previous', curr: 'Current', usage: 'Usage',
+    rent: 'Monthly rent', prevBal: 'Previous Balance', other: 'Other charges',
+    amtDue: 'Amount due', received: 'Amount received', remaining: 'Remaining due',
+    due: (m) => `DUE 10 ${(m || '').slice(0, 3).toUpperCase()}`,
+    thanks: 'Thank you for your payment.',
+    waTitle: 'RENT RECEIPT',
   },
   hi: {
-    receiptTitle: "किराया एवं बिजली बिल",
-    tenant: "किरायेदार",
-    rooms: "कमरा",
-    total: "टोटल",
-    rent: "किराया",
-    readings: "रीडिंग",
-    units: "यूनिट",
-    rate: "दर",
-    elec: "बिजली",
-    cur: "वर्तमान",
-    pre: "पिछला",
-    totalRent: "टोटल किराया",
-    totalElectricity: "टोटल बिजली बिल",
-    otherCharges: "अन्य शुल्क",
-    currentMonth: "इस महीने का टोटल",
-    oldPendingBalance: "पिछला बकाया",
-    totalPayable: "टोटल किराया देना है",
-    payByDueDate: "कृपया नियत तिथि तक भुगतान करें",
-    thankYou: "समय पर भुगतान के लिए धन्यवाद।",
-    generatedOn: "इलेक्ट्रॉनिक रूप से तैयार:"
+    tag: 'किराया रसीद', billedTo: 'किरायेदार',
+    electricity: 'बिजली का बिल', prev: 'पिछला', curr: 'नया', usage: 'उपयोग',
+    rent: 'कमरे का किराया', prevBal: 'पिछला बकाया', other: 'अन्य खर्चे',
+    amtDue: 'कुल किराया देना है', received: 'मिली हुई राशि', remaining: 'बाकी बकाया',
+    due: (m) => `लास्ट डेट 10 ${(m || '').slice(0, 3).toUpperCase()}`,
+    thanks: 'समय पर भुगतान के लिए धन्यवाद।',
+    waTitle: 'किराया रसीद',
   }
-};
-
-const themeOptions = {
-  emerald: { label: 'Emerald', hex: '#059669', bg: '#059669', text: '#ffffff', icon: '#059669' },
-  blue:    { label: 'Royal Blue', hex: '#2563eb', bg: '#2563eb', text: '#ffffff', icon: '#2563eb' },
-  purple:  { label: 'Deep Purple', hex: '#7c3aed', bg: '#7c3aed', text: '#ffffff', icon: '#7c3aed' },
-  dark:    { label: 'Slate Dark', hex: '#1e293b', bg: '#1e293b', text: '#ffffff', icon: '#334155' },
 };
 
 export default function BillReceiptModal({ isOpen, onClose, bill, room, tenant, property }) {
   const toast = useToast();
   const receiptRef = useRef(null);
-  const [language, setLanguage] = useState('en');
-  const [theme, setTheme] = useState('emerald');
+  const [lang, setLang] = useState('en');
+  const [themeId, setThemeId] = useState('green');
+
+  /* ESC to close */
+  useEffect(() => {
+    if (!isOpen) return;
+    const fn = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', fn);
+    return () => window.removeEventListener('keydown', fn);
+  }, [isOpen, onClose]);
 
   if (!isOpen || !bill) return null;
 
-  const currentTheme = themeOptions[theme] || themeOptions.emerald;
+  const t = THEMES.find(x => x.id === themeId) || THEMES[0];
+  const lbl = L[lang];
+  const fmt = (n) => parseFloat(n || 0).toLocaleString('en-IN');
 
-  const handlePrint = () => {
-    window.print();
-  };
+  /* Numbers */
+  const units      = parseFloat(bill.units_consumed || 0);
+  const rate       = parseFloat(bill.rate_per_unit  || 0);
+  const elec       = units * rate;
+  const rent       = parseFloat(bill.rent_amount    || 0);
+  const other      = parseFloat(bill.other_charges  || 0);
+  const arrears    = parseFloat(bill.arrears        || 0);
+  const rawTotal   = parseFloat(bill.total_payable  || 0);
+  const computed   = rent + elec + other + arrears;
+  const total      = (isNaN(rawTotal) || rawTotal === 0) ? computed : rawTotal;
+  const paid       = parseFloat(bill.amount_paid || 0);
+  const due        = Math.max(0, total - paid);
+  const month      = bill.bill_month || '';
+  const year       = bill.bill_year  || '';
 
-  const handleDownloadPDF = async () => {
+  /* Actions */
+  const downloadPDF = async () => {
     if (!receiptRef.current) return;
     try {
-      toast('Generating PDF...', 'info');
-      const element = receiptRef.current;
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        logging: false,
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
-
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`Bill_${room?.room_number || 'Room'}_${bill.bill_month}_${bill.bill_year}.pdf`);
-      toast('PDF Downloaded successfully!', 'success');
-    } catch (err) {
-      console.error(err);
-      toast('Failed to generate PDF', 'error');
-    }
+      toast('Generating PDF…', 'info');
+      const c = await html2canvas(receiptRef.current, { scale: 2.5, useCORS: true, backgroundColor: null, logging: false });
+      const img = c.toDataURL('image/png');
+      const pw = 210, ph = (c.height * pw) / c.width;
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [pw, Math.max(ph, 120)] });
+      pdf.addImage(img, 'PNG', 0, 0, pw, ph);
+      pdf.save(`Bill_${room?.room_number || 'Room'}_${month}_${year}.pdf`);
+      toast('PDF downloaded!', 'success');
+    } catch (e) { console.error(e); toast('Failed to generate PDF', 'error'); }
   };
 
-  const handleShareWhatsapp = () => {
-    const tenantPhone = tenant?.phone ? tenant.phone.replace(/[^0-9]/g, '') : '';
-    const tenantName = tenant?.name || 'Tenant';
-    const roomNo = room?.room_number || bill.room_id || '';
-    const rawTotal = parseFloat(bill.total_payable || 0);
-    const whatsappRent = parseFloat(bill.rent_amount || 0);
-    const whatsappElec = (parseFloat(bill.units_consumed || 0) * parseFloat(bill.rate_per_unit || 0));
-    const whatsappOther = parseFloat(bill.other_charges || 0) || 0;
-    const whatsappArrears = parseFloat(bill.arrears || 0);
-    const computedWhatsappTotal = whatsappRent + whatsappElec + whatsappOther + whatsappArrears;
-    const total = ((isNaN(rawTotal) || rawTotal === 0) ? computedWhatsappTotal : rawTotal).toLocaleString('en-IN');
-    const month = bill.bill_month;
-    const year = bill.bill_year;
-
-    const message = `*RENT RECEIPT*\n` +
-      `Month: ${month} ${year}\n` +
-      `Tenant: ${tenantName}\n` +
-      `Total: ₹${total}`;
-
-    const encoded = encodeURIComponent(message);
-    const url = tenantPhone 
-      ? `https://wa.me/${tenantPhone}?text=${encoded}`
-      : `https://wa.me/?text=${encoded}`;
-
-    window.open(url, '_blank');
+  const shareWhatsApp = () => {
+    const phone = tenant?.phone ? tenant.phone.replace(/[^0-9]/g, '') : '';
+    const msg = `*${lbl.waTitle}*\nMonth: ${month} ${year}\nTenant: ${tenant?.name || 'Tenant'} • Room: ${room?.room_number || ''}\nRent: ₹${rent.toFixed(2)} | Electricity: ₹${elec.toFixed(2)}` +
+      (other > 0 ? `\nOther: ₹${other.toFixed(2)}` : '') +
+      (arrears > 0 ? `\nPrev Balance: ₹${arrears.toFixed(2)}` : '') +
+      `\n*Total: ₹${total.toFixed(2)}*` +
+      (paid > 0 ? `\nPaid: ₹${paid.toFixed(2)} | Due: ₹${due.toFixed(2)}` : '');
+    window.open(phone ? `https://wa.me/${phone}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
-  const units = parseFloat(bill.units_consumed || 0);
-  const rate = parseFloat(bill.rate_per_unit || 0);
-  const elecAmount = units * rate;
-  const rentAmount = parseFloat(bill.rent_amount || 0);
-  const otherCharges = parseFloat(bill.other_charges || 0) || 0;
-  const arrears = parseFloat(bill.arrears || 0);
-  // Compute from line items as fallback if bill.total_payable is NaN or 0
-  const computedTotal = rentAmount + elecAmount + otherCharges + arrears;
-  const rawTotal = parseFloat(bill.total_payable || 0);
-  const totalPayable = (isNaN(rawTotal) || rawTotal === 0) ? computedTotal : rawTotal;
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[9999] overflow-y-auto bg-black/50 backdrop-blur-md"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div
+        className="flex min-h-full items-center justify-center p-4 sm:p-6"
+        onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      >
+      <div className="relative w-full max-w-[400px] mx-auto my-auto flex flex-col gap-2">
 
-  return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-sm animate-fade-in overflow-y-auto">
-      <div className="relative w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden my-auto max-h-[94vh] flex flex-col">
-        
-        {/* Header Controls */}
-        <div className="flex items-center justify-between px-5 py-3 border-b border-slate-800 bg-slate-950/80 flex-shrink-0">
-          <div className="flex items-center gap-2 min-w-0">
-            <Building size={18} className="text-violet-400 flex-shrink-0" />
-            <h3 className="font-bold text-sm sm:text-base text-slate-100 truncate">
-              Bill Receipt — Room {room?.room_number || ''} ({bill.bill_month} {bill.bill_year})
-            </h3>
-          </div>
+        {/* ── Floating Top Bar ── */}
+        <div className="flex items-center gap-2">
 
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <button
-              onClick={handlePrint}
-              title="Print Receipt"
-              className="p-1.5 sm:p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
-            >
-              <Printer size={15} />
-            </button>
-            <button
-              onClick={handleDownloadPDF}
-              title="Download PDF"
-              className="p-1.5 sm:p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
-            >
-              <Download size={15} />
-            </button>
-            <button
-              onClick={handleShareWhatsapp}
-              title="Share on WhatsApp"
-              className="p-1.5 sm:p-2 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 rounded-lg transition-colors flex items-center gap-1 text-xs font-semibold"
-            >
-              <Share2 size={15} /> <span className="hidden sm:inline">WhatsApp</span>
-            </button>
-            <button
-              onClick={onClose}
-              className="p-1.5 sm:p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
-            >
-              <X size={18} />
-            </button>
-          </div>
-        </div>
-
-        {/* Scrollable Receipt Body */}
-        <div className="p-4 sm:p-6 overflow-y-auto bg-slate-950/50 flex-1 flex flex-col items-center custom-scrollbar">
-          
-          {/* Customization Options Bar */}
-          <div className="mb-4 flex flex-col sm:flex-row gap-2.5 w-full max-w-lg">
-            <div className="flex bg-slate-900 p-1 rounded-xl flex-1 border border-slate-800">
-              <button
-                type="button"
-                className={`flex-1 px-3 py-1 rounded-lg font-semibold text-xs transition-all ${language === 'en' ? 'bg-violet-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'}`}
-                onClick={() => setLanguage('en')}
-              >
-                English
-              </button>
-              <button
-                type="button"
-                className={`flex-1 px-3 py-1 rounded-lg font-semibold text-xs transition-all ${language === 'hi' ? 'bg-violet-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'}`}
-                onClick={() => setLanguage('hi')}
-              >
-                हिंदी
-              </button>
-            </div>
-
-            <div className="flex bg-slate-900 p-1 rounded-xl flex-1 justify-around items-center px-3 border border-slate-800">
-              {Object.entries(themeOptions).map(([key, t]) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setTheme(key)}
-                  className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full transition-transform hover:scale-110 ${theme === key ? 'ring-2 ring-offset-2 ring-violet-500 scale-110' : ''}`}
-                  style={{ backgroundColor: t.hex }}
-                  title={`Theme: ${t.label}`}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Printable Receipt Paper Container */}
+          {/* Language Pill */}
           <div
-            ref={receiptRef}
-            className="receipt-paper w-full max-w-lg bg-white text-slate-900 rounded-2xl shadow-xl p-5 sm:p-7 border border-slate-200"
+            className="flex items-center p-1 gap-0.5 rounded-xl flex-shrink-0"
+            style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}
           >
-            {/* Header / Title */}
-            <div className="text-center mb-6">
-              <div className="text-2xl font-bold uppercase tracking-wider text-slate-800">
-                {translations[language].receiptTitle}
-              </div>
-              <div className="text-xs font-semibold text-slate-500 mt-1">
-                {property?.name ? `${property.name} • ` : ''}{bill.bill_month} {bill.bill_year}
-              </div>
-              <div style={{ borderBottom: '2px solid #cbd5e1', margin: '15px auto', width: '100%' }}></div>
-            </div>
-
-            {/* Tenant details row */}
-            <div className="flex justify-between items-start gap-4 mb-6 p-3.5 bg-slate-50 rounded-lg border border-slate-100">
-              <div>
-                <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">
-                  {translations[language].tenant}
-                </div>
-                <div className="text-xl font-bold text-slate-900 leading-tight">
-                  {tenant?.name || 'Tenant'}
-                </div>
-                {tenant?.phone && <span className="text-xs text-slate-500">{tenant.phone}</span>}
-              </div>
-              <div className="text-right">
-                <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">
-                  ROOM
-                </div>
-                <div className="text-base font-bold text-slate-800">
-                  Room {room?.room_number || bill.room_id}
-                </div>
-                <span className="text-[10px] text-slate-500 capitalize">{room?.room_type || 'Single Room'}</span>
-              </div>
-            </div>
-
-            {/* Electricity Breakdown Box */}
-            <div className="mb-6 border border-slate-200 rounded-lg overflow-hidden bg-white">
-              <div className="flex justify-between items-center py-2 px-4 bg-slate-50 border-b border-slate-200">
-                <div className="font-bold text-slate-800 flex items-center gap-2 text-xs">
-                  <Home size={14} color={currentTheme.icon} /> Room {room?.room_number || ''} Breakdown
-                </div>
-              </div>
-              <div className="p-4 pt-3">
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', justifyContent: 'space-between', fontSize: '0.85rem', width: '100%' }}>
-                  <div>
-                    <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{translations[language].readings}</div>
-                    <div className="text-xs text-slate-600 mb-0.5">{translations[language].cur}: <span className="font-mono font-bold text-slate-800">{bill.current_reading ?? bill.previous_reading}</span></div>
-                    <div className="text-xs text-slate-600">{translations[language].pre}: <span className="font-mono font-bold text-slate-800">{bill.previous_reading || 0}</span></div>
-                  </div>
-                  <div className="sm:text-center">
-                    <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{translations[language].units}</div>
-                    <div className="font-mono font-bold text-slate-800 mt-2">{units.toFixed(1)}</div>
-                  </div>
-                  <div className="sm:text-center">
-                    <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{translations[language].rate}</div>
-                    <div className="font-mono text-slate-600 text-xs mt-2">₹{rate}</div>
-                  </div>
-                  <div className="sm:text-center">
-                    <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{translations[language].elec}</div>
-                    <div className="font-mono font-bold text-slate-800 mt-2">₹{elecAmount.toFixed(2)}</div>
-                  </div>
-                  <div className="sm:text-right">
-                    <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{translations[language].rent}</div>
-                    <div className="font-mono font-bold text-slate-800 mt-2 text-sm">₹{rentAmount.toFixed(2)}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Main Summary Box */}
-            <div className="space-y-2.5 mb-6 bg-slate-50 p-4 rounded-lg">
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-slate-600 font-medium text-sm">{translations[language].totalRent}</span>
-                <span className="font-mono font-bold text-slate-800 text-sm">₹{rentAmount.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-slate-600 font-medium text-sm">{translations[language].totalElectricity}</span>
-                <span className="font-mono font-bold text-slate-800 text-sm">₹{elecAmount.toFixed(2)}</span>
-              </div>
-              {otherCharges > 0 && (
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-slate-600 font-medium text-sm">{translations[language].otherCharges}</span>
-                  <span className="font-mono font-bold text-slate-800 text-sm">₹{otherCharges.toFixed(2)}</span>
-                </div>
-              )}
-
-              <div style={{ borderBottom: '2px dashed #cbd5e1', margin: '12px 0' }}></div>
-
-              <div className="flex justify-between items-center">
-                <span className="text-base font-bold text-slate-900">{translations[language].currentMonth}</span>
-                <span className="text-base font-bold text-slate-900">
-                  ₹{(rentAmount + elecAmount + otherCharges).toFixed(2)}
-                </span>
-              </div>
-
-              {arrears > 0 && (
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-slate-600 font-medium text-base">{translations[language].oldPendingBalance}</span>
-                  <span className="font-mono font-bold text-slate-800 text-base">₹{arrears.toFixed(2)}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Grand Total Banner */}
-            <div style={{ backgroundColor: currentTheme.bg, color: currentTheme.text, padding: '1.25rem', borderRadius: '0.75rem', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginTop: '1rem', transition: 'background-color 0.3s' }}>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8' }}>{translations[language].totalPayable}</span>
-                <span style={{ fontSize: '0.70rem', color: '#cbd5e1', marginTop: '2px' }}>{translations[language].payByDueDate}</span>
-              </div>
-              <div style={{ fontSize: '1.85rem', fontWeight: 'bold', letterSpacing: '-0.03em', backgroundColor: 'rgba(255,255,255,0.1)', padding: '0.4rem 0.8rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.15)' }}>
-                ₹{totalPayable.toFixed(2)}
-              </div>
-            </div>
-
-            <div className="mt-8 pt-4 text-center text-slate-400 text-xs">
-              <p>{translations[language].thankYou}</p>
-              <p className="mt-1">{translations[language].generatedOn} {new Date().toLocaleDateString()}</p>
-            </div>
+            {['en', 'hi'].map(l => (
+              <button
+                key={l}
+                onClick={() => setLang(l)}
+                className="px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer"
+                style={lang === l
+                  ? { background: 'rgba(255,255,255,0.95)', color: '#0f172a' }
+                  : { color: 'rgba(255,255,255,0.55)' }
+                }
+              >{l === 'en' ? 'English' : 'हिंदी'}</button>
+            ))}
           </div>
-        </div>
 
-        {/* Footer Actions */}
-        <div className="p-4 border-t border-slate-800 bg-slate-950 flex justify-end gap-3 flex-shrink-0">
-          <button
-            onClick={handleShareWhatsapp}
-            className="btn bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-4 py-2 rounded-xl font-bold flex items-center gap-1.5"
+          {/* Spacer */}
+          <div className="flex-1" />
+
+          {/* Theme Dots */}
+          <div
+            className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl"
+            style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}
           >
-            <Share2 size={14} /> Send WhatsApp Bill
-          </button>
+            {THEMES.map(th => (
+              <button
+                key={th.id}
+                onClick={() => setThemeId(th.id)}
+                title={th.name}
+                className="w-5 h-5 rounded-full transition-all cursor-pointer flex items-center justify-center flex-shrink-0"
+                style={{
+                  backgroundColor: th.hex,
+                  transform: themeId === th.id ? 'scale(1.2)' : 'scale(1)',
+                  boxShadow: themeId === th.id ? `0 0 0 2px rgba(255,255,255,0.9), 0 0 8px ${th.hex}` : 'none',
+                  opacity: themeId === th.id ? 1 : 0.65
+                }}
+              >
+                {themeId === th.id && <Check size={9} className="text-white" strokeWidth={3} />}
+              </button>
+            ))}
+          </div>
+
+          {/* Close */}
           <button
             onClick={onClose}
-            className="btn btn-secondary text-xs px-4 py-2 rounded-xl font-bold"
+            title="Close (Esc)"
+            className="w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer transition-all flex-shrink-0"
+            style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.6)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)'; e.currentTarget.style.color = '#fff'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = 'rgba(255,255,255,0.6)'; }}
           >
-            Close
+            <X size={14} strokeWidth={2.5} />
           </button>
         </div>
 
+        {/* ── Invoice Card ── */}
+        <div
+          ref={receiptRef}
+          className="text-white rounded-3xl overflow-hidden relative"
+          style={{
+            background: t.gradient,
+            border: `1px solid ${t.border}`,
+            boxShadow: `0 40px 80px -20px rgba(0,0,0,0.7), 0 0 0 1px ${t.border}, 0 0 80px -20px ${t.glow}`
+          }}
+        >
+          {/* Decorative radial glow rings */}
+          <div style={{ position: 'absolute', top: -80, right: -80, width: 220, height: 220, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', top: -130, right: -130, width: 340, height: 340, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%)', pointerEvents: 'none' }} />
+
+          <div className="p-6 space-y-5 relative z-10">
+
+            {/* Header */}
+            <div className="flex justify-between items-start">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-[0.12em] block" style={{ color: t.accent }}>
+                  {lbl.tag}
+                </span>
+                <h3 className="text-[1.6rem] font-black tracking-tight mt-0.5 leading-none text-white">
+                  {month} {year}
+                </h3>
+              </div>
+              <div
+                className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0"
+                style={{ background: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.14)' }}
+              >
+                <Receipt size={18} className="text-white" />
+              </div>
+            </div>
+
+            {/* Hairline */}
+            <div style={{ height: 1, background: 'rgba(255,255,255,0.10)' }} />
+
+            {/* Billed To */}
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-semibold block" style={{ color: t.accent }}>{lbl.billedTo}</span>
+              <h4 className="text-xl font-extrabold text-white leading-tight">{tenant?.name || 'Tenant'}</h4>
+              {(property?.name || room?.room_number) && (
+                <p className="text-[13px]" style={{ color: 'rgba(255,255,255,0.50)' }}>
+                  {[property?.name, room?.room_number ? `Room ${room.room_number}` : ''].filter(Boolean).join(' · ')}
+                </p>
+              )}
+            </div>
+
+            {/* Line Items */}
+            <div className="space-y-3">
+
+              {/* Electricity */}
+              {(units > 0 || rate > 0) && (
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="font-semibold" style={{ color: 'rgba(255,255,255,0.90)' }}>{lbl.electricity}</span>
+                    <span className="font-black text-white font-mono">₹{fmt(elec)}</span>
+                  </div>
+                  <div
+                    className="rounded-2xl p-3.5 space-y-2"
+                    style={{ background: 'rgba(0,0,0,0.20)', border: '1px solid rgba(255,255,255,0.08)' }}
+                  >
+                    <div className="flex justify-between text-[11px] font-medium" style={{ color: 'rgba(255,255,255,0.60)' }}>
+                      <span>{lbl.prev}: <strong className="text-white font-bold">{bill.previous_reading || 0} units</strong></span>
+                      <span>{lbl.curr}: <strong className="text-white font-bold">{bill.current_reading ?? bill.previous_reading ?? 0} units</strong></span>
+                    </div>
+                    <div
+                      className="flex justify-between items-center text-[11px] font-mono"
+                      style={{ paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.70)' }}
+                    >
+                      <span>{lbl.usage}: {units.toFixed(1)} units × ₹{rate}/unit</span>
+                      <span className="font-bold text-white">₹{fmt(elec)}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Monthly Rent */}
+              <div className="flex justify-between items-center text-sm">
+                <span className="font-medium" style={{ color: 'rgba(255,255,255,0.85)' }}>{lbl.rent}</span>
+                <span className="font-black text-white font-mono">₹{fmt(rent)}</span>
+              </div>
+
+              {/* Previous Balance */}
+              {arrears > 0 && (
+                <div className="flex justify-between items-center text-sm">
+                  <span className="font-medium" style={{ color: 'rgba(255,255,255,0.85)' }}>{lbl.prevBal}</span>
+                  <span className="font-black text-white font-mono">₹{fmt(arrears)}</span>
+                </div>
+              )}
+
+              {/* Other Charges */}
+              {other > 0 && (
+                <div className="flex justify-between items-center text-sm">
+                  <span className="font-medium" style={{ color: 'rgba(255,255,255,0.85)' }}>{lbl.other}</span>
+                  <span className="font-black text-white font-mono">₹{fmt(other)}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Hairline */}
+            <div style={{ height: 1, background: 'rgba(255,255,255,0.10)' }} />
+
+            {/* Amount Due */}
+            <div className="flex justify-between items-end">
+              <div>
+                <span className="text-[11px] font-semibold block mb-0.5" style={{ color: t.accent }}>{lbl.amtDue}</span>
+                <div className="text-[2rem] font-black tracking-tight text-white leading-none font-mono">
+                  ₹{fmt(total)}
+                </div>
+              </div>
+              <span
+                className="px-3 py-1.5 rounded-full font-extrabold text-[10px] tracking-wider uppercase flex-shrink-0"
+                style={{ backgroundColor: t.pill.bg, color: t.pill.text, boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+              >
+                {lbl.due(month)}
+              </span>
+            </div>
+
+            {/* Payment Status — only when partially/fully paid */}
+            {paid > 0 && (
+              <div
+                className="rounded-2xl px-4 py-3 space-y-2"
+                style={{ background: 'rgba(0,0,0,0.18)', border: '1px solid rgba(255,255,255,0.08)' }}
+              >
+                <div className="flex justify-between text-xs font-semibold">
+                  <span style={{ color: 'rgba(255,255,255,0.60)' }}>{lbl.received}</span>
+                  <span style={{ color: '#6ee7b7' }} className="font-bold font-mono">₹{fmt(paid)}</span>
+                </div>
+                <div className="flex justify-between text-xs font-bold">
+                  <span style={{ color: 'rgba(255,255,255,0.60)' }}>{lbl.remaining}</span>
+                  <span style={{ color: due > 0 ? '#fcd34d' : '#6ee7b7' }} className="font-mono">₹{fmt(due)}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Footer */}
+            <div className="text-center" style={{ paddingTop: 4, borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+              <span className="text-[10px] italic" style={{ color: 'rgba(255,255,255,0.35)' }}>{lbl.thanks}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Action Buttons ── */}
+        <div className="flex gap-2.5 mt-1">
+          <button
+            onClick={downloadPDF}
+            className="flex-1 py-3.5 px-4 rounded-2xl font-bold text-[13px] transition-all flex items-center justify-center gap-2 cursor-pointer"
+            style={{ background: 'rgba(255,255,255,0.92)', color: '#1e293b', border: '1px solid rgba(255,255,255,0.15)' }}
+            onMouseEnter={e => e.currentTarget.style.background = '#fff'}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.92)'}
+          >
+            <Download size={15} />
+            <span>Download PDF</span>
+          </button>
+          <button
+            onClick={shareWhatsApp}
+            className="flex-1 py-3.5 px-4 rounded-2xl text-white font-bold text-[13px] transition-all flex items-center justify-center gap-2 cursor-pointer"
+            style={{ background: t.hex, border: `1px solid ${t.border}`, boxShadow: `0 4px 16px ${t.glow}` }}
+            onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
+            onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+          >
+            <Share2 size={15} />
+            <span>Share WhatsApp</span>
+          </button>
+        </div>
+
+        {/* Subtle ESC hint */}
+        <p className="text-center text-[10px]" style={{ color: 'rgba(255,255,255,0.25)' }}>
+          Click outside or press <span style={{ fontFamily: 'monospace', letterSpacing: '0.05em', background: 'rgba(255,255,255,0.08)', padding: '1px 5px', borderRadius: 4, border: '1px solid rgba(255,255,255,0.12)' }}>ESC</span> to close
+        </p>
       </div>
     </div>
+    </div>,
+    document.body
   );
 }

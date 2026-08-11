@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../services/api';
 import {
   LayoutDashboard,
   Building2,
@@ -15,8 +17,18 @@ import {
   BarChart3,
   HelpCircle,
   Bell,
-  Sliders,
-  ChevronDown
+  ChevronDown,
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  ArrowRight,
+  BookOpen,
+  FileText,
+  Plus,
+  IndianRupee,
+  Share2,
+  Sparkles,
+  Home
 } from 'lucide-react';
 import Logo from './Logo';
 import ProfileModal from './ProfileModal';
@@ -41,12 +53,74 @@ const navSections = [
   }
 ];
 
+/* ─── Help Guide Steps ─── */
+const GUIDE_STEPS = [
+  {
+    icon: Building2,
+    color: '#2d5a47',
+    bgColor: '#edf5f1',
+    title: 'Add your property',
+    desc: 'Go to Properties → Add Property. Enter the property name, address, and electricity rate per unit.',
+    link: '/properties',
+    linkLabel: 'Go to Properties'
+  },
+  {
+    icon: Home,
+    color: '#7c3aed',
+    bgColor: '#f5f3ff',
+    title: 'Create rooms',
+    desc: 'Inside your property, add rooms with room numbers, types (Single/Double), and monthly rent.',
+    link: '/properties',
+    linkLabel: 'Manage Rooms'
+  },
+  {
+    icon: Users,
+    color: '#0369a1',
+    bgColor: '#eff6ff',
+    title: 'Add tenants & assign rooms',
+    desc: 'Go to Tenants → Add Tenant. Fill in name, phone, and assign them to a room with a lease date.',
+    link: '/tenants',
+    linkLabel: 'Go to Tenants'
+  },
+  {
+    icon: Zap,
+    color: '#b45309',
+    bgColor: '#fffbeb',
+    title: 'Generate a bill',
+    desc: 'Go to Create Bill. Select property, room, enter current meter reading — the bill is auto-calculated.',
+    link: '/create-bill',
+    linkLabel: 'Create Bill'
+  },
+  {
+    icon: Share2,
+    color: '#16a34a',
+    bgColor: '#f0fdf4',
+    title: 'Share on WhatsApp',
+    desc: 'Before saving, click Share WhatsApp to send the bill directly to your tenant\'s number.',
+    link: '/create-bill',
+    linkLabel: 'Try it'
+  },
+  {
+    icon: Receipt,
+    color: '#dc2626',
+    bgColor: '#fef2f2',
+    title: 'Track payments',
+    desc: 'Go to Billing to view all bills. Use the Pay button to record partial or full payments from tenants.',
+    link: '/billing',
+    linkLabel: 'Go to Billing'
+  },
+];
+
 export default function Layout({ children }) {
   const { user, signOut, isLocal } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [notifLoaded, setNotifLoaded] = useState(false);
 
   const isPlainPage = ['/', '/login', '/signup'].includes(location.pathname);
 
@@ -54,6 +128,37 @@ export default function Layout({ children }) {
     await signOut();
     navigate('/');
   };
+
+  /* Load notifications (unpaid bills + tenants with arrears) */
+  useEffect(() => {
+    if (!user || notifLoaded) return;
+    const load = async () => {
+      try {
+        const ownerId = user?.id || 'mock_owner_id';
+        const [bills, tenants] = await Promise.all([
+          api.getBills(ownerId),
+          api.getTenants(ownerId)
+        ]);
+        const notifs = [];
+        const unpaid = (bills || []).filter(b => b.payment_status === 'Unpaid');
+        const partial = (bills || []).filter(b => b.payment_status === 'Partially Paid');
+        if (unpaid.length > 0) {
+          notifs.push({ type: 'warning', title: `${unpaid.length} unpaid bill${unpaid.length > 1 ? 's' : ''}`, desc: 'Tenants have outstanding invoices that need attention.', link: '/billing' });
+        }
+        if (partial.length > 0) {
+          notifs.push({ type: 'info', title: `${partial.length} partially paid bill${partial.length > 1 ? 's' : ''}`, desc: 'Some bills are partially settled — follow up for remaining balance.', link: '/billing' });
+        }
+        if (notifs.length === 0) {
+          notifs.push({ type: 'success', title: 'All caught up!', desc: 'No pending bills or outstanding dues. Great work! 🎉', link: null });
+        }
+        setNotifications(notifs);
+        setNotifLoaded(true);
+      } catch (e) { console.error(e); }
+    };
+    load();
+  }, [user, notifLoaded]);
+
+  const unreadCount = notifications.filter(n => n.type !== 'success').length;
 
   if (isPlainPage) {
     return <div className="min-h-screen bg-[#f8faf9] text-slate-800">{children}</div>;
@@ -75,6 +180,12 @@ export default function Layout({ children }) {
     '/quick-calc': 'Quick Calculator'
   };
   const currentBreadcrumb = breadcrumbMap[location.pathname] || 'Overview';
+
+  const notifIcon = (type) => {
+    if (type === 'warning') return <AlertTriangle size={15} className="text-amber-600 flex-shrink-0 mt-0.5" />;
+    if (type === 'info') return <Clock size={15} className="text-blue-500 flex-shrink-0 mt-0.5" />;
+    return <CheckCircle2 size={15} className="text-emerald-600 flex-shrink-0 mt-0.5" />;
+  };
 
   return (
     <div className="flex min-h-screen bg-[#f1f5f3]">
@@ -208,18 +319,95 @@ export default function Layout({ children }) {
 
           {/* Header Controls */}
           <div className="flex items-center gap-2 ml-auto">
-            <button className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm">
+
+            {/* Help Centre Button */}
+            <button
+              onClick={() => setShowHelp(true)}
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:border-[#2d5a47]/40 hover:text-[#2d5a47] transition-all shadow-sm cursor-pointer"
+            >
               <HelpCircle size={14} className="text-slate-400" />
               <span>Help centre</span>
             </button>
-            <button className="p-2 rounded-full bg-white border border-slate-200 text-slate-500 hover:text-slate-800 transition-colors shadow-sm relative">
-              <Bell size={15} />
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-amber-500 rounded-full" />
-            </button>
+
+            {/* Notification Bell */}
+            <div className="relative">
+              <button
+                onClick={() => setShowNotifications(v => !v)}
+                className="p-2 rounded-full bg-white border border-slate-200 text-slate-500 hover:text-slate-800 hover:border-[#2d5a47]/40 transition-all shadow-sm relative cursor-pointer"
+              >
+                <Bell size={15} />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-amber-500 rounded-full border border-white" />
+                )}
+              </button>
+
+              {/* Notification Dropdown */}
+              {showNotifications && createPortal(
+                <>
+                  {/* Backdrop to close */}
+                  <div className="fixed inset-0 z-[998]" onClick={() => setShowNotifications(false)} />
+                  <div
+                    className="fixed z-[999] bg-white rounded-2xl shadow-xl border border-slate-200/80 overflow-hidden"
+                    style={{ top: '64px', right: '88px', width: '320px' }}
+                  >
+                    {/* Header */}
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/80">
+                      <div className="flex items-center gap-2">
+                        <Bell size={14} className="text-slate-500" />
+                        <span className="font-bold text-sm text-slate-800">Notifications</span>
+                        {unreadCount > 0 && (
+                          <span className="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold">
+                            {unreadCount}
+                          </span>
+                        )}
+                      </div>
+                      <button onClick={() => setShowNotifications(false)} className="p-1 rounded-lg hover:bg-slate-200 text-slate-400 hover:text-slate-600 cursor-pointer transition-colors">
+                        <X size={14} />
+                      </button>
+                    </div>
+
+                    {/* Notification Items */}
+                    <div className="p-3 space-y-2 max-h-72 overflow-y-auto">
+                      {notifications.length === 0 ? (
+                        <div className="py-6 text-center text-sm text-slate-400">Loading…</div>
+                      ) : notifications.map((n, i) => (
+                        <div
+                          key={i}
+                          onClick={() => { if (n.link) { navigate(n.link); setShowNotifications(false); } }}
+                          className={`flex items-start gap-3 p-3 rounded-xl border transition-all ${
+                            n.link ? 'cursor-pointer hover:bg-slate-50 hover:border-slate-200' : ''
+                          } ${n.type === 'warning' ? 'bg-amber-50 border-amber-100' : n.type === 'info' ? 'bg-blue-50 border-blue-100' : 'bg-emerald-50 border-emerald-100'}`}
+                        >
+                          {notifIcon(n.type)}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-bold text-slate-800">{n.title}</p>
+                            <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">{n.desc}</p>
+                          </div>
+                          {n.link && <ArrowRight size={13} className="text-slate-400 flex-shrink-0 mt-0.5" />}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Footer */}
+                    <div className="px-4 py-2.5 border-t border-slate-100 bg-slate-50/50">
+                      <button
+                        onClick={() => { navigate('/billing'); setShowNotifications(false); }}
+                        className="w-full text-center text-xs font-bold text-[#2d5a47] hover:text-[#234738] transition-colors cursor-pointer"
+                      >
+                        View all in Billing →
+                      </button>
+                    </div>
+                  </div>
+                </>,
+                document.body
+              )}
+            </div>
+
+            {/* Avatar */}
             <button
               onClick={() => setShowProfileModal(true)}
               title="Open profile & settings"
-              className="w-8 h-8 rounded-full text-white flex items-center justify-center font-bold text-xs shadow-sm hover:ring-2 hover:ring-[#2d5a47]/40 hover:scale-105 transition-all"
+              className="w-8 h-8 rounded-full text-white flex items-center justify-center font-bold text-xs shadow-sm hover:ring-2 hover:ring-[#2d5a47]/40 hover:scale-105 transition-all cursor-pointer"
               style={{ backgroundColor: savedProfile.avatarColor || '#2d5a47' }}
             >
               {avatarLetter}
@@ -235,11 +423,94 @@ export default function Layout({ children }) {
         </main>
       </div>
 
-      {/* Profile & Workspace Settings Modal */}
+      {/* ── Profile Modal ── */}
       {showProfileModal && (
         <ProfileModal onClose={() => setShowProfileModal(false)} />
       )}
+
+      {/* ── Help Centre Modal ── */}
+      {showHelp && createPortal(
+        <div
+          className="fixed inset-0 z-[9999] overflow-y-auto bg-black/50 backdrop-blur-md"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowHelp(false); }}
+        >
+          <div
+            className="flex min-h-full items-center justify-center p-4 sm:p-6"
+            onClick={(e) => { if (e.target === e.currentTarget) setShowHelp(false); }}
+          >
+            <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl border border-slate-100 overflow-hidden">
+
+              {/* Header */}
+              <div className="px-6 py-5 border-b border-slate-100 flex items-start justify-between bg-gradient-to-br from-[#edf5f1] to-white">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-7 h-7 rounded-xl bg-[#2d5a47] flex items-center justify-center">
+                      <BookOpen size={14} className="text-white" />
+                    </div>
+                    <span className="text-[10px] font-bold text-[#2d5a47] uppercase tracking-widest">Quick Guide</span>
+                  </div>
+                  <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">How to use BillRoom</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">Follow these steps to set up and generate your first bill.</p>
+                </div>
+                <button
+                  onClick={() => setShowHelp(false)}
+                  className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer flex-shrink-0 mt-1"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Steps */}
+              <div className="p-6 space-y-3 max-h-[65vh] overflow-y-auto">
+                {GUIDE_STEPS.map((step, i) => {
+                  const Icon = step.icon;
+                  return (
+                    <div key={i} className="flex items-start gap-4 p-4 rounded-2xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50/50 transition-all group">
+                      {/* Step Number + Icon */}
+                      <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
+                        <span className="text-[10px] font-black text-slate-400 leading-none">{String(i + 1).padStart(2, '0')}</span>
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: step.bgColor }}>
+                          <Icon size={16} style={{ color: step.color }} />
+                        </div>
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-extrabold text-slate-800 leading-tight">{step.title}</h4>
+                        <p className="text-xs text-slate-500 mt-1 leading-relaxed">{step.desc}</p>
+                      </div>
+
+                      {/* Link */}
+                      <button
+                        onClick={() => { navigate(step.link); setShowHelp(false); }}
+                        className="flex-shrink-0 flex items-center gap-1 text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition-all cursor-pointer opacity-0 group-hover:opacity-100"
+                        style={{ color: step.color, backgroundColor: step.bgColor }}
+                      >
+                        {step.linkLabel}
+                        <ArrowRight size={11} />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/60 flex items-center justify-between">
+                <p className="text-xs text-slate-400">Need more help? Check the Quick Calculator for instant estimates.</p>
+                <button
+                  onClick={() => { navigate('/quick-calc'); setShowHelp(false); }}
+                  className="flex items-center gap-1.5 text-xs font-bold text-[#2d5a47] hover:text-[#1c4032] transition-colors cursor-pointer"
+                >
+                  <Calculator size={13} /> Quick Calc
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
     </div>
   );
 }
-

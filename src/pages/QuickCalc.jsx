@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Calculator,
   RefreshCw,
@@ -24,11 +25,23 @@ import {
   IndianRupee,
   Palette,
   Globe,
-  Plus
+  Plus,
+  Receipt
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { useToast, useConfirm } from '../components/Toast';
+
+const formatFloor = (val) => {
+  if (!val) return '';
+  const num = parseInt(val, 10);
+  if (isNaN(num)) return val;
+  if (num === 0) return 'Ground Floor';
+  if (num === 1) return '1st Floor';
+  if (num === 2) return '2nd Floor';
+  if (num === 3) return '3rd Floor';
+  return `${num}th Floor`;
+};
 
 /* ─────────────────────────────────────────────────────────────────────────
    Bilingual Invoice Translations (English / Natural Hinglish)
@@ -704,11 +717,11 @@ export default function QuickCalc() {
 
                 {/* Electricity Mode Selector */}
                 <div className="pt-2">
-                  <div className="flex items-center justify-between gap-2 text-xs mb-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs mb-2">
                     <span className="font-extrabold text-slate-900 flex items-center gap-1.5">
                       <Zap size={14} className="text-[#2d5a47]" /> Electricity billing mode:
                     </span>
-                    <div className="flex bg-white p-0.5 rounded-xl gap-0.5 border border-slate-200/80">
+                    <div className="flex flex-wrap bg-white p-0.5 rounded-xl gap-0.5 border border-slate-200/80">
                       {[
                         { id: 'submeter', label: 'Submeter' },
                         { id: 'direct', label: 'Direct Amount' },
@@ -722,7 +735,7 @@ export default function QuickCalc() {
                             newRooms[index].elecMode = mode.id;
                             setRooms(newRooms);
                           }}
-                          className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                          className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer flex-1 sm:flex-none text-center ${
                             room.elecMode === mode.id
                               ? 'bg-[#2d5a47] text-white shadow-sm'
                               : 'text-slate-600 hover:text-slate-900'
@@ -1066,7 +1079,7 @@ export default function QuickCalc() {
             </div>
 
             {/* Quick Action Toolbar underneath preview */}
-            <div className="grid grid-cols-3 gap-2.5 w-full max-w-xl">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 w-full max-w-xl">
               <button
                 onClick={handleShareWhatsapp}
                 className="py-2.5 px-3 rounded-2xl text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
@@ -1093,77 +1106,134 @@ export default function QuickCalc() {
               </button>
             </div>
 
+
+
           </div>
 
         </div>
       )}
 
-      {/* ── RECENT HISTORY SIDE DRAWER ── */}
-      {showHistory && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[999] flex justify-end transition-opacity duration-300">
-          <div className="w-full max-w-md bg-slate-900 h-full shadow-2xl overflow-y-auto border-l border-slate-800 flex flex-col">
 
-            {/* Header */}
-            <div className="p-5 border-b border-slate-800 flex justify-between items-center sticky top-0 bg-slate-900/95 backdrop-blur z-10">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <History className="text-emerald-500" size={18} />
-                <span>Recent Quick Bills</span>
-              </h2>
+
+      {/* ── RECENT HISTORY SIDE DRAWER ── */}
+      {showHistory && createPortal(
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[9999] flex justify-end animate-in fade-in duration-200">
+          {/* Backdrop Click Dismiss */}
+          <div className="absolute inset-0" onClick={() => setShowHistory(false)} />
+
+          {/* Drawer Container */}
+          <div className="relative w-full max-w-md bg-white h-full shadow-2xl overflow-hidden border-l border-slate-200/80 flex flex-col z-10 animate-slide-in-right">
+
+            {/* Premium Header */}
+            <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/80 sticky top-0 z-10">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-[#2d5a47] flex items-center justify-center border border-emerald-100/80 shadow-xs">
+                  <History size={20} />
+                </div>
+                <div>
+                  <h2 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                    Recent Quick Bills
+                  </h2>
+                  <p className="text-xs font-semibold text-slate-500">
+                    {history.length} saved receipt{history.length !== 1 ? 's' : ''}
+                  </p>
+                </div>
+              </div>
+              
               <button
                 onClick={() => setShowHistory(false)}
-                className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-all cursor-pointer"
+                className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 transition-all flex items-center justify-center cursor-pointer"
+                aria-label="Close history"
               >
-                <X size={18} />
+                <X size={16} />
               </button>
             </div>
 
-            {/* Content */}
-            <div className="p-5 flex-1 overflow-y-auto space-y-3">
+            {/* History Cards List */}
+            <div className="p-5 flex-1 overflow-y-auto space-y-3 bg-slate-50/30">
               {history.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-slate-500 opacity-60 py-12">
-                  <History size={48} strokeWidth={1} className="mb-3 text-slate-600" />
-                  <p className="text-base font-semibold">No history records</p>
-                  <p className="text-xs">Generated quick bills will appear here</p>
+                <div className="h-full flex flex-col items-center justify-center text-center p-8 py-16">
+                  <div className="w-16 h-16 rounded-3xl bg-slate-100 flex items-center justify-center text-slate-400 mb-4 border border-slate-200/60">
+                    <History size={32} strokeWidth={1.5} />
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-700">No bill history found</h3>
+                  <p className="text-xs text-slate-400 max-w-[220px] mt-1">
+                    Calculated receipts will automatically show up here for instant access.
+                  </p>
                 </div>
               ) : (
-                history.map((item, idx) => (
-                  <div
-                    key={idx}
-                    onClick={() => { setResult(item); setShowHistory(false); }}
-                    className="group relative bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 hover:border-emerald-500/50 rounded-2xl p-4 cursor-pointer transition-all duration-200 space-y-2"
-                  >
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleDeleteHistory(idx); }}
-                      className="absolute top-3 right-3 p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
-                      title="Delete record"
+                history.map((item, idx) => {
+                  const roomCount = item.rooms?.length || 1;
+                  const rentAmt = item.totalRent !== undefined ? item.totalRent : (item.rent || 0);
+                  const elecAmt = item.totalElec !== undefined ? item.totalElec : (item.elecAmount || 0);
+
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => { setResult(item); setShowHistory(false); toast(`Loaded ${item.name || 'receipt'} preview`, 'info'); }}
+                      className="group relative bg-white hover:bg-emerald-50/30 border border-slate-200/80 hover:border-[#2d5a47]/30 rounded-2xl p-4.5 cursor-pointer transition-all duration-200 shadow-xs hover:shadow-md space-y-3"
                     >
-                      <Trash2 size={14} />
-                    </button>
+                      {/* Top Header */}
+                      <div className="flex justify-between items-start">
+                        <div className="space-y-1 pr-6">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            <h3 className="font-extrabold text-slate-900 text-sm tracking-tight group-hover:text-[#2d5a47] transition-colors">
+                              {item.name || 'Walk-in Tenant'}
+                            </h3>
+                          </div>
+                          <div className="flex items-center gap-2 text-[11px] font-bold text-slate-400">
+                            <span className="flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200/60">
+                              <Calendar size={11} className="text-slate-500" /> {item.billMonth} {item.billYear}
+                            </span>
+                            <span className="bg-emerald-50 text-[#2d5a47] px-2 py-0.5 rounded-lg border border-emerald-100">
+                              {roomCount} {roomCount === 1 ? 'Room' : 'Rooms'}
+                            </span>
+                          </div>
+                        </div>
 
-                    <div className="flex justify-between items-start pr-6">
-                      <div>
-                        <h3 className="font-extrabold text-slate-100 text-base">{item.name || 'Walk-in Tenant'}</h3>
-                        <p className="text-[11px] text-slate-400 font-semibold flex items-center gap-1 mt-0.5">
-                          <Calendar size={10} /> {item.billMonth} {item.billYear}
-                        </p>
+                        <div className="text-right">
+                          <span className="text-base font-black text-slate-900 font-mono tracking-tight group-hover:text-[#2d5a47] transition-colors">
+                            ₹{parseFloat(item.total || 0).toLocaleString('en-IN')}
+                          </span>
+                        </div>
+
+                        {/* Quick Delete Hover Action */}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleDeleteHistory(idx); }}
+                          className="absolute top-3.5 right-3.5 p-1.5 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
+                          title="Delete record"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
-                      <span className="text-lg font-black text-emerald-400 font-mono">
-                        ₹{item.total.toFixed(0)}
-                      </span>
-                    </div>
 
-                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-700/50 text-[11px] text-slate-400">
-                      <div>Rent: <strong className="text-slate-200">₹{item.totalRent !== undefined ? item.totalRent : item.rent}</strong></div>
-                      <div>Elec: <strong className="text-slate-200">₹{(item.totalElec !== undefined ? item.totalElec : item.elecAmount).toFixed(0)}</strong></div>
+                      {/* Breakdown Badge Pills */}
+                      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 text-xs font-semibold">
+                        <div className="flex justify-between items-center bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-100">
+                          <span className="text-[11px] text-slate-500 font-medium">Rent</span>
+                          <span className="font-bold text-slate-800 font-mono">₹{parseFloat(rentAmt).toLocaleString('en-IN')}</span>
+                        </div>
+                        <div className="flex justify-between items-center bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-100">
+                          <span className="text-[11px] text-slate-500 font-medium">Electricity</span>
+                          <span className="font-bold text-slate-800 font-mono">₹{parseFloat(elecAmt).toLocaleString('en-IN')}</span>
+                        </div>
+                      </div>
+
+                      {/* Card Action Hint */}
+                      <div className="flex justify-between items-center pt-1 text-[11px] font-bold text-[#2d5a47] opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span>Click to view receipt preview</span>
+                        <ArrowRight size={13} />
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
 
-            {/* Footer */}
+            {/* Footer Clear All Action */}
             {history.length > 0 && (
-              <div className="p-4 border-t border-slate-800 bg-slate-900">
+              <div className="p-4 border-t border-slate-100 bg-white shadow-lg">
                 <button
                   onClick={async () => {
                     const yes = await confirm({
@@ -1175,9 +1245,10 @@ export default function QuickCalc() {
                     if (yes) {
                       setHistory([]);
                       localStorage.removeItem('billHistory');
+                      toast('History cleared', 'info');
                     }
                   }}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-rose-900/30 text-rose-400 hover:bg-rose-900/20 transition-all text-xs font-bold cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 transition-all text-xs font-extrabold cursor-pointer"
                 >
                   <Trash2 size={14} /> Clear All History
                 </button>
@@ -1185,7 +1256,8 @@ export default function QuickCalc() {
             )}
 
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </div>
