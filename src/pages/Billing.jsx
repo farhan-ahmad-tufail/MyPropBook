@@ -24,7 +24,8 @@ import {
   ArrowUpRight,
   Gauge,
   Clock,
-  CheckCircle
+  CheckCircle,
+  ChevronDown
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
@@ -54,7 +55,26 @@ export default function Billing() {
   const [statusFilter, setStatusFilter] = useState('All');
   const [monthFilter, setMonthFilter] = useState('All');
   const [yearFilter, setYearFilter] = useState('All');
+  const [monthDropdownOpen, setMonthDropdownOpen] = useState(false);
+  const [yearDropdownOpen, setYearDropdownOpen] = useState(false);
   const [selectedBill, setSelectedBill] = useState(null);
+
+  const monthDropdownRef = useRef(null);
+  const yearDropdownRef = useRef(null);
+
+  // Click-outside listener for custom dropdowns
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (monthDropdownRef.current && !monthDropdownRef.current.contains(e.target)) {
+        setMonthDropdownOpen(false);
+      }
+      if (yearDropdownRef.current && !yearDropdownRef.current.contains(e.target)) {
+        setYearDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Payment Modal & History state
   const [showPayModal, setShowPayModal] = useState(false);
@@ -491,30 +511,101 @@ export default function Billing() {
               />
             </div>
 
-            {/* Month Dropdown Selector */}
-            <select
-              className="px-3 py-2 bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 rounded-xl outline-none cursor-pointer"
-              value={monthFilter}
-              onChange={e => setMonthFilter(e.target.value)}
-            >
-              <option value="All">All Months</option>
-              {availableMonths.map(m => (
-                <option key={m} value={m}>{m}</option>
-              ))}
-            </select>
-
-            {/* Year Dropdown Selector */}
-            {availableYears.length > 0 && (
-              <select
-                className="px-3 py-2 bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 rounded-xl outline-none cursor-pointer"
-                value={yearFilter}
-                onChange={e => setYearFilter(e.target.value)}
+            {/* Custom SaaS Month Dropdown */}
+            <div className="relative" ref={monthDropdownRef}>
+              <button
+                type="button"
+                onClick={() => { setMonthDropdownOpen(v => !v); setYearDropdownOpen(false); }}
+                className={`px-3.5 py-2 bg-slate-50 border rounded-xl text-xs font-bold text-slate-800 transition-all cursor-pointer flex items-center gap-2 shadow-2xs hover:bg-slate-100 ${
+                  monthDropdownOpen ? 'border-[#2d5a47] ring-2 ring-[#2d5a47]/10 bg-white' : 'border-slate-200'
+                }`}
               >
-                <option value="All">All Years</option>
-                {availableYears.map(y => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
+                <Calendar size={13} className="text-[#2d5a47]" />
+                <span>{monthFilter === 'All' ? 'All Months' : monthFilter}</span>
+                <ChevronDown size={13} className={`text-slate-400 transition-transform duration-200 ${monthDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {monthDropdownOpen && (
+                <div className="absolute top-full right-0 sm:left-0 mt-1.5 z-50 bg-white border border-slate-200/80 rounded-2xl shadow-xl py-1.5 w-44 animate-in fade-in slide-in-from-top-1 duration-150">
+                  <div className="max-h-60 overflow-y-auto px-1 space-y-0.5">
+                    <button
+                      type="button"
+                      onClick={() => { setMonthFilter('All'); setMonthDropdownOpen(false); }}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all cursor-pointer ${
+                        monthFilter === 'All'
+                          ? 'bg-[#2d5a47]/10 text-[#2d5a47] font-bold'
+                          : 'text-slate-700 hover:bg-slate-50 font-medium'
+                      }`}
+                    >
+                      <span>All Months</span>
+                      {monthFilter === 'All' && <Check size={14} className="text-[#2d5a47]" />}
+                    </button>
+                    {availableMonths.map(m => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => { setMonthFilter(m); setMonthDropdownOpen(false); }}
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all cursor-pointer ${
+                          monthFilter === m
+                            ? 'bg-[#2d5a47]/10 text-[#2d5a47] font-bold'
+                            : 'text-slate-700 hover:bg-slate-50 font-medium'
+                        }`}
+                      >
+                        <span>{m}</span>
+                        {monthFilter === m && <Check size={14} className="text-[#2d5a47]" />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Custom SaaS Year Dropdown */}
+            {availableYears.length > 0 && (
+              <div className="relative" ref={yearDropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => { setYearDropdownOpen(v => !v); setMonthDropdownOpen(false); }}
+                  className={`px-3.5 py-2 bg-slate-50 border rounded-xl text-xs font-bold text-slate-800 transition-all cursor-pointer flex items-center gap-2 shadow-2xs hover:bg-slate-100 ${
+                    yearDropdownOpen ? 'border-[#2d5a47] ring-2 ring-[#2d5a47]/10 bg-white' : 'border-slate-200'
+                  }`}
+                >
+                  <span>{yearFilter === 'All' ? 'All Years' : yearFilter}</span>
+                  <ChevronDown size={13} className={`text-slate-400 transition-transform duration-200 ${yearDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {yearDropdownOpen && (
+                  <div className="absolute top-full right-0 mt-1.5 z-50 bg-white border border-slate-200/80 rounded-2xl shadow-xl py-1.5 w-36 animate-in fade-in slide-in-from-top-1 duration-150">
+                    <div className="max-h-60 overflow-y-auto px-1 space-y-0.5">
+                      <button
+                        type="button"
+                        onClick={() => { setYearFilter('All'); setYearDropdownOpen(false); }}
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all cursor-pointer ${
+                          yearFilter === 'All'
+                            ? 'bg-[#2d5a47]/10 text-[#2d5a47] font-bold'
+                            : 'text-slate-700 hover:bg-slate-50 font-medium'
+                        }`}
+                      >
+                        <span>All Years</span>
+                        {yearFilter === 'All' && <Check size={14} className="text-[#2d5a47]" />}
+                      </button>
+                      {availableYears.map(y => (
+                        <button
+                          key={y}
+                          type="button"
+                          onClick={() => { setYearFilter(y.toString()); setYearDropdownOpen(false); }}
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all cursor-pointer ${
+                            yearFilter === y.toString()
+                              ? 'bg-[#2d5a47]/10 text-[#2d5a47] font-bold'
+                              : 'text-slate-700 hover:bg-slate-50 font-medium'
+                          }`}
+                        >
+                          <span>{y}</span>
+                          {yearFilter === y.toString() && <Check size={14} className="text-[#2d5a47]" />}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>
