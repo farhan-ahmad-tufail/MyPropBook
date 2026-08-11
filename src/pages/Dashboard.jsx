@@ -310,13 +310,22 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            onClick={() => navigate('/properties?tab=bulk')}
+            className="px-4 py-3 rounded-2xl bg-amber-500/10 text-amber-900 border border-amber-500/30 font-bold text-xs hover:bg-amber-500/20 transition-all flex items-center gap-2 cursor-pointer shadow-2xs"
+            title="Generate monthly bills for all rooms at once"
+          >
+            <Zap size={14} className="text-amber-600" />
+            <span>⚡ Bulk Bill Property</span>
+          </button>
+
           <button
             onClick={() => navigate('/create-bill')}
             className="px-5 py-3 rounded-2xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all flex items-center gap-2 shadow-sm cursor-pointer"
           >
             <Zap size={14} fill="currentColor" />
-            <span>Create smart bill</span>
+            <span>Create single bill</span>
             <ArrowUpRight size={14} />
           </button>
         </div>

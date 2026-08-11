@@ -540,7 +540,26 @@ export default function SmartCalc() {
           </h1>
         </div>
 
-        {/* Compact Month & Year Selectors */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Mode Switcher Pill */}
+          <div className="flex bg-slate-200/60 p-1 rounded-2xl gap-1">
+            <button
+              type="button"
+              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#2d5a47] text-white shadow-xs cursor-pointer flex items-center gap-1.5"
+            >
+              <span>Single Room</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/properties?tab=bulk')}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold text-amber-800 bg-amber-100 hover:bg-amber-200 transition-colors cursor-pointer flex items-center gap-1.5"
+            >
+              <Zap size={13} className="text-amber-700" />
+              <span>⚡ Bulk Billing Mode</span>
+            </button>
+          </div>
+
+          {/* Compact Month & Year Selectors */}
         <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-2xl border border-slate-200/80 shadow-sm text-xs font-semibold text-slate-700">
           <Calendar size={14} className="text-[#2d5a47]" />
           <select
@@ -561,12 +580,25 @@ export default function SmartCalc() {
         </div>
       </div>
 
-      {error && (
-        <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-xs flex items-center gap-2">
-          <AlertTriangle size={15} />
-          <span>{error}</span>
+      {/* ⚡ Bulk Billing Recommendation Banner */}
+      <div className="p-3.5 bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-transparent border border-amber-500/20 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-xl bg-amber-500/20 text-amber-700 flex items-center justify-center flex-shrink-0 font-bold">
+            ⚡
+          </div>
+          <div>
+            <p className="font-extrabold text-slate-800">Billing multiple rooms this month?</p>
+            <p className="text-[#4b5563] text-[11px]">Save time by entering all meter readings together in Bulk Billing mode.</p>
+          </div>
         </div>
-      )}
+        <button
+          onClick={() => navigate('/properties?tab=bulk')}
+          className="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5 flex-shrink-0 shadow-2xs"
+        >
+          <span>Open Bulk Billing Matrix</span>
+          <ArrowRight size={13} />
+        </button>
+      </div>
 
       {/* ── MAIN 2-COLUMN COMPACT LAYOUT ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">

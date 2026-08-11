@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import { 
@@ -84,8 +84,12 @@ export default function Properties() {
   const [showCreateTypeModal, setShowCreateTypeModal] = useState(false);
   const [activeMenuRoomId, setActiveMenuRoomId] = useState(null);
 
+  const [searchParams] = useSearchParams();
+
   // Bulk Billing State
-  const [activeTab, setActiveTab] = useState('rooms'); // 'rooms' | 'bulkbill'
+  const [activeTab, setActiveTab] = useState(() => {
+    return searchParams.get('tab') === 'bulk' ? 'bulkbill' : 'rooms';
+  }); // 'rooms' | 'bulkbill'
   const [bulkMonth, setBulkMonth] = useState(() => {
     const now = new Date();
     return now.toLocaleString('default', { month: 'long' });
@@ -655,15 +659,18 @@ export default function Properties() {
             </button>
             <button
               onClick={() => setActiveTab('bulkbill')}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer relative ${
                 activeTab === 'bulkbill'
-                  ? 'bg-violet-700 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-amber-600 text-white shadow-sm'
+                  : 'text-amber-700 bg-amber-50 border border-amber-200/80 hover:bg-amber-100'
               }`}
             >
-              <Bolt size={13} /> Bulk Billing
+              <Zap size={14} className={activeTab === 'bulkbill' ? 'text-white' : 'text-amber-600'} />
+              <span>⚡ Bulk Billing</span>
               {occupiedRoomsForBulk.length > 0 && (
-                <span className="bg-violet-100 text-violet-800 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full">
+                <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-full ${
+                  activeTab === 'bulkbill' ? 'bg-white/20 text-white' : 'bg-amber-600 text-white'
+                }`}>
                   {occupiedRoomsForBulk.length}
                 </span>
               )}
