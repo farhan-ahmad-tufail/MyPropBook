@@ -239,5 +239,35 @@ export const api = {
     } else {
       return mockDb.recordPayment(billId, amount, method);
     }
+  },
+
+  // Security Deposits
+  getDeposits: async (userId) => {
+    if (!isLocalMode()) {
+      return supabaseDb.getDeposits(userId);
+    } else {
+      return mockDb.getDeposits(userId || 'mock_owner_id');
+    }
+  },
+  createDeposit: async (userId, data) => {
+    if (!isLocalMode()) {
+      return supabaseDb.createDeposit(userId, data);
+    } else {
+      return mockDb.createDeposit(userId || 'mock_owner_id', data);
+    }
+  },
+  updateDeposit: async (id, data) => {
+    if (!isLocalMode()) {
+      return supabaseDb.updateDeposit(id, data);
+    } else {
+      return mockDb.updateDeposit(id, data);
+    }
+  },
+  deleteDeposit: async (id) => {
+    if (!isLocalMode()) {
+      return supabaseDb.deleteDeposit(id);
+    } else {
+      return mockDb.deleteDeposit(id);
+    }
   }
 };

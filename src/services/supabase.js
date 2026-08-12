@@ -306,5 +306,42 @@ export const supabaseDb = {
       .eq('id', billId);
 
     return payment;
+  },
+
+  // ── Security Deposits ──────────────────────────────────────────────
+  getDeposits: async (userId) => {
+    const { data, error } = await supabase
+      .from('security_deposits')
+      .select('*')
+      .eq('owner_id', userId)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data;
+  },
+  createDeposit: async (userId, depositData) => {
+    const { data, error } = await supabase
+      .from('security_deposits')
+      .insert([{ owner_id: userId, ...depositData, status: 'held', deductions: [] }])
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+  updateDeposit: async (id, depositData) => {
+    const { data, error } = await supabase
+      .from('security_deposits')
+      .update(depositData)
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+  deleteDeposit: async (id) => {
+    const { error } = await supabase
+      .from('security_deposits')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
   }
 };

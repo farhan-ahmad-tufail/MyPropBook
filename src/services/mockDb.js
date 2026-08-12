@@ -335,5 +335,45 @@ export const mockDb = {
       setStore('mock_bills', bills);
     }
     return newPayment;
+  },
+
+  // ── Security Deposits ──────────────────────────────────────────────────────
+  getDeposits: async (userId) => {
+    const list = getStore('mock_deposits');
+    return list.filter(d => d.owner_id === userId);
+  },
+  createDeposit: async (userId, data) => {
+    const list = getStore('mock_deposits');
+    const newDep = {
+      id: 'dep_' + Date.now(),
+      owner_id: userId,
+      tenant_id: data.tenant_id,
+      room_id: data.room_id || null,
+      property_id: data.property_id || null,
+      amount: parseFloat(data.amount),
+      collected_date: data.collected_date || new Date().toISOString().split('T')[0],
+      status: 'held',
+      deductions: [],
+      notes: data.notes || '',
+      return_amount: null,
+      return_date: null,
+      created_at: new Date().toISOString()
+    };
+    list.push(newDep);
+    setStore('mock_deposits', list);
+    return newDep;
+  },
+  updateDeposit: async (id, data) => {
+    const list = getStore('mock_deposits');
+    const index = list.findIndex(d => d.id === id);
+    if (index === -1) throw new Error('Deposit not found');
+    list[index] = { ...list[index], ...data };
+    setStore('mock_deposits', list);
+    return list[index];
+  },
+  deleteDeposit: async (id) => {
+    const list = getStore('mock_deposits');
+    const updated = list.filter(d => d.id !== id);
+    setStore('mock_deposits', updated);
   }
 };

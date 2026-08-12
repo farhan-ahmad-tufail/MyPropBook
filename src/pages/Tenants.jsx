@@ -5,9 +5,10 @@ import { useLocation } from 'react-router-dom';
 import {
   Users, UserPlus, Key, Trash2, Edit2, Link2, Check, X, ShieldAlert,
   Building, Home, Calendar, AlertCircle, ChevronDown, Search, User,
-  MapPin
+  MapPin, Shield, Plus, Minus, RotateCcw, IndianRupee, FileText
 } from 'lucide-react';
-import { useConfirm } from '../components/Toast';
+import { useConfirm, useToast } from '../components/Toast';
+import { formatINR } from '../utils/formatters';
 
 /* ─────────────────────────────────────────────────────────────────────────
    Custom SaaS Dropdown — reusable, searchable, animated
@@ -247,7 +248,7 @@ export default function Tenants() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Tab State: 'tenants' or 'leases'
+  // Tab State: 'tenants' | 'leases' | 'deposits'
   const [activeTab, setActiveTab] = useState('tenants');
 
   // Form State - Tenant
@@ -266,23 +267,43 @@ export default function Tenants() {
   const [leaseStartDate, setLeaseStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [leaseEndDate, setLeaseEndDate] = useState('');
 
+  // Security Deposits
+  const [deposits, setDeposits] = useState([]);
+  const [showDepositForm, setShowDepositForm] = useState(false);
+  const [depTenantId, setDepTenantId] = useState('');
+  const [depPropertyId, setDepPropertyId] = useState('');
+  const [depRoomId, setDepRoomId] = useState('');
+  const [depAmount, setDepAmount] = useState('');
+  const [depDate, setDepDate] = useState(new Date().toISOString().split('T')[0]);
+  const [depNotes, setDepNotes] = useState('');
+
+  // Deduction & Return modals
+  const [deductionModal, setDeductionModal] = useState(null); // deposit id
+  const [dedReason, setDedReason] = useState('');
+  const [dedAmount, setDedAmount] = useState('');
+  const [returnModal, setReturnModal] = useState(null); // deposit id
+  const [returnAmount, setReturnAmount] = useState('');
+  const toast = useToast();
+
   const loadAllData = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
       const ownerId = user?.id || 'mock_owner_id';
 
-      const [tenantsList, propsList, roomsList, leasesList] = await Promise.all([
+      const [tenantsList, propsList, roomsList, leasesList, depositsList] = await Promise.all([
         api.getTenants(ownerId),
         api.getProperties(ownerId),
         api.getAllRooms(ownerId),
-        api.getLeases(ownerId)
+        api.getLeases(ownerId),
+        api.getDeposits(ownerId)
       ]);
 
       setTenants(tenantsList);
       setProperties(propsList);
       setRooms(roomsList);
       setLeases(leasesList);
+      setDeposits(depositsList || []);
     } catch (err) {
       console.error(err);
       setError('Failed to fetch tenant and lease details');
@@ -415,6 +436,113 @@ export default function Tenants() {
   // Filter rooms belonging to the selected property in the allocation dropdown
   const filteredRoomsForProperty = rooms.filter(r => r.property_id === selectedPropertyId);
   const activeLeasesCount = leases.filter(l => l.is_active).length;
+  const heldDepositsCount = deposits.filter(d => d.status === 'held' || d.status === 'deducted').length;
+
+  // Deposit helper computations
+  const totalHeld = deposits.filter(d => d.status === 'held' || d.status === 'deducted').reduce((s, d) => s + parseFloat(d.amount || 0), 0);
+  const totalDeductions = deposits.reduce((s, d) => s + (d.deductions || []).reduce((ss, dd) => ss + parseFloat(dd.amount || 0), 0), 0);
+  const totalReturned = deposits.filter(d => d.status === 'returned').reduce((s, d) => s + parseFloat(d.return_amount || 0), 0);
+
+  // Deposit rooms filter
+  const depRoomsForProperty = rooms.filter(r => r.property_id === depPropertyId);
+
+  // Deposit Handlers
+  const handleDepositSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    const ownerId = user?.id || 'mock_owner_id';
+    try {
+      await api.createDeposit(ownerId, {
+        tenant_id: depTenantId,
+        room_id: depRoomId || null,
+        property_id: depPropertyId || null,
+        amount: parseFloat(depAmount),
+        collected_date: depDate,
+        notes: depNotes
+      });
+      setShowDepositForm(false);
+      setDepTenantId(''); setDepPropertyId(''); setDepRoomId('');
+      setDepAmount(''); setDepDate(new Date().toISOString().split('T')[0]); setDepNotes('');
+      await loadAllData();
+    } catch (err) {
+      console.error(err);
+      setError('Failed to record security deposit');
+    }
+  };
+
+  const handleAddDeduction = async () => {
+    if (!deductionModal || !dedAmount || !dedReason) return;
+    try {
+      const dep = deposits.find(d => d.id === deductionModal);
+      if (!dep) return;
+      const updatedDeductions = [...(dep.deductions || []), {
+        id: 'ded_' + Date.now(),
+        reason: dedReason,
+        amount: parseFloat(dedAmount),
+        date: new Date().toISOString().split('T')[0]
+      }];
+      await api.updateDeposit(dep.id, { deductions: updatedDeductions, status: 'deducted' });
+      setDeductionModal(null); setDedReason(''); setDedAmount('');
+      await loadAllData();
+    } catch (err) {
+      console.error(err);
+      setError('Failed to add deduction');
+    }
+  };
+
+  const handleProcessReturn = async () => {
+    if (!returnModal) return;
+    try {
+      const dep = deposits.find(d => d.id === returnModal);
+      if (!dep) return;
+      const totalDed = (dep.deductions || []).reduce((s, dd) => s + parseFloat(dd.amount || 0), 0);
+      const refund = returnAmount ? parseFloat(returnAmount) : (parseFloat(dep.amount) - totalDed);
+      await api.updateDeposit(dep.id, {
+        status: 'returned',
+        return_amount: refund,
+        return_date: new Date().toISOString().split('T')[0]
+      });
+      setReturnModal(null); setReturnAmount('');
+      await loadAllData();
+    } catch (err) {
+      console.error(err);
+      setError('Failed to process deposit return');
+    }
+  };
+
+  const handleForfeitDeposit = async (depId) => {
+    const yes = await confirm({
+      title: 'Forfeit Deposit',
+      message: 'This will mark the entire deposit as forfeited (non-refundable). Continue?',
+      confirmText: 'Forfeit',
+      type: 'warning'
+    });
+    if (!yes) return;
+    try {
+      await api.updateDeposit(depId, { status: 'forfeited', return_amount: 0, return_date: new Date().toISOString().split('T')[0] });
+      await loadAllData();
+    } catch (err) {
+      console.error(err);
+      setError('Failed to forfeit deposit');
+    }
+  };
+
+  const handleDeleteDeposit = async (depId) => {
+    const yes = await confirm({
+      title: 'Delete Deposit Record',
+      message: 'Permanently delete this security deposit record?',
+      confirmText: 'Delete',
+      type: 'warning'
+    });
+    if (!yes) return;
+    try {
+      await api.deleteDeposit(depId);
+      await loadAllData();
+    } catch (err) {
+      console.error(err);
+      setError('Failed to delete deposit');
+    }
+  };
 
   // Build dropdown option arrays
   const tenantOptions = tenants
@@ -466,23 +594,33 @@ export default function Tenants() {
         <div className="flex bg-slate-200/60 p-1 rounded-2xl w-full md:w-auto">
           <button
             onClick={() => setActiveTab('tenants')}
-            className={`flex-1 md:flex-none px-5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            className={`flex-1 md:flex-none px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
               activeTab === 'tenants'
                 ? 'bg-[#2d5a47] text-white shadow-sm'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Users size={14} /> Tenants Directory
+            <Users size={14} /> Tenants
           </button>
           <button
             onClick={() => setActiveTab('leases')}
-            className={`flex-1 md:flex-none px-5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            className={`flex-1 md:flex-none px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
               activeTab === 'leases'
                 ? 'bg-[#2d5a47] text-white shadow-sm'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Key size={14} /> Active Allocations ({activeLeasesCount})
+            <Key size={14} /> Allocations ({activeLeasesCount})
+          </button>
+          <button
+            onClick={() => setActiveTab('deposits')}
+            className={`flex-1 md:flex-none px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+              activeTab === 'deposits'
+                ? 'bg-[#2d5a47] text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Shield size={14} /> Deposits ({heldDepositsCount})
           </button>
         </div>
       </div>
@@ -888,6 +1026,426 @@ export default function Tenants() {
               </table>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── DEPOSITS TAB ── */}
+      {activeTab === 'deposits' && (
+        <div className="space-y-6">
+
+          {/* Summary Bar */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center">
+                  <Shield size={18} className="text-emerald-600" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">TOTAL HELD</p>
+                  <p className="text-xl font-black text-slate-900">{formatINR(totalHeld)}</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center">
+                  <Minus size={18} className="text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">TOTAL DEDUCTIONS</p>
+                  <p className="text-xl font-black text-amber-700">{formatINR(totalDeductions)}</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center">
+                  <RotateCcw size={18} className="text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">TOTAL RETURNED</p>
+                  <p className="text-xl font-black text-blue-700">{formatINR(totalReturned)}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Header + Add Button */}
+          <div className="flex justify-between items-center">
+            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest">SECURITY DEPOSIT RECORDS</h2>
+            <button
+              onClick={() => {
+                setShowDepositForm(true);
+                setDepTenantId(''); setDepPropertyId(''); setDepRoomId('');
+                setDepAmount(''); setDepDate(new Date().toISOString().split('T')[0]); setDepNotes('');
+              }}
+              className="px-4 py-2.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all flex items-center gap-2 shadow-sm cursor-pointer"
+            >
+              <Plus size={15} /> Record Deposit
+            </button>
+          </div>
+
+          {/* Add Deposit Form */}
+          {showDepositForm && (
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-100 shadow-sm max-w-2xl space-y-6">
+              <div className="border-b border-slate-100 pb-3">
+                <h3 className="font-extrabold text-slate-900 text-lg">Record Security Deposit</h3>
+                <p className="text-xs text-slate-400 mt-0.5">Track deposit collected from tenant at move-in</p>
+              </div>
+
+              <form onSubmit={handleDepositSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <SaasDropdown
+                    label="Tenant"
+                    required
+                    value={depTenantId}
+                    onChange={setDepTenantId}
+                    options={tenantOptions}
+                    placeholder="Select tenant…"
+                    icon={User}
+                  />
+                  <SaasDropdown
+                    label="Property"
+                    value={depPropertyId}
+                    onChange={v => { setDepPropertyId(v); setDepRoomId(''); }}
+                    options={propertyOptions}
+                    placeholder="Select property…"
+                    icon={Building}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {depPropertyId && (
+                    <SaasDropdown
+                      label="Room"
+                      value={depRoomId}
+                      onChange={setDepRoomId}
+                      options={depRoomsForProperty.map(r => ({ value: r.id, label: `Room ${r.room_number}`, icon: <Home size={13} className="text-emerald-500" /> }))}
+                      placeholder="Select room…"
+                      icon={Home}
+                    />
+                  )}
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">DEPOSIT AMOUNT *</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">₹</span>
+                      <input
+                        type="number"
+                        required
+                        min="1"
+                        step="1"
+                        placeholder="e.g. 50000"
+                        className="w-full pl-7 pr-4 py-2.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-[#2d5a47]"
+                        value={depAmount}
+                        onChange={e => setDepAmount(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <SaasDateInput
+                    label="Date Collected"
+                    required
+                    value={depDate}
+                    onChange={setDepDate}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">NOTES</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 2 months advance, via bank transfer"
+                    className="w-full px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-[#2d5a47]"
+                    value={depNotes}
+                    onChange={e => setDepNotes(e.target.value)}
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button type="submit" className="flex-1 py-2.5 px-4 rounded-xl bg-[#2d5a47] hover:bg-[#234738] text-white font-bold text-xs transition-all shadow-sm cursor-pointer">
+                    Save Deposit Record
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowDepositForm(false)}
+                    className="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* Deposit Cards */}
+          {deposits.length === 0 ? (
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-12 text-center text-slate-500 text-xs">
+              No security deposits recorded yet. Click "Record Deposit" to start tracking.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {deposits.map(dep => {
+                const tenant = tenants.find(t => t.id === dep.tenant_id);
+                const room = rooms.find(r => r.id === dep.room_id);
+                const property = properties.find(p => p.id === dep.property_id);
+                const deds = dep.deductions || [];
+                const totalDed = deds.reduce((s, d) => s + parseFloat(d.amount || 0), 0);
+                const netBalance = parseFloat(dep.amount) - totalDed;
+
+                const statusConfig = {
+                  held: { label: 'Held', bg: 'bg-emerald-50', text: 'text-emerald-700', ring: 'ring-emerald-200' },
+                  deducted: { label: 'Deductions Applied', bg: 'bg-amber-50', text: 'text-amber-700', ring: 'ring-amber-200' },
+                  returned: { label: 'Returned', bg: 'bg-blue-50', text: 'text-blue-700', ring: 'ring-blue-200' },
+                  forfeited: { label: 'Forfeited', bg: 'bg-red-50', text: 'text-red-700', ring: 'ring-red-200' },
+                };
+                const sc = statusConfig[dep.status] || statusConfig.held;
+                const isActive = dep.status === 'held' || dep.status === 'deducted';
+
+                return (
+                  <div key={dep.id} className={`bg-white rounded-3xl border shadow-sm overflow-hidden transition-all ${
+                    isActive ? 'border-slate-200/80' : 'border-slate-100 opacity-80'
+                  }`}>
+                    {/* Card Header */}
+                    <div className="p-5 pb-4">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-2xl bg-[#edf5f1] text-[#2d5a47] flex items-center justify-center font-bold text-sm">
+                            {tenant?.name?.charAt(0)?.toUpperCase() || '?'}
+                          </div>
+                          <div>
+                            <p className="font-extrabold text-slate-900 text-sm">{tenant?.name || 'Unknown Tenant'}</p>
+                            <p className="text-[11px] text-slate-400 font-medium mt-0.5">
+                              {property?.name || ''}{room ? ` • Room ${room.room_number}` : ''}
+                              {dep.collected_date ? ` • Collected ${dep.collected_date}` : ''}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold ${sc.bg} ${sc.text}`}>
+                            {sc.label}
+                          </span>
+                          {isActive && (
+                            <button
+                              onClick={() => handleDeleteDeposit(dep.id)}
+                              className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Delete"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Financial Summary Row */}
+                      <div className="mt-4 flex flex-wrap items-center gap-3">
+                        <div className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-100">
+                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Deposit</p>
+                          <p className="font-black text-slate-900 text-sm">{formatINR(dep.amount)}</p>
+                        </div>
+                        {totalDed > 0 && (
+                          <div className="px-3 py-2 rounded-xl bg-amber-50 border border-amber-100">
+                            <p className="text-[9px] font-bold text-amber-600 uppercase tracking-wider">Deducted</p>
+                            <p className="font-black text-amber-800 text-sm">-{formatINR(totalDed)}</p>
+                          </div>
+                        )}
+                        {dep.status === 'returned' ? (
+                          <div className="px-3 py-2 rounded-xl bg-blue-50 border border-blue-100">
+                            <p className="text-[9px] font-bold text-blue-600 uppercase tracking-wider">Returned</p>
+                            <p className="font-black text-blue-800 text-sm">{formatINR(dep.return_amount || 0)}</p>
+                          </div>
+                        ) : dep.status === 'forfeited' ? (
+                          <div className="px-3 py-2 rounded-xl bg-red-50 border border-red-100">
+                            <p className="text-[9px] font-bold text-red-600 uppercase tracking-wider">Forfeited</p>
+                            <p className="font-black text-red-800 text-sm">{formatINR(dep.amount)}</p>
+                          </div>
+                        ) : (
+                          <div className="px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-100">
+                            <p className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider">Balance</p>
+                            <p className="font-black text-emerald-800 text-sm">{formatINR(netBalance)}</p>
+                          </div>
+                        )}
+                        {dep.notes && (
+                          <div className="text-[11px] text-slate-400 font-medium italic flex items-center gap-1">
+                            <FileText size={11} /> {dep.notes}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Deductions List */}
+                    {deds.length > 0 && (
+                      <div className="border-t border-slate-100 px-5 py-3 bg-slate-50/50">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">DEDUCTION HISTORY</p>
+                        <div className="space-y-1.5">
+                          {deds.map((d, i) => (
+                            <div key={d.id || i} className="flex items-center justify-between text-xs">
+                              <div className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
+                                <span className="font-semibold text-slate-700">{d.reason}</span>
+                                <span className="text-slate-400">{d.date}</span>
+                              </div>
+                              <span className="font-bold text-amber-700">-{formatINR(d.amount)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Return Info */}
+                    {dep.status === 'returned' && dep.return_date && (
+                      <div className="border-t border-blue-100 px-5 py-3 bg-blue-50/30">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-semibold text-blue-700">Refund processed on {dep.return_date}</span>
+                          <span className="font-bold text-blue-800">{formatINR(dep.return_amount || 0)}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Action Buttons */}
+                    {isActive && (
+                      <div className="border-t border-slate-100 px-5 py-3 flex flex-wrap gap-2">
+                        <button
+                          onClick={() => { setDeductionModal(dep.id); setDedReason(''); setDedAmount(''); }}
+                          className="px-3 py-1.5 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold text-[11px] transition-colors cursor-pointer flex items-center gap-1.5"
+                        >
+                          <Minus size={12} /> Add Deduction
+                        </button>
+                        <button
+                          onClick={() => {
+                            const totalD = (dep.deductions || []).reduce((s, dd) => s + parseFloat(dd.amount || 0), 0);
+                            setReturnModal(dep.id);
+                            setReturnAmount(String(parseFloat(dep.amount) - totalD));
+                          }}
+                          className="px-3 py-1.5 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-800 font-bold text-[11px] transition-colors cursor-pointer flex items-center gap-1.5"
+                        >
+                          <RotateCcw size={12} /> Process Return
+                        </button>
+                        <button
+                          onClick={() => handleForfeitDeposit(dep.id)}
+                          className="px-3 py-1.5 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 font-bold text-[11px] transition-colors cursor-pointer flex items-center gap-1.5"
+                        >
+                          <X size={12} /> Forfeit
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── DEDUCTION MODAL ── */}
+      {deductionModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="font-extrabold text-slate-900 text-base">Add Deduction</h3>
+              <button onClick={() => setDeductionModal(null)} className="p-1 hover:bg-slate-100 rounded-lg transition-colors">
+                <X size={16} className="text-slate-400" />
+              </button>
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">REASON *</label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. Wall damage repair, cleaning charges"
+                className="w-full px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-[#2d5a47]"
+                value={dedReason}
+                onChange={e => setDedReason(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">AMOUNT *</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">₹</span>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  placeholder="e.g. 5000"
+                  className="w-full pl-7 pr-4 py-2.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-[#2d5a47]"
+                  value={dedAmount}
+                  onChange={e => setDedAmount(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 pt-1">
+              <button
+                onClick={handleAddDeduction}
+                disabled={!dedReason || !dedAmount}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition-all shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Confirm Deduction
+              </button>
+              <button
+                onClick={() => setDeductionModal(null)}
+                className="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── RETURN MODAL ── */}
+      {returnModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="font-extrabold text-slate-900 text-base">Process Deposit Return</h3>
+              <button onClick={() => setReturnModal(null)} className="p-1 hover:bg-slate-100 rounded-lg transition-colors">
+                <X size={16} className="text-slate-400" />
+              </button>
+            </div>
+            {(() => {
+              const dep = deposits.find(d => d.id === returnModal);
+              if (!dep) return null;
+              const totalD = (dep.deductions || []).reduce((s, dd) => s + parseFloat(dd.amount || 0), 0);
+              const suggestedReturn = parseFloat(dep.amount) - totalD;
+              return (
+                <>
+                  <div className="bg-slate-50 rounded-2xl p-4 space-y-2 text-xs">
+                    <div className="flex justify-between"><span className="text-slate-500">Original Deposit</span><span className="font-bold text-slate-900">{formatINR(dep.amount)}</span></div>
+                    <div className="flex justify-between"><span className="text-amber-600">Total Deductions</span><span className="font-bold text-amber-700">-{formatINR(totalD)}</span></div>
+                    <div className="border-t border-slate-200 pt-2 flex justify-between"><span className="font-bold text-slate-700">Suggested Refund</span><span className="font-black text-emerald-700">{formatINR(suggestedReturn)}</span></div>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">REFUND AMOUNT</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">₹</span>
+                      <input
+                        type="number"
+                        min="0"
+                        placeholder={String(suggestedReturn)}
+                        className="w-full pl-7 pr-4 py-2.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-[#2d5a47]"
+                        value={returnAmount}
+                        onChange={e => setReturnAmount(e.target.value)}
+                      />
+                    </div>
+                    <p className="text-[10px] text-slate-400 mt-1">You can adjust the refund amount if needed</p>
+                  </div>
+                </>
+              );
+            })()}
+            <div className="flex gap-3 pt-1">
+              <button
+                onClick={handleProcessReturn}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-all shadow-sm cursor-pointer"
+              >
+                Confirm Return
+              </button>
+              <button
+                onClick={() => setReturnModal(null)}
+                className="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
