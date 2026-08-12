@@ -617,7 +617,7 @@ export default function Landing() {
                 </div>
                 <div>
                   <h4 className="font-extrabold text-slate-900 text-sm">Farhan Ahmad Tufail</h4>
-                  <p className="text-xs text-slate-400 font-medium">Full-Stack Developer · Backend & DevOps · India</p>
+                  <p className="text-xs text-slate-400 font-medium">Software Engineer · India</p>
                 </div>
               </div>
 
@@ -656,56 +656,68 @@ export default function Landing() {
       {/* ══════════════════════════════════════════
           10. FOOTER (Clean SaaS - NO "Made with Replit")
       ══════════════════════════════════════════ */}
-      <footer className="bg-[#0f172a] text-white px-6 lg:px-12 pt-16 pb-8 text-left">
+      <footer className="bg-white border-t border-slate-200/80 px-6 lg:px-12 pt-16 pb-8 text-left">
         <div className="max-w-7xl mx-auto space-y-12">
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-8 pb-10 border-b border-slate-800">
-            
+
+          {/* Top Row: Brand + Nav Columns */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-10 pb-12 border-b border-slate-100">
+
             {/* Brand Column */}
-            <div className="lg:col-span-5 space-y-4">
+            <div className="lg:col-span-5 space-y-5">
               <Logo size={34} />
-              <p className="text-slate-400 text-xs leading-relaxed max-w-sm">
-                A dependable property and billing workspace for Indian landlords and property managers.
+              <p className="text-slate-500 text-sm leading-relaxed max-w-xs font-medium">
+                The simplest way for Indian landlords to manage properties, tenants, and billing — all in one place.
               </p>
+              {/* Status Pill */}
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/70 text-emerald-700 text-xs font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                All systems operational
+              </div>
             </div>
 
             {/* Product Links */}
-            <div className="lg:col-span-2 space-y-3">
+            <div className="lg:col-span-2 space-y-4">
               <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">Product</span>
-              <ul className="space-y-2 text-xs text-slate-400 font-medium">
-                <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
-                <li><a href="#how-it-works" className="hover:text-white transition-colors">How it works</a></li>
-                <li><Link to="/quick-calc" className="hover:text-white transition-colors">Smart billing</Link></li>
-                <li><Link to="/signup" className="hover:text-white transition-colors">Get started</Link></li>
+              <ul className="space-y-3">
+                <li><a href="#features" className="text-sm text-slate-600 font-medium hover:text-[#2d5a47] transition-colors">Features</a></li>
+                <li><a href="#how-it-works" className="text-sm text-slate-600 font-medium hover:text-[#2d5a47] transition-colors">How it works</a></li>
+                <li><Link to="/quick-calc" className="text-sm text-slate-600 font-medium hover:text-[#2d5a47] transition-colors">Smart Billing</Link></li>
+                <li><Link to="/signup" className="text-sm text-slate-600 font-medium hover:text-[#2d5a47] transition-colors">Get started →</Link></li>
               </ul>
             </div>
 
             {/* Built For */}
-            <div className="lg:col-span-3 space-y-3">
+            <div className="lg:col-span-3 space-y-4">
               <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">Built For</span>
-              <ul className="space-y-2 text-xs text-slate-400 font-medium">
-                <li>Rental properties</li>
-                <li>PGs &amp; Hostels</li>
-                <li>Apartments</li>
-                <li>Small landlords</li>
+              <ul className="space-y-3">
+                {['Rental properties', 'PGs & Hostels', 'Apartments', 'Small landlords'].map(item => (
+                  <li key={item} className="text-sm text-slate-600 font-medium">{item}</li>
+                ))}
               </ul>
             </div>
 
             {/* Company */}
-            <div className="lg:col-span-2 space-y-3">
-              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">Company</span>
-              <ul className="space-y-2 text-xs text-slate-400 font-medium">
-                <li><a href="#about" className="hover:text-white transition-colors">About BillRoom</a></li>
-                <li><Link to="/quick-calc" className="hover:text-white transition-colors">Quick Calculator</Link></li>
+            <div className="lg:col-span-2 space-y-4">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">Resources</span>
+              <ul className="space-y-3">
+                <li><a href="#about" className="text-sm text-slate-600 font-medium hover:text-[#2d5a47] transition-colors">About</a></li>
+                <li><Link to="/quick-calc" className="text-sm text-slate-600 font-medium hover:text-[#2d5a47] transition-colors">Quick Calculator</Link></li>
+                <li><Link to={user ? '/dashboard' : '/signup'} className="text-sm text-slate-600 font-medium hover:text-[#2d5a47] transition-colors">Dashboard</Link></li>
               </ul>
             </div>
 
           </div>
 
-          {/* Bottom Row */}
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-500">
-            <p>© {year} BillRoom · Property Management Software</p>
-            <p className="text-[11px]">Designed &amp; built for property owners in India</p>
+          {/* Bottom Bar */}
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
+            <p className="text-xs text-slate-400 font-medium">
+              © {year} <span className="font-bold text-slate-600">BillRoom</span> · Property Management Software
+            </p>
+            <div className="flex items-center gap-4 text-xs text-slate-400 font-medium">
+              <span>Made with ♥ in India</span>
+              <span className="w-px h-3 bg-slate-200" />
+              <span>Built by <span className="font-bold text-slate-600">Farhan Ahmad Tufail</span></span>
+            </div>
           </div>
 
         </div>
