@@ -208,18 +208,21 @@ export default function Layout({ children }) {
 
       {/* ── Sidebar ── */}
       <aside className={`
-        fixed top-0 left-0 h-screen w-64 bg-[#f8faf9] border-r border-slate-200/70
-        z-50 flex flex-col transition-transform duration-300 ease-in-out px-4 py-5
+        fixed top-0 left-0 h-screen w-64 bg-white/95 backdrop-blur-xl border-r border-slate-200/80
+        z-50 flex flex-col transition-transform duration-300 ease-in-out px-4 py-5 shadow-xs
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0
       `}>
-        {/* Top Logo */}
-        <div className="flex items-center justify-between px-2 pb-5 border-b border-slate-200/50">
-          <Link to="/" className="flex items-center">
+        {/* Top Logo & Brand Bar */}
+        <div className="flex items-center justify-between px-1 pb-4 border-b border-slate-100">
+          <Link to="/" className="flex items-center gap-2 group">
             <Logo size={32} />
+            <span className="px-1.5 py-0.5 rounded-md bg-[#edf5f1] text-[#2d5a47] font-extrabold text-[9px] uppercase tracking-wider border border-[#2d5a47]/20">
+              PRO
+            </span>
           </Link>
           <button
             onClick={() => setMobileOpen(false)}
-            className="lg:hidden p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
+            className="lg:hidden p-1.5 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 transition-colors"
           >
             <X size={18} />
           </button>
@@ -227,38 +230,46 @@ export default function Layout({ children }) {
 
         {/* User Account Switcher Card */}
         <div
-          className="mt-4 p-2.5 bg-white border border-slate-200/80 rounded-2xl flex items-center justify-between shadow-sm cursor-pointer hover:border-[#2d5a47]/40 hover:shadow-md transition-all group"
+          className="mt-4 p-2.5 bg-gradient-to-b from-white to-slate-50/80 border border-slate-200/90 rounded-2xl flex items-center justify-between shadow-2xs cursor-pointer hover:border-[#2d5a47]/40 hover:shadow-sm transition-all duration-200 group"
           onClick={() => setShowProfileModal(true)}
           title="Open profile & settings"
         >
           <div className="flex items-center gap-3 min-w-0">
-            <div
-              className="w-9 h-9 rounded-xl text-white flex items-center justify-center font-bold text-xs flex-shrink-0 transition-transform group-hover:scale-105"
-              style={{ backgroundColor: savedProfile.avatarColor || '#2d5a47' }}
-            >
-              {avatarLetter}
+            <div className="relative flex-shrink-0">
+              <div
+                className="w-9 h-9 rounded-xl text-white flex items-center justify-center font-black text-xs shadow-2xs transition-transform group-hover:scale-105"
+                style={{ background: 'linear-gradient(135deg, #2d5a47, #1f3e31)' }}
+              >
+                {avatarLetter}
+              </div>
+              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
             </div>
             <div className="min-w-0">
-              <p className="font-bold text-xs text-slate-800 truncate">{displayName}</p>
-              <p className="text-[10px] text-slate-400 truncate">{savedProfile.workspaceName || 'Landlord workspace'}</p>
+              <p className="font-extrabold text-xs text-slate-900 truncate tracking-tight">{displayName}</p>
+              <p className="text-[10px] font-medium text-slate-500 truncate">{savedProfile.workspaceName || 'Landlord workspace'}</p>
             </div>
           </div>
           <ChevronDown size={14} className="text-slate-400 flex-shrink-0 mr-1 group-hover:text-[#2d5a47] transition-colors" />
         </div>
 
-        {/* Demo Mode Banner */}
+        {/* Local Mode / Status Banner */}
         {isLocal && (
-          <div className="mt-3 px-3 py-2 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-start gap-2">
-            <ShieldAlert size={13} className="text-amber-600 flex-shrink-0 mt-0.5" />
-            <span className="text-[11px] text-amber-700 font-medium leading-snug">Local demo mode</span>
+          <div className="mt-3 px-3 py-1.5 bg-[#edf5f1] border border-[#2d5a47]/20 rounded-xl flex items-center justify-between text-xs shadow-2xs">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[11px] text-[#2d5a47] font-bold">Local Demo Mode</span>
+            </div>
+            <span className="text-[9px] font-extrabold text-slate-400 uppercase">Offline</span>
           </div>
         )}
 
         {/* Navigation Sections */}
-        <nav className="flex-1 py-4 space-y-6 overflow-y-auto">
+        <nav className="flex-1 py-4 space-y-5 overflow-y-auto pr-1">
           {navSections.map((sec, idx) => (
             <div key={idx} className="space-y-1">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-2">{sec.title}</p>
+              <div className="flex items-center justify-between px-3 mb-1.5">
+                <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">{sec.title}</p>
+              </div>
               {sec.items.map((item) => {
                 if (item.protected && !user) return null;
                 const Icon = item.icon;
@@ -268,18 +279,23 @@ export default function Layout({ children }) {
                     key={item.to}
                     to={item.to}
                     onClick={() => setMobileOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 group ${
+                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs transition-all duration-200 group relative ${
                       isActive
-                        ? 'bg-[#d8e7e0] text-[#1c4032]'
-                        : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+                        ? 'bg-[#2d5a47] text-white font-extrabold shadow-md shadow-[#2d5a47]/20 scale-[1.01]'
+                        : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 font-semibold'
                     }`}
                   >
-                    <Icon size={16} className={`flex-shrink-0 ${isActive ? 'text-[#1c4032]' : 'text-slate-400 group-hover:text-slate-600'}`} />
-                    <span className="flex-1">{item.label}</span>
-                    {item.badge && (
-                      <span className="w-4 h-4 rounded-full bg-amber-100 text-amber-700 font-bold text-[10px] flex items-center justify-center">
-                        {item.badge}
+                    <Icon size={16} className={`flex-shrink-0 transition-colors ${isActive ? 'text-emerald-300' : 'text-slate-400 group-hover:text-[#2d5a47]'}`} />
+                    <span className="flex-1 truncate">{item.label}</span>
+
+                    {item.to === '/create-bill' && !isActive && (
+                      <span className="px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-800 font-black text-[9px] uppercase tracking-wider">
+                        ⚡ Quick
                       </span>
+                    )}
+
+                    {isActive && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 flex-shrink-0 animate-pulse" />
                     )}
                   </Link>
                 );
@@ -288,15 +304,18 @@ export default function Layout({ children }) {
           ))}
         </nav>
 
-        {/* Logout Button */}
+        {/* Sign Out Button */}
         {user && (
-          <div className="pt-3 border-t border-slate-200/60">
+          <div className="pt-3 border-t border-slate-100">
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:bg-red-50 hover:text-red-600 transition-all"
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition-all duration-150 group cursor-pointer"
             >
-              <LogOut size={16} />
-              <span>Sign out</span>
+              <div className="flex items-center gap-3">
+                <LogOut size={16} className="text-slate-400 group-hover:text-rose-600 transition-colors" />
+                <span>Sign out</span>
+              </div>
+              <ArrowRight size={13} className="opacity-0 group-hover:opacity-100 transition-opacity text-rose-500" />
             </button>
           </div>
         )}
