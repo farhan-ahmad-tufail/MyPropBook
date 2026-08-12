@@ -1309,7 +1309,11 @@ export default function Properties() {
                                           <button
                                             onClick={() => {
                                               setActiveMenuRoomId(null);
-                                              navigate('/tenants');
+                                              const t = getRoomTenant(room.id);
+                                              navigate(t?.name
+                                                ? `/tenants?highlight=${encodeURIComponent(t.name)}`
+                                                : '/tenants'
+                                              );
                                             }}
                                             className="w-full px-3.5 py-2.5 text-left hover:bg-slate-50 flex items-center gap-2.5 font-semibold text-slate-700 transition-colors"
                                           >

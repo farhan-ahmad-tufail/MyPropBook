@@ -27,7 +27,8 @@ import {
   Mail,
   Gauge,
   MoreHorizontal,
-  Bell
+  Bell,
+  ChevronDown
 } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import OnboardingModal from '../components/OnboardingModal';
@@ -173,8 +174,21 @@ export default function Dashboard() {
 
 
   // 6-Month Real Revenue Chart Data Calculation
-  const [chartPeriod, setChartPeriod] = useState('6months'); // '6months' | '3months' | 'year'
+  const [chartPeriod, setChartPeriod] = useState('3months'); // '6months' | '3months' | 'year'
   const [hoveredDataPoint, setHoveredDataPoint] = useState(null);
+  const [selectedMonthIdx, setSelectedMonthIdx] = useState(null);
+  const [timeframeOpen, setTimeframeOpen] = useState(false);
+  const timeframeRef = React.useRef(null);
+
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (timeframeRef.current && !timeframeRef.current.contains(e.target)) {
+        setTimeframeOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
 
   const monthlyChartData = useMemo(() => {
     const months = [];
@@ -426,15 +440,50 @@ export default function Dashboard() {
               <p className="text-xs text-slate-400 mt-0.5">Collected vs expected across your portfolio</p>
             </div>
             
-            <select 
-              value={chartPeriod}
-              onChange={e => setChartPeriod(e.target.value)}
-              className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 outline-none cursor-pointer hover:border-[#2d5a47] transition-all"
-            >
-              <option value="6months">Last 6 months</option>
-              <option value="3months">Last 3 months</option>
-              <option value="year">Full Year 2026</option>
-            </select>
+            {/* Custom SaaS Timeframe Dropdown */}
+            <div className="relative" ref={timeframeRef}>
+              <button
+                type="button"
+                onClick={() => setTimeframeOpen(prev => !prev)}
+                className={`flex items-center gap-2 bg-white border px-3.5 py-2 rounded-2xl text-xs font-bold transition-all shadow-2xs cursor-pointer ${
+                  timeframeOpen ? 'border-[#2d5a47] ring-2 ring-[#2d5a47]/10' : 'border-slate-200/80 hover:border-slate-300 hover:shadow-xs'
+                }`}
+              >
+                <Calendar size={13} className="text-[#2d5a47]" />
+                <span className="text-slate-700">
+                  {chartPeriod === '3months' ? 'Last 3 months' : chartPeriod === '6months' ? 'Last 6 months' : 'Full Year 2026'}
+                </span>
+                <ChevronDown size={13} className={`text-slate-400 transition-transform duration-150 ${timeframeOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {timeframeOpen && (
+                <div className="absolute right-0 top-full mt-1.5 z-50 bg-white border border-slate-200/90 rounded-2xl shadow-xl shadow-slate-300/40 p-1.5 w-44 animate-in fade-in slide-in-from-top-1">
+                  {[
+                    { id: '3months', label: 'Last 3 months' },
+                    { id: '6months', label: 'Last 6 months' },
+                    { id: 'year', label: 'Full Year 2026' }
+                  ].map(opt => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => {
+                        setChartPeriod(opt.id);
+                        setTimeframeOpen(false);
+                        setSelectedMonthIdx(null);
+                      }}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        chartPeriod === opt.id
+                          ? 'bg-[#edf5f1] text-[#2d5a47]'
+                          : 'text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      <span>{opt.label}</span>
+                      {chartPeriod === opt.id && <CheckCircle2 size={13} className="text-[#2d5a47]" />}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <div>
@@ -524,38 +573,102 @@ export default function Dashboard() {
                 />
 
                 {/* Interactive Data Dots */}
-                {chartCoordinates.points.map((pt, idx) => (
-                  <g key={idx} className="cursor-pointer" onMouseEnter={() => setHoveredDataPoint(pt)} onMouseLeave={() => setHoveredDataPoint(null)}>
-                    {/* Expected Dot */}
-                    <circle cx={pt.x} cy={pt.yExpected} r="3" fill="#cbd5e1" />
-                    
-                    {/* Collected Dot */}
-                    <circle 
-                      cx={pt.x} 
-                      cy={pt.yCollected} 
-                      r={hoveredDataPoint?.index === idx ? "6" : "4.5"} 
-                      fill="#2d5a47" 
-                      stroke="#ffffff" 
-                      strokeWidth="2"
-                      className="transition-all duration-150"
-                    />
-                  </g>
-                ))}
+                {chartCoordinates.points.map((pt, idx) => {
+                  const isSelected = (selectedMonthIdx === idx) || (hoveredDataPoint?.index === idx);
+                  return (
+                    <g 
+                      key={idx} 
+                      className="cursor-pointer" 
+                      onClick={() => setSelectedMonthIdx(idx)}
+                      onTouchStart={() => setSelectedMonthIdx(idx)}
+                      onMouseEnter={() => setHoveredDataPoint(pt)} 
+                      onMouseLeave={() => setHoveredDataPoint(null)}
+                    >
+                      {/* Expected Dot */}
+                      <circle cx={pt.x} cy={pt.yExpected} r="3" fill="#cbd5e1" />
+                      
+                      {/* Active Ring for selected point */}
+                      {isSelected && (
+                        <circle cx={pt.x} cy={pt.yCollected} r="9" fill="#2d5a47" fillOpacity="0.15" />
+                      )}
+
+                      {/* Collected Dot */}
+                      <circle 
+                        cx={pt.x} 
+                        cy={pt.yCollected} 
+                        r={isSelected ? "6" : "4.5"} 
+                        fill="#2d5a47" 
+                        stroke="#ffffff" 
+                        strokeWidth="2"
+                        className="transition-all duration-150"
+                      />
+                    </g>
+                  );
+                })}
               </svg>
 
               {/* Month Labels */}
               <div className="flex justify-between items-center text-[11px] font-bold text-slate-500 mt-2 px-3">
-                {monthlyChartData.map((m, idx) => (
-                  <span 
-                    key={idx} 
-                    className={`transition-colors cursor-pointer ${hoveredDataPoint?.index === idx ? 'text-[#2d5a47] font-black scale-110' : ''}`}
-                    onMouseEnter={() => setHoveredDataPoint(chartCoordinates.points[idx])}
-                    onMouseLeave={() => setHoveredDataPoint(null)}
-                  >
-                    {m.label}
-                  </span>
-                ))}
+                {monthlyChartData.map((m, idx) => {
+                  const isSelected = (selectedMonthIdx === idx) || (hoveredDataPoint?.index === idx);
+                  return (
+                    <span 
+                      key={idx} 
+                      onClick={() => setSelectedMonthIdx(idx)}
+                      onTouchStart={() => setSelectedMonthIdx(idx)}
+                      onMouseEnter={() => setHoveredDataPoint(chartCoordinates.points[idx])}
+                      onMouseLeave={() => setHoveredDataPoint(null)}
+                      className={`transition-all cursor-pointer px-2 py-0.5 rounded-lg ${
+                        isSelected 
+                          ? 'bg-[#2d5a47] text-white font-black scale-105 shadow-2xs' 
+                          : 'hover:text-slate-900'
+                      }`}
+                    >
+                      {m.label}
+                    </span>
+                  );
+                })}
               </div>
+
+              {/* Interactive Mobile & Desktop Month Metrics Summary Card */}
+              {(() => {
+                const activePt = hoveredDataPoint || (selectedMonthIdx !== null ? chartCoordinates.points[selectedMonthIdx] : chartCoordinates.points[chartCoordinates.points.length - 1]);
+                if (!activePt || !activePt.data) return null;
+
+                const col = activePt.data.collected || 0;
+                const exp = activePt.data.expected || 0;
+                const pend = Math.max(0, exp - col);
+                const healthPct = exp > 0 ? Math.min(100, Math.round((col / exp) * 100)) : 0;
+
+                return (
+                  <div className="mt-3 p-3 rounded-2xl bg-white border border-slate-200/80 shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs animate-in fade-in duration-150">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-[#edf5f1] text-[#2d5a47] font-extrabold flex items-center justify-center text-xs flex-shrink-0">
+                        {activePt.data.label}
+                      </div>
+                      <div>
+                        <p className="font-extrabold text-slate-900 leading-tight">{activePt.data.fullLabel}</p>
+                        <p className="text-[10px] text-slate-400 font-semibold">{activePt.data.billsCount || 0} bill record(s) • {healthPct}% collected</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 text-xs w-full sm:w-auto">
+                      <div className="flex-1 sm:flex-initial bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-100/80 text-center sm:text-left">
+                        <span className="text-[9px] font-extrabold text-emerald-700 uppercase tracking-wider block">Collected</span>
+                        <span className="font-black text-emerald-900">{formatINR(col)}</span>
+                      </div>
+                      <div className="flex-1 sm:flex-initial bg-slate-50 px-2.5 py-1 rounded-xl border border-slate-200/60 text-center sm:text-left">
+                        <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block">Expected</span>
+                        <span className="font-bold text-slate-800">{formatINR(exp)}</span>
+                      </div>
+                      <div className="flex-1 sm:flex-initial bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-100/80 text-center sm:text-left">
+                        <span className="text-[9px] font-extrabold text-amber-700 uppercase tracking-wider block">Pending</span>
+                        <span className="font-bold text-amber-900">{formatINR(pend)}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>

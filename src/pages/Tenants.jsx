@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
+import { useLocation } from 'react-router-dom';
 import {
   Users, UserPlus, Key, Trash2, Edit2, Link2, Check, X, ShieldAlert,
   Building, Home, Calendar, AlertCircle, ChevronDown, Search, User,
@@ -207,6 +208,36 @@ function SaasDateInput({ label, value, onChange, required = false, placeholder =
 export default function Tenants() {
   const { user } = useAuth();
   const confirm = useConfirm();
+  const location = useLocation();
+
+  // Highlight tenant from URL param (?highlight=Name)
+  const highlightName = React.useMemo(() => {
+    const p = new URLSearchParams(location.search);
+    return (p.get('highlight') || '').trim().toLowerCase();
+  }, [location.search]);
+
+  const [tenantSearch, setTenantSearch] = useState(() => {
+    const p = new URLSearchParams(window.location.search);
+    return p.get('highlight') || '';
+  });
+  const [highlightFading, setHighlightFading] = useState(false);
+  const highlightRowRef = useRef(null);
+
+  useEffect(() => {
+    if (!highlightName) return;
+    setTenantSearch(decodeURIComponent(highlightName));
+    setHighlightFading(false);
+    const t1 = setTimeout(() => setHighlightFading(true), 2500);
+    const t2 = setTimeout(() => setHighlightFading(false), 3800);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [highlightName]);
+
+  useEffect(() => {
+    if (highlightRowRef.current && highlightName) {
+      setTimeout(() => highlightRowRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 350);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highlightName]);
 
   // Data lists
   const [tenants, setTenants] = useState([]);
@@ -559,6 +590,27 @@ export default function Tenants() {
             </div>
           )}
 
+          {/* Tenant Search Bar */}
+          <div className="relative max-w-sm">
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search tenant by name…"
+              value={tenantSearch}
+              onChange={e => setTenantSearch(e.target.value)}
+              className="w-full pl-8 pr-8 py-2 text-xs font-semibold text-slate-800 bg-white rounded-2xl border border-slate-200 focus:outline-none focus:border-[#2d5a47] transition-colors"
+            />
+            {tenantSearch && (
+              <button
+                type="button"
+                onClick={() => setTenantSearch('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+              >
+                <X size={12} />
+              </button>
+            )}
+          </div>
+
           {/* Tenants Table/List */}
           {tenants.length === 0 ? (
             <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-12 text-center text-slate-500 text-xs">
@@ -577,40 +629,61 @@ export default function Tenants() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-medium text-xs">
-                  {tenants.map(t => (
-                    <tr key={t.id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="px-6 py-4 font-bold text-slate-800">{t.name}</td>
-                      <td className="px-6 py-4 text-slate-500">{t.phone || '-'}</td>
-                      <td className="px-6 py-4 text-slate-500">{t.email || '-'}</td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                          t.active
-                            ? 'bg-emerald-50 text-emerald-700'
-                            : 'bg-slate-100 text-slate-500'
-                        }`}>
-                          {t.active ? 'Active' : 'Inactive'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex justify-end gap-1">
-                          <button
-                            onClick={() => startEditTenant(t)}
-                            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
-                            title="Edit Tenant"
-                          >
-                            <Edit2 size={14} />
-                          </button>
-                          <button
-                            onClick={() => handleTenantDelete(t.id)}
-                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Delete Tenant"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {tenants
+                    .filter(t => !tenantSearch.trim() || t.name?.toLowerCase().includes(tenantSearch.trim().toLowerCase()))
+                    .map(t => {
+                      const isHighlighted = !!highlightName && t.name?.toLowerCase() === highlightName;
+                      return (
+                        <tr
+                          key={t.id}
+                          ref={isHighlighted ? highlightRowRef : null}
+                          className={`transition-all duration-700 ${
+                            isHighlighted && !highlightFading
+                              ? 'bg-emerald-50/80 ring-2 ring-inset ring-[#2d5a47]/40'
+                              : 'hover:bg-slate-50/60'
+                          }`}
+                        >
+                          <td className="px-6 py-4 font-bold text-slate-800">
+                            <div className="flex items-center gap-2">
+                              {isHighlighted && !highlightFading && (
+                                <span className="inline-flex w-2 h-2 rounded-full bg-[#2d5a47] animate-pulse flex-shrink-0" />
+                              )}
+                              {t.name}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-slate-500">{t.phone || '-'}</td>
+                          <td className="px-6 py-4 text-slate-500">{t.email || '-'}</td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                              t.active
+                                ? 'bg-emerald-50 text-emerald-700'
+                                : 'bg-slate-100 text-slate-500'
+                            }`}>
+                              {t.active ? 'Active' : 'Inactive'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex justify-end gap-1">
+                              <button
+                                onClick={() => startEditTenant(t)}
+                                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                                title="Edit Tenant"
+                              >
+                                <Edit2 size={14} />
+                              </button>
+                              <button
+                                onClick={() => handleTenantDelete(t.id)}
+                                className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Delete Tenant"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  }
                 </tbody>
               </table>
             </div>
