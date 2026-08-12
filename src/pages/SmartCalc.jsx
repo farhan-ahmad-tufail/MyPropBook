@@ -48,14 +48,20 @@ const BILL_TRANSLATIONS = {
     previewLabel: "INVOICE PREVIEW",
     monthBill: (m) => `${m} bill`,
     billedTo: "Billed to",
-    electricity: "Electricity",
+    electricity: "Electricity Charges",
     previous: "Previous",
     current: "Current",
     usage: "Usage",
-    monthlyRent: "Monthly rent",
+    prevAbbr: "PREV",
+    currAbbr: "CURR",
+    usageAbbr: "USAGE",
+    units: "units",
+    room: "Room",
+    monthlyRent: "Monthly Rent",
     previousBalance: "Previous Balance",
     otherCharges: "Other charges",
     amountDue: "Amount due",
+    itemizedBreakdown: (count) => `ITEMIZED ROOM BREAKDOWN (${count} ROOMS)`,
     dueBadge: (m) => `DUE 10 ${m.substring(0, 3).toUpperCase()}`,
     thankYou: "Thank you for your payment.",
     waTitle: "RENT RECEIPT",
@@ -71,10 +77,16 @@ const BILL_TRANSLATIONS = {
     previous: "पिछला रीडिंग",
     current: "नया रीडिंग",
     usage: "उपयोग",
+    prevAbbr: "पिछला",
+    currAbbr: "नया",
+    usageAbbr: "उपयोग",
+    units: "यूनिट",
+    room: "कमरा",
     monthlyRent: "कमरे का किराया",
     previousBalance: "पिछला बकाया",
     otherCharges: "अन्य खर्चे",
     amountDue: "कुल किराया देना है",
+    itemizedBreakdown: (count) => `कमरे के अनुसार विवरण (${count} कमरे)`,
     dueBadge: (m) => `लास्ट डेट: 10 ${m.substring(0, 3).toUpperCase()}`,
     thankYou: "समय पर भुगतान के लिए धन्यवाद।",
     waTitle: "किराया रसीद",
@@ -1024,7 +1036,7 @@ export default function SmartCalc() {
                 {isMultiRoomTenant ? (
                   <div className="space-y-2.5">
                     <span className={`text-[10px] font-bold uppercase tracking-wider block ${activeTheme.textAccent}`}>
-                      Itemized Room Breakdown ({tenantActiveRooms.length} Rooms)
+                      {t.itemizedBreakdown(tenantActiveRooms.length)}
                     </span>
                     {multiRoomItems.map((item, idx) => {
                       const itemTotal = item.rent_amount + item.elec_amount;
@@ -1034,7 +1046,7 @@ export default function SmartCalc() {
                           <div className="flex justify-between items-center">
                             <div className="flex items-center gap-2">
                               <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                              <span className="font-extrabold text-white text-sm">Room {item.room_number}</span>
+                              <span className="font-extrabold text-white text-sm">{t.room} {item.room_number}</span>
                               <span className="text-[10px] font-semibold bg-white/10 text-white/80 px-2 py-0.5 rounded-full">
                                 {item.room_type}
                               </span>
@@ -1045,29 +1057,29 @@ export default function SmartCalc() {
                           {/* Line items */}
                           <div className="text-xs space-y-1.5 pt-0.5">
                             <div className="flex justify-between items-center text-white/80">
-                              <span>Monthly Rent</span>
+                              <span>{t.monthlyRent}</span>
                               <span className="font-mono font-bold text-white">₹{item.rent_amount.toLocaleString('en-IN')}</span>
                             </div>
 
                             {item.elec_amount > 0 && (
                               <div className="space-y-1.5 pt-1 border-t border-white/10">
                                 <div className="flex justify-between items-center text-white/80">
-                                  <span className="font-medium">Electricity Charges</span>
+                                  <span className="font-medium">{t.electricity}</span>
                                   <span className="font-mono font-bold text-white">₹{item.elec_amount.toLocaleString('en-IN')}</span>
                                 </div>
                                 {item.units_consumed > 0 && (
                                   <div className="grid grid-cols-3 gap-1.5 bg-black/30 p-1.5 rounded-xl text-[10px] border border-white/10 text-center font-mono">
                                     <div className="bg-white/5 rounded-lg py-1 px-1">
-                                      <span className="text-white/50 block text-[8px] font-extrabold tracking-wider">PREV</span>
+                                      <span className="text-white/50 block text-[8px] font-extrabold tracking-wider">{t.prevAbbr}</span>
                                       <span className="text-white font-bold">{item.previous_reading}</span>
                                     </div>
                                     <div className="bg-white/5 rounded-lg py-1 px-1">
-                                      <span className="text-white/50 block text-[8px] font-extrabold tracking-wider">CURR</span>
+                                      <span className="text-white/50 block text-[8px] font-extrabold tracking-wider">{t.currAbbr}</span>
                                       <span className="text-white font-bold">{item.current_reading}</span>
                                     </div>
                                     <div className="bg-white/5 rounded-lg py-1 px-1">
-                                      <span className="text-white/50 block text-[8px] font-extrabold tracking-wider">USAGE</span>
-                                      <span className="text-emerald-300 font-extrabold">{item.units_consumed} u @ ₹{item.rate_per_unit}</span>
+                                      <span className="text-white/50 block text-[8px] font-extrabold tracking-wider">{t.usageAbbr}</span>
+                                      <span className="text-emerald-300 font-extrabold">{item.units_consumed} {t.units} × ₹{item.rate_per_unit}/{billLanguage === 'hi' ? 'यूनिट' : 'unit'}</span>
                                     </div>
                                   </div>
                                 )}

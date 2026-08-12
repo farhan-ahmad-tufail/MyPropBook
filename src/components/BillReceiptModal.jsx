@@ -62,9 +62,11 @@ const THEMES = [
 const L = {
   en: {
     tag: 'INVOICE PREVIEW', billedTo: 'Billed to',
-    electricity: 'Electricity', prev: 'Previous', curr: 'Current', usage: 'Usage',
-    rent: 'Monthly rent', prevBal: 'Previous Balance', other: 'Other charges',
+    electricity: 'Electricity Charges', prev: 'Previous', curr: 'Current', usage: 'Usage',
+    prevAbbr: 'PREV', currAbbr: 'CURR', usageAbbr: 'USAGE', units: 'units', room: 'Room',
+    rent: 'Monthly Rent', prevBal: 'Previous Balance', other: 'Other charges',
     amtDue: 'Amount due', received: 'Amount received', remaining: 'Remaining due',
+    itemizedBreakdown: (count) => `ITEMIZED ROOM BREAKDOWN (${count} ROOMS)`,
     due: (m) => `DUE 10 ${(m || '').slice(0, 3).toUpperCase()}`,
     thanks: 'Thank you for your payment.',
     waTitle: 'RENT RECEIPT',
@@ -72,8 +74,10 @@ const L = {
   hi: {
     tag: 'किराया रसीद', billedTo: 'किरायेदार',
     electricity: 'बिजली का बिल', prev: 'पिछला', curr: 'नया', usage: 'उपयोग',
+    prevAbbr: 'पिछला', currAbbr: 'नया', usageAbbr: 'उपयोग', units: 'यूनिट', room: 'कमरा',
     rent: 'कमरे का किराया', prevBal: 'पिछला बकाया', other: 'अन्य खर्चे',
     amtDue: 'कुल किराया देना है', received: 'मिली हुई राशि', remaining: 'बाकी बकाया',
+    itemizedBreakdown: (count) => `कमरे के अनुसार विवरण (${count} कमरे)`,
     due: (m) => `लास्ट डेट 10 ${(m || '').slice(0, 3).toUpperCase()}`,
     thanks: 'समय पर भुगतान के लिए धन्यवाद।',
     waTitle: 'किराया रसीद',
@@ -275,7 +279,7 @@ export default function BillReceiptModal({ isOpen, onClose, bill, room, tenant, 
               {Array.isArray(bill.room_items) && bill.room_items.length > 0 ? (
                 <div className="space-y-3">
                   <span className="text-[10px] font-bold uppercase tracking-wider block" style={{ color: t.accent }}>
-                    Itemized Room Breakdown ({bill.room_items.length} Rooms)
+                    {lbl.itemizedBreakdown(bill.room_items.length)}
                   </span>
                   {bill.room_items.map((item, idx) => {
                     const itemElec = parseFloat(item.elec_amount || item.electricity_amount || 0);
@@ -291,7 +295,7 @@ export default function BillReceiptModal({ isOpen, onClose, bill, room, tenant, 
                         <div className="flex justify-between items-center text-xs font-extrabold">
                           <span className="text-white flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full" style={{ backgroundColor: t.accent }} />
-                            <span>Room {item.room_number}</span>
+                            <span>{lbl.room} {item.room_number}</span>
                             <span className="text-[10px] font-semibold bg-white/10 text-white/80 px-2 py-0.5 rounded-full">
                               {item.room_type || 'Single Room'}
                             </span>
@@ -301,29 +305,29 @@ export default function BillReceiptModal({ isOpen, onClose, bill, room, tenant, 
 
                         <div className="text-xs space-y-1.5 pt-0.5" style={{ color: 'rgba(255,255,255,0.85)' }}>
                           <div className="flex justify-between items-center">
-                            <span>Monthly Rent</span>
+                            <span>{lbl.rent}</span>
                             <span className="font-mono font-bold text-white">₹{fmt(itemRent)}</span>
                           </div>
 
                           {itemElec > 0 && (
                             <div className="space-y-1.5 pt-1 border-t border-white/10">
                               <div className="flex justify-between items-center">
-                                <span>Electricity Charges</span>
+                                <span>{lbl.electricity}</span>
                                 <span className="font-mono font-bold text-white">₹{fmt(itemElec)}</span>
                               </div>
                               {item.units_consumed > 0 && (
                                 <div className="grid grid-cols-3 gap-1.5 bg-black/30 p-1.5 rounded-xl text-[10px] border border-white/10 text-center font-mono">
                                   <div className="bg-white/5 rounded-lg py-1 px-1">
-                                    <span className="text-white/50 block text-[8px] font-extrabold tracking-wider">PREV</span>
+                                    <span className="text-white/50 block text-[8px] font-extrabold tracking-wider">{lbl.prevAbbr}</span>
                                     <span className="text-white font-bold">{item.previous_reading || 0}</span>
                                   </div>
                                   <div className="bg-white/5 rounded-lg py-1 px-1">
-                                    <span className="text-white/50 block text-[8px] font-extrabold tracking-wider">CURR</span>
+                                    <span className="text-white/50 block text-[8px] font-extrabold tracking-wider">{lbl.currAbbr}</span>
                                     <span className="text-white font-bold">{item.current_reading || 0}</span>
                                   </div>
                                   <div className="bg-white/5 rounded-lg py-1 px-1">
-                                    <span className="text-white/50 block text-[8px] font-extrabold tracking-wider">USAGE</span>
-                                    <span className="text-emerald-300 font-extrabold">{item.units_consumed} u @ ₹{item.rate_per_unit || 17}</span>
+                                    <span className="text-white/50 block text-[8px] font-extrabold tracking-wider">{lbl.usageAbbr}</span>
+                                    <span className="text-emerald-300 font-extrabold">{item.units_consumed} {lbl.units} × ₹{item.rate_per_unit || 17}/{lang === 'hi' ? 'यूनिट' : 'unit'}</span>
                                   </div>
                                 </div>
                               )}
@@ -332,7 +336,7 @@ export default function BillReceiptModal({ isOpen, onClose, bill, room, tenant, 
 
                           {itemOther > 0 && (
                             <div className="flex justify-between items-center pt-1 border-t border-white/10">
-                              <span>Other Charges</span>
+                              <span>{lbl.other}</span>
                               <span className="font-mono font-bold text-white">₹{fmt(itemOther)}</span>
                             </div>
                           )}
