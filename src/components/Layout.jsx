@@ -212,17 +212,14 @@ export default function Layout({ children }) {
         z-50 flex flex-col transition-transform duration-300 ease-in-out px-4 py-5 shadow-xs
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0
       `}>
-        {/* Top Logo & Brand Bar */}
-        <div className="flex items-center justify-between px-1 pb-4 border-b border-slate-100">
-          <Link to="/" className="flex items-center gap-2 group">
+        {/* Top Logo */}
+        <div className="flex items-center justify-between px-2 pb-5 border-b border-slate-200/50">
+          <Link to="/" className="flex items-center">
             <Logo size={32} />
-            <span className="px-1.5 py-0.5 rounded-md bg-[#edf5f1] text-[#2d5a47] font-extrabold text-[9px] uppercase tracking-wider border border-[#2d5a47]/20">
-              PRO
-            </span>
           </Link>
           <button
             onClick={() => setMobileOpen(false)}
-            className="lg:hidden p-1.5 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 transition-colors"
+            className="lg:hidden p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
           >
             <X size={18} />
           </button>
@@ -230,23 +227,20 @@ export default function Layout({ children }) {
 
         {/* User Account Switcher Card */}
         <div
-          className="mt-4 p-2.5 bg-gradient-to-b from-white to-slate-50/80 border border-slate-200/90 rounded-2xl flex items-center justify-between shadow-2xs cursor-pointer hover:border-[#2d5a47]/40 hover:shadow-sm transition-all duration-200 group"
+          className="mt-4 p-2.5 bg-white border border-slate-200/80 rounded-2xl flex items-center justify-between shadow-xs cursor-pointer hover:border-[#2d5a47]/40 hover:shadow-sm transition-all group"
           onClick={() => setShowProfileModal(true)}
           title="Open profile & settings"
         >
           <div className="flex items-center gap-3 min-w-0">
-            <div className="relative flex-shrink-0">
-              <div
-                className="w-9 h-9 rounded-xl text-white flex items-center justify-center font-black text-xs shadow-2xs transition-transform group-hover:scale-105"
-                style={{ background: 'linear-gradient(135deg, #2d5a47, #1f3e31)' }}
-              >
-                {avatarLetter}
-              </div>
-              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
+            <div
+              className="w-9 h-9 rounded-xl text-white flex items-center justify-center font-bold text-xs flex-shrink-0 transition-transform group-hover:scale-105"
+              style={{ backgroundColor: savedProfile.avatarColor || '#2d5a47' }}
+            >
+              {avatarLetter}
             </div>
             <div className="min-w-0">
-              <p className="font-extrabold text-xs text-slate-900 truncate tracking-tight">{displayName}</p>
-              <p className="text-[10px] font-medium text-slate-500 truncate">{savedProfile.workspaceName || 'Landlord workspace'}</p>
+              <p className="font-bold text-xs text-slate-800 truncate">{displayName}</p>
+              <p className="text-[10px] text-slate-400 truncate">{savedProfile.workspaceName || 'Landlord workspace'}</p>
             </div>
           </div>
           <ChevronDown size={14} className="text-slate-400 flex-shrink-0 mr-1 group-hover:text-[#2d5a47] transition-colors" />
