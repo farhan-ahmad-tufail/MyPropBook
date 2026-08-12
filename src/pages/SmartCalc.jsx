@@ -1029,25 +1029,48 @@ export default function SmartCalc() {
                     {multiRoomItems.map((item, idx) => {
                       const itemTotal = item.rent_amount + item.elec_amount;
                       return (
-                        <div key={idx} className="bg-black/20 border border-white/15 rounded-xl p-2.5 space-y-1 text-xs">
-                          <div className="flex justify-between items-center font-bold text-white">
-                            <span>Room {item.room_number} ({item.room_type})</span>
-                            <span>₹{itemTotal.toLocaleString('en-IN')}</span>
-                          </div>
-                          <div className="text-[11px] text-white/70 space-y-0.5">
-                            <div className="flex justify-between">
-                              <span>Rent</span>
-                              <span className="font-mono text-white">₹{item.rent_amount.toLocaleString('en-IN')}</span>
+                        <div key={idx} className="bg-black/25 border border-white/15 rounded-2xl p-3.5 space-y-2.5 shadow-xs backdrop-blur-xs">
+                          {/* Header */}
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                              <span className="font-extrabold text-white text-sm">Room {item.room_number}</span>
+                              <span className="text-[10px] font-semibold bg-white/10 text-white/80 px-2 py-0.5 rounded-full">
+                                {item.room_type}
+                              </span>
                             </div>
+                            <span className="font-mono font-black text-white text-sm">₹{itemTotal.toLocaleString('en-IN')}</span>
+                          </div>
+
+                          {/* Line items */}
+                          <div className="text-xs space-y-1.5 pt-0.5">
+                            <div className="flex justify-between items-center text-white/80">
+                              <span>Monthly Rent</span>
+                              <span className="font-mono font-bold text-white">₹{item.rent_amount.toLocaleString('en-IN')}</span>
+                            </div>
+
                             {item.elec_amount > 0 && (
-                              <div className="flex justify-between flex-wrap gap-x-2">
-                                <span>
-                                  Electricity
-                                  {item.units_consumed > 0 ? (
-                                    <span className="opacity-90"> (Prev: {item.previous_reading}, Curr: {item.current_reading} · {item.units_consumed} u @ ₹{item.rate_per_unit})</span>
-                                  ) : ''}
-                                </span>
-                                <span className="font-mono text-white">₹{item.elec_amount.toLocaleString('en-IN')}</span>
+                              <div className="space-y-1.5 pt-1 border-t border-white/10">
+                                <div className="flex justify-between items-center text-white/80">
+                                  <span className="font-medium">Electricity Charges</span>
+                                  <span className="font-mono font-bold text-white">₹{item.elec_amount.toLocaleString('en-IN')}</span>
+                                </div>
+                                {item.units_consumed > 0 && (
+                                  <div className="grid grid-cols-3 gap-1.5 bg-black/30 p-1.5 rounded-xl text-[10px] border border-white/10 text-center font-mono">
+                                    <div className="bg-white/5 rounded-lg py-1 px-1">
+                                      <span className="text-white/50 block text-[8px] font-extrabold tracking-wider">PREV</span>
+                                      <span className="text-white font-bold">{item.previous_reading}</span>
+                                    </div>
+                                    <div className="bg-white/5 rounded-lg py-1 px-1">
+                                      <span className="text-white/50 block text-[8px] font-extrabold tracking-wider">CURR</span>
+                                      <span className="text-white font-bold">{item.current_reading}</span>
+                                    </div>
+                                    <div className="bg-white/5 rounded-lg py-1 px-1">
+                                      <span className="text-white/50 block text-[8px] font-extrabold tracking-wider">USAGE</span>
+                                      <span className="text-emerald-300 font-extrabold">{item.units_consumed} u @ ₹{item.rate_per_unit}</span>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>

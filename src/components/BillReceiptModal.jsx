@@ -285,33 +285,55 @@ export default function BillReceiptModal({ isOpen, onClose, bill, room, tenant, 
                     return (
                       <div
                         key={idx}
-                        className="rounded-2xl p-3.5 space-y-2"
-                        style={{ background: 'rgba(0,0,0,0.22)', border: '1px solid rgba(255,255,255,0.09)' }}
+                        className="rounded-2xl p-3.5 space-y-2.5 backdrop-blur-xs"
+                        style={{ background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(255,255,255,0.12)' }}
                       >
-                        <div className="flex justify-between items-center text-xs font-bold">
-                          <span className="text-white flex items-center gap-1.5">
+                        <div className="flex justify-between items-center text-xs font-extrabold">
+                          <span className="text-white flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full" style={{ backgroundColor: t.accent }} />
-                            Room {item.room_number} ({item.room_type || 'Single Room'})
+                            <span>Room {item.room_number}</span>
+                            <span className="text-[10px] font-semibold bg-white/10 text-white/80 px-2 py-0.5 rounded-full">
+                              {item.room_type || 'Single Room'}
+                            </span>
                           </span>
-                          <span className="font-mono text-white">₹{fmt(itemTotal)}</span>
+                          <span className="font-mono text-white font-black text-sm">₹{fmt(itemTotal)}</span>
                         </div>
-                        <div className="text-[11px] space-y-1" style={{ color: 'rgba(255,255,255,0.70)' }}>
-                          <div className="flex justify-between">
-                            <span>Rent</span>
-                            <span className="font-mono text-white">₹{fmt(itemRent)}</span>
+
+                        <div className="text-xs space-y-1.5 pt-0.5" style={{ color: 'rgba(255,255,255,0.85)' }}>
+                          <div className="flex justify-between items-center">
+                            <span>Monthly Rent</span>
+                            <span className="font-mono font-bold text-white">₹{fmt(itemRent)}</span>
                           </div>
+
                           {itemElec > 0 && (
-                            <div className="flex justify-between flex-wrap gap-x-2">
-                              <span>
-                                Electricity {item.units_consumed > 0 ? `(Prev: ${item.previous_reading || 0}, Curr: ${item.current_reading || 0} · ${item.units_consumed} u @ ₹${item.rate_per_unit || 17})` : ''}
-                              </span>
-                              <span className="font-mono text-white">₹{fmt(itemElec)}</span>
+                            <div className="space-y-1.5 pt-1 border-t border-white/10">
+                              <div className="flex justify-between items-center">
+                                <span>Electricity Charges</span>
+                                <span className="font-mono font-bold text-white">₹{fmt(itemElec)}</span>
+                              </div>
+                              {item.units_consumed > 0 && (
+                                <div className="grid grid-cols-3 gap-1.5 bg-black/30 p-1.5 rounded-xl text-[10px] border border-white/10 text-center font-mono">
+                                  <div className="bg-white/5 rounded-lg py-1 px-1">
+                                    <span className="text-white/50 block text-[8px] font-extrabold tracking-wider">PREV</span>
+                                    <span className="text-white font-bold">{item.previous_reading || 0}</span>
+                                  </div>
+                                  <div className="bg-white/5 rounded-lg py-1 px-1">
+                                    <span className="text-white/50 block text-[8px] font-extrabold tracking-wider">CURR</span>
+                                    <span className="text-white font-bold">{item.current_reading || 0}</span>
+                                  </div>
+                                  <div className="bg-white/5 rounded-lg py-1 px-1">
+                                    <span className="text-white/50 block text-[8px] font-extrabold tracking-wider">USAGE</span>
+                                    <span className="text-emerald-300 font-extrabold">{item.units_consumed} u @ ₹{item.rate_per_unit || 17}</span>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )}
+
                           {itemOther > 0 && (
-                            <div className="flex justify-between">
+                            <div className="flex justify-between items-center pt-1 border-t border-white/10">
                               <span>Other Charges</span>
-                              <span className="font-mono text-white">₹{fmt(itemOther)}</span>
+                              <span className="font-mono font-bold text-white">₹{fmt(itemOther)}</span>
                             </div>
                           )}
                         </div>
