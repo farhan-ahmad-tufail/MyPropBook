@@ -617,12 +617,12 @@ export default function Landing() {
                 </div>
                 <div>
                   <h4 className="font-extrabold text-slate-900 text-sm">Farhan Ahmad Tufail</h4>
-                  <p className="text-xs text-slate-400 font-medium">Founder &amp; developer · India</p>
+                  <p className="text-xs text-slate-400 font-medium">Full-Stack Developer · Backend & DevOps · India</p>
                 </div>
               </div>
 
               <p className="text-xs text-slate-600 leading-relaxed italic pt-2 border-t border-slate-100">
-                "I built BillRoom to make property management less scattered — and more dependable for the people doing the work every day."
+                "BillRoom is my proof that good engineering solves real problems — I designed the full stack, from data architecture to deployment, to give landlords a system that actually works at scale."
               </p>
             </div>
           </div>
