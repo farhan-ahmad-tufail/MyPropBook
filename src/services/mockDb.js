@@ -265,26 +265,43 @@ export const mockDb = {
       tenant_id: data.tenant_id,
       bill_month: data.bill_month,
       bill_year: parseInt(data.bill_year),
-      previous_reading: parseFloat(data.previous_reading),
-      current_reading: parseFloat(data.current_reading),
-      units_consumed: parseFloat(data.units_consumed),
-      rate_per_unit: parseFloat(data.rate_per_unit),
-      rent_amount: parseFloat(data.rent_amount),
+      previous_reading: parseFloat(data.previous_reading || 0),
+      current_reading: parseFloat(data.current_reading || 0),
+      units_consumed: parseFloat(data.units_consumed || 0),
+      rate_per_unit: parseFloat(data.rate_per_unit || 0),
+      rent_amount: parseFloat(data.rent_amount || 0),
       arrears: parseFloat(data.arrears || 0),
       other_charges: parseFloat(data.other_charges || 0),
       total_payable: parseFloat(data.total_payable),
       amount_paid: 0,
       payment_status: data.payment_status || 'Unpaid',
+      room_items: data.room_items || null,
       generated_at: new Date().toISOString()
     };
     list.push(newBill);
     setStore('mock_bills', list);
 
-    // Update Room's current_meter_reading
+    // Update Room current_meter_reading
     const rooms = getStore('mock_rooms');
-    const roomIndex = rooms.findIndex(r => r.id === data.room_id);
-    if (roomIndex !== -1) {
-      rooms[roomIndex].current_meter_reading = parseFloat(data.current_reading);
+    let roomsUpdated = false;
+
+    if (Array.isArray(data.room_items) && data.room_items.length > 0) {
+      data.room_items.forEach(item => {
+        const roomIndex = rooms.findIndex(r => r.id === item.room_id);
+        if (roomIndex !== -1 && item.current_reading !== undefined && item.current_reading !== null) {
+          rooms[roomIndex].current_meter_reading = parseFloat(item.current_reading);
+          roomsUpdated = true;
+        }
+      });
+    } else if (data.room_id) {
+      const roomIndex = rooms.findIndex(r => r.id === data.room_id);
+      if (roomIndex !== -1 && data.current_reading !== undefined && data.current_reading !== null) {
+        rooms[roomIndex].current_meter_reading = parseFloat(data.current_reading);
+        roomsUpdated = true;
+      }
+    }
+
+    if (roomsUpdated) {
       setStore('mock_rooms', rooms);
     }
 

@@ -272,6 +272,7 @@ export default function SmartCalc() {
   // Electricity billing mode: 'submeter' | 'direct' | 'none'
   const [elecMode, setElecMode] = useState('submeter');
   const [directElecAmount, setDirectElecAmount] = useState('');
+  const [multiRoomReadings, setMultiRoomReadings] = useState({});
 
   // Result & UI State
   const [result, setResult] = useState(null);
@@ -347,8 +348,12 @@ export default function SmartCalc() {
       const tenantObj = tenants.find(t => t.id === activeLease.tenant_id);
       setActiveTenant(tenantObj);
 
+      // Find all rooms occupied by this tenant
+      const allTenantLeases = leases.filter(l => l.tenant_id === tenantObj.id && l.is_active);
+      const allTenantRoomIds = allTenantLeases.map(l => l.room_id);
+
       const roomArrears = bills
-        .filter(b => b.room_id === selectedRoomId && b.tenant_id === tenantObj.id && (b.payment_status === 'Unpaid' || b.payment_status === 'Partially Paid'))
+        .filter(b => (allTenantRoomIds.includes(b.room_id) || b.tenant_id === tenantObj.id) && (b.payment_status === 'Unpaid' || b.payment_status === 'Partially Paid'))
         .reduce((sum, b) => sum + (parseFloat(b.total_payable || 0) - parseFloat(b.amount_paid || 0)), 0);
       setCalculatedArrears(roomArrears);
       setCustomArrears(roomArrears.toString());
@@ -359,6 +364,53 @@ export default function SmartCalc() {
     }
   }, [selectedRoomId, rooms, leases, tenants, bills]);
 
+  // Compute active tenant's multi-room list
+  const tenantActiveRooms = React.useMemo(() => {
+    if (!activeTenant) return [];
+    const tenantLeases = leases.filter(l => l.tenant_id === activeTenant.id && l.is_active);
+    return tenantLeases.map(l => rooms.find(r => r.id === l.room_id)).filter(Boolean);
+  }, [activeTenant, leases, rooms]);
+
+  const isMultiRoomTenant = tenantActiveRooms.length > 1;
+
+  // Multi-room calculation breakdown
+  const multiRoomItems = React.useMemo(() => {
+    if (!isMultiRoomTenant) return [];
+    return tenantActiveRooms.map(r => {
+      const mRead = multiRoomReadings[r.id] || {};
+      const pRead = parseFloat(r.current_meter_reading || 0);
+      const rawCRead = mRead.currentReading;
+      const cRead = (rawCRead !== undefined && rawCRead !== '' && !isNaN(rawCRead)) ? parseFloat(rawCRead) : pRead;
+      const uConsumed = Math.max(0, cRead - pRead);
+      const rRate = parseFloat(r.rate_per_unit || 17);
+      let rElec = 0;
+      if (r.elec_mode === 'submeter' || r.has_submeter !== false) {
+        rElec = uConsumed * rRate;
+      } else {
+        const rawDir = mRead.directElec;
+        if (rawDir !== undefined && rawDir !== '' && !isNaN(rawDir)) {
+          rElec = parseFloat(rawDir);
+        } else {
+          rElec = parseFloat(r.direct_elec_amount || 0);
+        }
+      }
+      const rRent = parseFloat(r.base_rent || 0);
+      return {
+        room_id: r.id,
+        room_number: r.room_number,
+        room_type: r.room_type || 'Single Room',
+        previous_reading: pRead,
+        current_reading: cRead,
+        units_consumed: uConsumed,
+        rate_per_unit: rRate,
+        rent_amount: rRent,
+        elec_amount: rElec,
+        electricity_amount: rElec,
+        other_charges: 0
+      };
+    });
+  }, [isMultiRoomTenant, tenantActiveRooms, multiRoomReadings]);
+
   // Real-time calculation computation
   const activeProperty = properties.find(p => p.id === selectedPropertyId);
   const prevReading = parseFloat(activeRoom?.current_meter_reading) || 0;
@@ -367,13 +419,18 @@ export default function SmartCalc() {
   const unitsConsumed = (currentReading !== '' && currReading >= prevReading) ? (currReading - prevReading) : 0;
 
   let calculatedElecAmount = 0;
-  if (elecMode === 'submeter') {
+  if (isMultiRoomTenant) {
+    calculatedElecAmount = multiRoomItems.reduce((sum, item) => sum + item.elec_amount, 0);
+  } else if (elecMode === 'submeter') {
     calculatedElecAmount = unitsConsumed * rate;
   } else if (elecMode === 'direct') {
     calculatedElecAmount = parseFloat(directElecAmount) || 0;
   }
 
-  const baseRentAmount = parseFloat(activeRoom?.base_rent) || 0;
+  const baseRentAmount = isMultiRoomTenant 
+    ? multiRoomItems.reduce((sum, item) => sum + item.rent_amount, 0)
+    : (parseFloat(activeRoom?.base_rent) || 0);
+
   const arrearsAmount = customArrears !== '' ? (parseFloat(customArrears) || 0) : calculatedArrears;
   const otherChargesAmount = parseFloat(otherCharges) || 0;
   const grandTotalAmount = baseRentAmount + calculatedElecAmount + arrearsAmount + otherChargesAmount;
@@ -406,22 +463,26 @@ export default function SmartCalc() {
       room_id: activeRoom.id,
       tenant_id: activeTenant.id,
       tenant_name: activeTenant.name,
-      room_number: activeRoom.room_number,
+      room_number: isMultiRoomTenant 
+        ? tenantActiveRooms.map(r => r.room_number).join(', ')
+        : activeRoom.room_number,
       floor: activeRoom.floor,
       room_type: activeRoom.room_type,
       bill_month: billMonth,
       bill_year: billYear,
-      elec_mode: elecMode,
+      elec_mode: isMultiRoomTenant ? 'multi_room' : elecMode,
       previous_reading: prevReading,
       current_reading: currReading,
       units_consumed: unitsConsumed,
       rate_per_unit: rate,
       elec_amount: calculatedElecAmount,
+      electricity_amount: calculatedElecAmount,
       rent_amount: baseRentAmount,
       arrears: arrearsAmount,
       other_charges: otherChargesAmount,
       total_payable: grandTotalAmount,
-      payment_status: 'Unpaid'
+      payment_status: 'Unpaid',
+      room_items: isMultiRoomTenant ? multiRoomItems : null
     };
 
     setResult(calculatedBill);
@@ -619,6 +680,7 @@ export default function SmartCalc() {
                     setOtherCharges('');
                     setDirectElecAmount('');
                     setElecMode('submeter');
+                    setMultiRoomReadings({});
                     setResult(null);
                     setIsSaved(false);
                   }}
@@ -628,6 +690,75 @@ export default function SmartCalc() {
                   subtext={`Billing period · 01–31 ${billMonth} ${billYear}`}
                 />
               </div>
+
+              {/* Multi-Room Tenant Notice & Reading Matrix Card */}
+              {isMultiRoomTenant && (
+                <div className="p-4 rounded-2xl bg-[#edf5f1] border border-[#2d5a47]/30 space-y-3 animate-in fade-in duration-200">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded bg-[#2d5a47] text-white font-extrabold text-[10px] uppercase">MULTI-ROOM TENANT</span>
+                    <span className="text-xs font-bold text-slate-800">
+                      {activeTenant.name} occupies {tenantActiveRooms.length} rooms
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-600 font-medium">
+                    This will generate <strong>1 combined bill</strong> with itemized breakdowns for all {tenantActiveRooms.length} rooms below:
+                  </p>
+
+                  <div className="space-y-2.5 pt-1">
+                    {tenantActiveRooms.map(roomItem => {
+                      const isSubmeter = roomItem.elec_mode === 'submeter' || roomItem.has_submeter !== false;
+                      const rPrev = parseFloat(roomItem.current_meter_reading || 0);
+                      const mData = multiRoomReadings[roomItem.id] || {};
+                      return (
+                        <div key={roomItem.id} className="bg-white rounded-xl p-3 border border-slate-200/80 shadow-2xs space-y-2">
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="font-extrabold text-slate-900">Room {roomItem.room_number} ({roomItem.room_type || 'Single Room'})</span>
+                            <span className="font-bold text-[#2d5a47] bg-[#edf5f1] px-2 py-0.5 rounded-md text-[11px]">
+                              Rent: ₹{(roomItem.base_rent || 0).toLocaleString()}
+                            </span>
+                          </div>
+
+                          {isSubmeter ? (
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              <div>
+                                <span className="text-[10px] text-slate-400 font-bold block">PREV READING</span>
+                                <span className="font-mono font-bold text-slate-700">{rPrev} units</span>
+                              </div>
+                              <div>
+                                <span className="text-[10px] text-slate-500 font-extrabold block">CURR READING *</span>
+                                <input
+                                  type="number"
+                                  placeholder={`≥ ${rPrev}`}
+                                  value={mData.currentReading || ''}
+                                  onChange={e => setMultiRoomReadings(prev => ({
+                                    ...prev,
+                                    [roomItem.id]: { ...(prev[roomItem.id] || {}), currentReading: e.target.value }
+                                  }))}
+                                  className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg font-mono font-extrabold text-slate-900 outline-none focus:border-[#2d5a47] text-xs"
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-xs">
+                              <span className="text-[10px] text-slate-500 font-bold block">DIRECT ELEC (₹)</span>
+                              <input
+                                type="number"
+                                placeholder="0"
+                                value={mData.directElec || ''}
+                                onChange={e => setMultiRoomReadings(prev => ({
+                                  ...prev,
+                                  [roomItem.id]: { ...(prev[roomItem.id] || {}), directElec: e.target.value }
+                                }))}
+                                className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg font-mono font-bold text-slate-900 outline-none focus:border-[#2d5a47] text-xs"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* ELECTRICITY MODE TOGGLE & COMPACT METER INPUT */}
               <div className="p-4 rounded-2xl bg-[#edf5f1] border border-[#d8e7e0] space-y-3">

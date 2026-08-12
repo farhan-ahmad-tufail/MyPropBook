@@ -683,7 +683,9 @@ export default function Billing() {
                           <div>
                             <p className="font-extrabold text-slate-800 text-xs">{tenantName}</p>
                             <p className="text-[11px] text-slate-400 font-normal">
-                              Room {roomNum} {propName ? `· ${propName}` : ''}
+                              {Array.isArray(bill.room_items) && bill.room_items.length > 0
+                                ? `Rooms ${bill.room_items.map(i => i.room_number).join(', ')}`
+                                : `Room ${roomNum}`} {propName ? `· ${propName}` : ''}
                             </p>
                           </div>
                         </div>

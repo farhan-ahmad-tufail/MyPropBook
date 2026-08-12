@@ -213,16 +213,17 @@ export const supabaseDb = {
         tenant_id: billData.tenant_id,
         bill_month: billData.bill_month,
         bill_year: parseInt(billData.bill_year),
-        previous_reading: parseFloat(billData.previous_reading),
-        current_reading: parseFloat(billData.current_reading),
-        units_consumed: parseFloat(billData.units_consumed),
-        rate_per_unit: parseFloat(billData.rate_per_unit),
-        rent_amount: parseFloat(billData.rent_amount),
+        previous_reading: parseFloat(billData.previous_reading || 0),
+        current_reading: parseFloat(billData.current_reading || 0),
+        units_consumed: parseFloat(billData.units_consumed || 0),
+        rate_per_unit: parseFloat(billData.rate_per_unit || 0),
+        rent_amount: parseFloat(billData.rent_amount || 0),
         arrears: parseFloat(billData.arrears || 0),
         other_charges: parseFloat(billData.other_charges || 0),
         total_payable: parseFloat(billData.total_payable),
         amount_paid: 0,
-        payment_status: billData.payment_status || 'Unpaid'
+        payment_status: billData.payment_status || 'Unpaid',
+        room_items: billData.room_items || null
       }])
       .select()
       .single();
@@ -230,12 +231,26 @@ export const supabaseDb = {
     if (billErr) throw billErr;
 
     // Update Room's current reading
-    const { error: roomErr } = await supabase
-      .from('rooms')
-      .update({ current_meter_reading: parseFloat(billData.current_reading) })
-      .eq('id', billData.room_id);
+    if (Array.isArray(billData.room_items) && billData.room_items.length > 0) {
+      await Promise.all(
+        billData.room_items.map(item => {
+          if (item.room_id && item.current_reading !== undefined && item.current_reading !== null) {
+            return supabase
+              .from('rooms')
+              .update({ current_meter_reading: parseFloat(item.current_reading) })
+              .eq('id', item.room_id);
+          }
+          return Promise.resolve();
+        })
+      );
+    } else if (billData.room_id && billData.current_reading !== undefined && billData.current_reading !== null) {
+      const { error: roomErr } = await supabase
+        .from('rooms')
+        .update({ current_meter_reading: parseFloat(billData.current_reading) })
+        .eq('id', billData.room_id);
 
-    if (roomErr) throw roomErr;
+      if (roomErr) console.warn('Could not update meter reading:', roomErr);
+    }
 
     return bill;
   },

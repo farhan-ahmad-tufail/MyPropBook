@@ -272,63 +272,121 @@ export default function BillReceiptModal({ isOpen, onClose, bill, room, tenant, 
 
             {/* Line Items */}
             <div className="space-y-3">
-
-              {/* Electricity */}
-              {elec > 0 && (
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="font-semibold" style={{ color: 'rgba(255,255,255,0.90)' }}>{lbl.electricity}</span>
-                    <span className="font-black text-white font-mono">₹{fmt(elec)}</span>
-                  </div>
-                  {units > 0 ? (
-                    <div
-                      className="rounded-2xl p-3.5 space-y-2"
-                      style={{ background: 'rgba(0,0,0,0.20)', border: '1px solid rgba(255,255,255,0.08)' }}
-                    >
-                      <div className="flex justify-between text-[11px] font-medium" style={{ color: 'rgba(255,255,255,0.60)' }}>
-                        <span>{lbl.prev}: <strong className="text-white font-bold">{bill.previous_reading || 0} units</strong></span>
-                        <span>{lbl.curr}: <strong className="text-white font-bold">{bill.current_reading ?? bill.previous_reading ?? 0} units</strong></span>
-                      </div>
+              {Array.isArray(bill.room_items) && bill.room_items.length > 0 ? (
+                <div className="space-y-3">
+                  <span className="text-[10px] font-bold uppercase tracking-wider block" style={{ color: t.accent }}>
+                    Itemized Room Breakdown ({bill.room_items.length} Rooms)
+                  </span>
+                  {bill.room_items.map((item, idx) => {
+                    const itemElec = parseFloat(item.elec_amount || item.electricity_amount || 0);
+                    const itemRent = parseFloat(item.rent_amount || 0);
+                    const itemOther = parseFloat(item.other_charges || 0);
+                    const itemTotal = itemRent + itemElec + itemOther;
+                    return (
                       <div
-                        className="flex justify-between items-center text-[11px] font-mono"
-                        style={{ paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.70)' }}
+                        key={idx}
+                        className="rounded-2xl p-3.5 space-y-2"
+                        style={{ background: 'rgba(0,0,0,0.22)', border: '1px solid rgba(255,255,255,0.09)' }}
                       >
-                        <span>{lbl.usage}: {units.toFixed(1)} units × ₹{rate}/unit</span>
-                        <span className="font-bold text-white">₹{fmt(elec)}</span>
+                        <div className="flex justify-between items-center text-xs font-bold">
+                          <span className="text-white flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: t.accent }} />
+                            Room {item.room_number} ({item.room_type || 'Single Room'})
+                          </span>
+                          <span className="font-mono text-white">₹{fmt(itemTotal)}</span>
+                        </div>
+                        <div className="text-[11px] space-y-1" style={{ color: 'rgba(255,255,255,0.70)' }}>
+                          <div className="flex justify-between">
+                            <span>Rent</span>
+                            <span className="font-mono text-white">₹{fmt(itemRent)}</span>
+                          </div>
+                          {itemElec > 0 && (
+                            <div className="flex justify-between">
+                              <span>
+                                Electricity {item.units_consumed > 0 ? `(${item.units_consumed} units @ ₹${item.rate_per_unit || 17})` : ''}
+                              </span>
+                              <span className="font-mono text-white">₹{fmt(itemElec)}</span>
+                            </div>
+                          )}
+                          {itemOther > 0 && (
+                            <div className="flex justify-between">
+                              <span>Other Charges</span>
+                              <span className="font-mono text-white">₹{fmt(itemOther)}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ) : (
-                    <div
-                      className="rounded-2xl p-2.5 px-3.5 flex justify-between items-center text-[11px]"
-                      style={{ background: 'rgba(0,0,0,0.20)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.60)' }}
-                    >
-                      <span>Direct / Fixed Electricity Charge</span>
-                      <span className="font-bold text-white font-mono">₹{fmt(elec)}</span>
+                    );
+                  })}
+
+                  {/* Arrears */}
+                  {arrears > 0 && (
+                    <div className="flex justify-between items-center text-sm pt-1">
+                      <span className="font-medium" style={{ color: 'rgba(255,255,255,0.85)' }}>{lbl.prevBal}</span>
+                      <span className="font-black text-white font-mono">₹{fmt(arrears)}</span>
                     </div>
                   )}
                 </div>
-              )}
+              ) : (
+                <>
+                  {/* Electricity */}
+                  {elec > 0 && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="font-semibold" style={{ color: 'rgba(255,255,255,0.90)' }}>{lbl.electricity}</span>
+                        <span className="font-black text-white font-mono">₹{fmt(elec)}</span>
+                      </div>
+                      {units > 0 ? (
+                        <div
+                          className="rounded-2xl p-3.5 space-y-2"
+                          style={{ background: 'rgba(0,0,0,0.20)', border: '1px solid rgba(255,255,255,0.08)' }}
+                        >
+                          <div className="flex justify-between text-[11px] font-medium" style={{ color: 'rgba(255,255,255,0.60)' }}>
+                            <span>{lbl.prev}: <strong className="text-white font-bold">{bill.previous_reading || 0} units</strong></span>
+                            <span>{lbl.curr}: <strong className="text-white font-bold">{bill.current_reading ?? bill.previous_reading ?? 0} units</strong></span>
+                          </div>
+                          <div
+                            className="flex justify-between items-center text-[11px] font-mono"
+                            style={{ paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.70)' }}
+                          >
+                            <span>{lbl.usage}: {units.toFixed(1)} units × ₹{rate}/unit</span>
+                            <span className="font-bold text-white">₹{fmt(elec)}</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div
+                          className="rounded-2xl p-2.5 px-3.5 flex justify-between items-center text-[11px]"
+                          style={{ background: 'rgba(0,0,0,0.20)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.60)' }}
+                        >
+                          <span>Direct / Fixed Electricity Charge</span>
+                          <span className="font-bold text-white font-mono">₹{fmt(elec)}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
-              {/* Monthly Rent */}
-              <div className="flex justify-between items-center text-sm">
-                <span className="font-medium" style={{ color: 'rgba(255,255,255,0.85)' }}>{lbl.rent}</span>
-                <span className="font-black text-white font-mono">₹{fmt(rent)}</span>
-              </div>
+                  {/* Monthly Rent */}
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="font-medium" style={{ color: 'rgba(255,255,255,0.85)' }}>{lbl.rent}</span>
+                    <span className="font-black text-white font-mono">₹{fmt(rent)}</span>
+                  </div>
 
-              {/* Previous Balance */}
-              {arrears > 0 && (
-                <div className="flex justify-between items-center text-sm">
-                  <span className="font-medium" style={{ color: 'rgba(255,255,255,0.85)' }}>{lbl.prevBal}</span>
-                  <span className="font-black text-white font-mono">₹{fmt(arrears)}</span>
-                </div>
-              )}
+                  {/* Previous Balance */}
+                  {arrears > 0 && (
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="font-medium" style={{ color: 'rgba(255,255,255,0.85)' }}>{lbl.prevBal}</span>
+                      <span className="font-black text-white font-mono">₹{fmt(arrears)}</span>
+                    </div>
+                  )}
 
-              {/* Other Charges */}
-              {other > 0 && (
-                <div className="flex justify-between items-center text-sm">
-                  <span className="font-medium" style={{ color: 'rgba(255,255,255,0.85)' }}>{lbl.other}</span>
-                  <span className="font-black text-white font-mono">₹{fmt(other)}</span>
-                </div>
+                  {/* Other Charges */}
+                  {other > 0 && (
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="font-medium" style={{ color: 'rgba(255,255,255,0.85)' }}>{lbl.other}</span>
+                      <span className="font-black text-white font-mono">₹{fmt(other)}</span>
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
