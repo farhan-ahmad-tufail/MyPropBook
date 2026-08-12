@@ -103,11 +103,22 @@ export default function BillReceiptModal({ isOpen, onClose, bill, room, tenant, 
   /* Numbers */
   const units      = parseFloat(bill.units_consumed || 0);
   const rate       = parseFloat(bill.rate_per_unit  || 0);
-  const elec       = units * rate;
   const rent       = parseFloat(bill.rent_amount    || 0);
   const other      = parseFloat(bill.other_charges  || 0);
   const arrears    = parseFloat(bill.arrears        || 0);
   const rawTotal   = parseFloat(bill.total_payable  || 0);
+
+  let elec = 0;
+  if (bill.electricity_amount !== undefined && bill.electricity_amount !== null && !isNaN(bill.electricity_amount)) {
+    elec = parseFloat(bill.electricity_amount);
+  } else if (bill.elec_amount !== undefined && bill.elec_amount !== null && !isNaN(bill.elec_amount)) {
+    elec = parseFloat(bill.elec_amount);
+  } else if (units > 0 && rate > 0) {
+    elec = units * rate;
+  } else if (!isNaN(rawTotal) && rawTotal > 0) {
+    elec = Math.max(0, rawTotal - rent - arrears - other);
+  }
+
   const computed   = rent + elec + other + arrears;
   const total      = (isNaN(rawTotal) || rawTotal === 0) ? computed : rawTotal;
   const paid       = parseFloat(bill.amount_paid || 0);
@@ -263,28 +274,38 @@ export default function BillReceiptModal({ isOpen, onClose, bill, room, tenant, 
             <div className="space-y-3">
 
               {/* Electricity */}
-              {(units > 0 || rate > 0) && (
+              {elec > 0 && (
                 <div className="space-y-2">
                   <div className="flex justify-between items-center text-sm">
                     <span className="font-semibold" style={{ color: 'rgba(255,255,255,0.90)' }}>{lbl.electricity}</span>
                     <span className="font-black text-white font-mono">₹{fmt(elec)}</span>
                   </div>
-                  <div
-                    className="rounded-2xl p-3.5 space-y-2"
-                    style={{ background: 'rgba(0,0,0,0.20)', border: '1px solid rgba(255,255,255,0.08)' }}
-                  >
-                    <div className="flex justify-between text-[11px] font-medium" style={{ color: 'rgba(255,255,255,0.60)' }}>
-                      <span>{lbl.prev}: <strong className="text-white font-bold">{bill.previous_reading || 0} units</strong></span>
-                      <span>{lbl.curr}: <strong className="text-white font-bold">{bill.current_reading ?? bill.previous_reading ?? 0} units</strong></span>
-                    </div>
+                  {units > 0 ? (
                     <div
-                      className="flex justify-between items-center text-[11px] font-mono"
-                      style={{ paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.70)' }}
+                      className="rounded-2xl p-3.5 space-y-2"
+                      style={{ background: 'rgba(0,0,0,0.20)', border: '1px solid rgba(255,255,255,0.08)' }}
                     >
-                      <span>{lbl.usage}: {units.toFixed(1)} units × ₹{rate}/unit</span>
-                      <span className="font-bold text-white">₹{fmt(elec)}</span>
+                      <div className="flex justify-between text-[11px] font-medium" style={{ color: 'rgba(255,255,255,0.60)' }}>
+                        <span>{lbl.prev}: <strong className="text-white font-bold">{bill.previous_reading || 0} units</strong></span>
+                        <span>{lbl.curr}: <strong className="text-white font-bold">{bill.current_reading ?? bill.previous_reading ?? 0} units</strong></span>
+                      </div>
+                      <div
+                        className="flex justify-between items-center text-[11px] font-mono"
+                        style={{ paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.70)' }}
+                      >
+                        <span>{lbl.usage}: {units.toFixed(1)} units × ₹{rate}/unit</span>
+                        <span className="font-bold text-white">₹{fmt(elec)}</span>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div
+                      className="rounded-2xl p-2.5 px-3.5 flex justify-between items-center text-[11px]"
+                      style={{ background: 'rgba(0,0,0,0.20)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.60)' }}
+                    >
+                      <span>Direct / Fixed Electricity Charge</span>
+                      <span className="font-bold text-white font-mono">₹{fmt(elec)}</span>
+                    </div>
+                  )}
                 </div>
               )}
 

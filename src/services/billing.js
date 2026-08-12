@@ -34,16 +34,21 @@ export async function generateBulkBills(propertyId, occupiedRooms, bulkReadings,
         : prevReading;
       const units = Math.max(0, currReading - prevReading);
 
-      // Electricity calculation based on mode.
+      // Electricity calculation based on mode & direct override input.
       let elec = 0;
       const rate = parseFloat(room.rate_per_unit ?? room.elec_rate ?? 17);
 
       if (room.elec_mode === 'submeter') {
         elec = units * rate;
-      } else if (room.elec_mode === 'direct') {
-        elec = parseFloat(room.direct_elec_amount || 0);
-      } else if (room.elec_mode === 'fixed') {
-        elec = parseFloat(room.fixed_elec_amount || 0);
+      } else {
+        const customDirect = readings.directElec;
+        if (customDirect !== undefined && customDirect !== '' && customDirect !== null && !isNaN(customDirect)) {
+          elec = parseFloat(customDirect);
+        } else if (room.elec_mode === 'direct') {
+          elec = parseFloat(room.direct_elec_amount || 0);
+        } else if (room.elec_mode === 'fixed') {
+          elec = parseFloat(room.fixed_elec_amount || 0);
+        }
       }
 
       const rent = parseFloat(room.base_rent || 0) || 0;
@@ -81,6 +86,8 @@ export async function generateBulkBills(propertyId, occupiedRooms, bulkReadings,
         current_reading: currReading,
         units_consumed: units,
         rate_per_unit: rate,
+        elec_amount: elec,
+        electricity_amount: elec,
         rent_amount: rent,
         arrears: arrears,
         other_charges: other,

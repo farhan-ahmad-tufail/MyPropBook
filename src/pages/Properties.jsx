@@ -830,10 +830,20 @@ export default function Properties() {
 
                             let elec = 0;
                             let elecLabel = '';
-                            if (room.elec_mode === 'submeter') { elec = units * rate; elecLabel = `${units.toFixed(0)}u × ₹${rate}`; }
-                            else if (room.elec_mode === 'direct') { elec = parseFloat(room.direct_elec_amount || 0); elecLabel = 'Direct'; }
-                            else if (room.elec_mode === 'fixed') { elec = parseFloat(room.fixed_elec_amount || 0); elecLabel = 'Fixed'; }
-                            else elecLabel = 'None';
+                            if (room.elec_mode === 'submeter') {
+                              elec = units * rate;
+                              elecLabel = `${units.toFixed(0)}u × ₹${rate}`;
+                            } else {
+                              const customDirect = readings.directElec;
+                              if (customDirect !== undefined && customDirect !== '' && !isNaN(customDirect)) {
+                                elec = parseFloat(customDirect);
+                              } else if (room.elec_mode === 'direct') {
+                                elec = parseFloat(room.direct_elec_amount || 0);
+                              } else if (room.elec_mode === 'fixed') {
+                                elec = parseFloat(room.fixed_elec_amount || 0);
+                              }
+                              elecLabel = room.elec_mode === 'direct' ? 'Direct' : room.elec_mode === 'fixed' ? 'Fixed' : 'Custom';
+                            }
 
                             const total = rent + elec + arrears + other;
 
@@ -869,8 +879,24 @@ export default function Properties() {
                                   )}
                                 </td>
                                 <td className="px-3 py-3">
-                                  <div className="font-bold text-[#2d5a47]">{formatINR(elec)}</div>
-                                  <div className="text-[9px] text-slate-400 font-medium truncate">{elecLabel}</div>
+                                  {room.elec_mode === 'submeter' ? (
+                                    <>
+                                      <div className="font-bold text-[#2d5a47]">{formatINR(elec)}</div>
+                                      <div className="text-[9px] text-slate-400 font-medium truncate">{elecLabel}</div>
+                                    </>
+                                  ) : (
+                                    <div className="space-y-0.5">
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        placeholder={formatINR(room.direct_elec_amount || room.fixed_elec_amount || 0)}
+                                        value={readings.directElec !== undefined ? readings.directElec : (room.direct_elec_amount || room.fixed_elec_amount || '')}
+                                        onChange={e => handleBulkReadingChange(room.id, 'directElec', e.target.value)}
+                                        className="px-2 py-1 bg-emerald-50/60 border border-emerald-200 rounded-lg text-xs font-bold text-[#2d5a47] placeholder:text-slate-400 w-full focus:outline-none focus:border-[#2d5a47] focus:bg-white focus:ring-1 focus:ring-[#2d5a47]/20 transition-all"
+                                      />
+                                      <div className="text-[9px] text-slate-400 font-medium truncate">{elecLabel}</div>
+                                    </div>
+                                  )}
                                 </td>
                                 <td className="px-3 py-3">
                                   <input
@@ -923,9 +949,18 @@ export default function Properties() {
                         const arrears = readings.arrears !== undefined && readings.arrears !== '' ? parseFloat(readings.arrears || 0) : autoArrears;
 
                         let elec = 0;
-                        if (room.elec_mode === 'submeter') elec = units * rate;
-                        else if (room.elec_mode === 'direct') elec = parseFloat(room.direct_elec_amount || 0);
-                        else if (room.elec_mode === 'fixed') elec = parseFloat(room.fixed_elec_amount || 0);
+                        if (room.elec_mode === 'submeter') {
+                          elec = units * rate;
+                        } else {
+                          const customDirect = readings.directElec;
+                          if (customDirect !== undefined && customDirect !== '' && !isNaN(customDirect)) {
+                            elec = parseFloat(customDirect);
+                          } else if (room.elec_mode === 'direct') {
+                            elec = parseFloat(room.direct_elec_amount || 0);
+                          } else if (room.elec_mode === 'fixed') {
+                            elec = parseFloat(room.fixed_elec_amount || 0);
+                          }
+                        }
 
                         const total = rent + elec + arrears + other;
 
@@ -940,7 +975,9 @@ export default function Properties() {
                             </div>
                             <div className="grid grid-cols-2 gap-2 text-xs">
                               <div>
-                                <label className="text-[10px] text-slate-500 font-bold uppercase">Curr Reading</label>
+                                <label className="text-[10px] text-slate-500 font-bold uppercase">
+                                  {room.elec_mode === 'submeter' ? 'Curr Reading' : 'Direct Elec (₹)'}
+                                </label>
                                 {room.elec_mode === 'submeter' ? (
                                   <input
                                     type="number"
@@ -951,7 +988,14 @@ export default function Properties() {
                                     className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 w-full mt-0.5"
                                   />
                                 ) : (
-                                  <p className="text-slate-400 mt-1">—</p>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    placeholder={formatINR(room.direct_elec_amount || room.fixed_elec_amount || 0)}
+                                    value={readings.directElec !== undefined ? readings.directElec : (room.direct_elec_amount || room.fixed_elec_amount || '')}
+                                    onChange={e => handleBulkReadingChange(room.id, 'directElec', e.target.value)}
+                                    className="px-2.5 py-1.5 bg-emerald-50/60 border border-emerald-200 rounded-lg text-xs font-bold text-[#2d5a47] w-full mt-0.5"
+                                  />
                                 )}
                               </div>
                               <div>
