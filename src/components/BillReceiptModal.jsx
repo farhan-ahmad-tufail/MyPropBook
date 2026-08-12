@@ -301,9 +301,9 @@ export default function BillReceiptModal({ isOpen, onClose, bill, room, tenant, 
                             <span className="font-mono text-white">₹{fmt(itemRent)}</span>
                           </div>
                           {itemElec > 0 && (
-                            <div className="flex justify-between">
+                            <div className="flex justify-between flex-wrap gap-x-2">
                               <span>
-                                Electricity {item.units_consumed > 0 ? `(${item.units_consumed} units @ ₹${item.rate_per_unit || 17})` : ''}
+                                Electricity {item.units_consumed > 0 ? `(Prev: ${item.previous_reading || 0}, Curr: ${item.current_reading || 0} · ${item.units_consumed} u @ ₹${item.rate_per_unit || 17})` : ''}
                               </span>
                               <span className="font-mono text-white">₹{fmt(itemElec)}</span>
                             </div>

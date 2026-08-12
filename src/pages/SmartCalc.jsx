@@ -1040,8 +1040,13 @@ export default function SmartCalc() {
                               <span className="font-mono text-white">₹{item.rent_amount.toLocaleString('en-IN')}</span>
                             </div>
                             {item.elec_amount > 0 && (
-                              <div className="flex justify-between">
-                                <span>Electricity {item.units_consumed > 0 ? `(${item.units_consumed} units @ ₹${item.rate_per_unit})` : ''}</span>
+                              <div className="flex justify-between flex-wrap gap-x-2">
+                                <span>
+                                  Electricity
+                                  {item.units_consumed > 0 ? (
+                                    <span className="opacity-90"> (Prev: {item.previous_reading}, Curr: {item.current_reading} · {item.units_consumed} u @ ₹{item.rate_per_unit})</span>
+                                  ) : ''}
+                                </span>
                                 <span className="font-mono text-white">₹{item.elec_amount.toLocaleString('en-IN')}</span>
                               </div>
                             )}
