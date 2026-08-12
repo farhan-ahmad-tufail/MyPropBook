@@ -399,3 +399,31 @@
     transform: translateY(0);
   }
 }
+
+/* Modern Clean SaaS Animations */
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes floatDelayed {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(8px); }
+}
+
+@keyframes subtlePulseGlow {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50% { opacity: 0.65; transform: scale(1.05); }
+}
+
+.animate-float-slow {
+  animation: floatSlow 5s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: floatDelayed 6s ease-in-out infinite 1s;
+}
+
+.animate-pulse-glow {
+  animation: subtlePulseGlow 4s ease-in-out infinite;
+}

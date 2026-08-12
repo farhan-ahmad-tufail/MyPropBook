@@ -186,29 +186,32 @@ export default function Landing() {
       ══════════════════════════════════════════ */}
       <section className="relative z-10 px-6 pt-20 pb-16 text-center max-w-5xl mx-auto">
         
+        {/* Ambient Glow Orb */}
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[300px] bg-gradient-to-tr from-emerald-200/50 via-[#2d5a47]/20 to-transparent blur-3xl rounded-full pointer-events-none animate-pulse-glow" />
+
         {/* Eyebrow Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 mb-6 rounded-full bg-[#edf5f1] border border-[#c8ddd4] text-[#2d5a47] text-xs font-bold tracking-wide">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 mb-6 rounded-full bg-[#edf5f1] border border-[#c8ddd4] text-[#2d5a47] text-xs font-bold tracking-wide relative z-10 shadow-2xs">
           <Sparkles size={13} fill="currentColor" />
           <span>Property management, made practical</span>
         </div>
 
         {/* Main Headline */}
-        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-[#0f172a] tracking-tight leading-[1.05]">
+        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-[#0f172a] tracking-tight leading-[1.05] relative z-10">
           Manage Every Property.<br />
           <span className="text-[#2d5a47]">Bill Every Room.</span>
         </h1>
 
         {/* Supporting Copy */}
-        <p className="mt-6 max-w-2xl mx-auto text-base sm:text-lg text-slate-500 leading-relaxed font-medium">
+        <p className="mt-6 max-w-2xl mx-auto text-base sm:text-lg text-slate-500 leading-relaxed font-medium relative z-10">
           Manage properties, tenants, rent and utility bills from one calm dashboard — built for landlords and property managers in India.
         </p>
 
         {/* CTAs */}
-        <div className="mt-8 flex flex-col sm:flex-row gap-3 items-center justify-center">
+        <div className="mt-8 flex flex-col sm:flex-row gap-3 items-center justify-center relative z-10">
           {user ? (
             <Link
               to="/dashboard"
-              className="px-8 py-3.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-sm hover:bg-[#234738] transition-all shadow-md flex items-center gap-2"
+              className="px-8 py-3.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-sm hover:bg-[#234738] transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 flex items-center gap-2"
             >
               <span>Go to Dashboard</span>
               <ArrowRight size={16} />
@@ -217,7 +220,7 @@ export default function Landing() {
             <>
               <Link
                 to="/signup"
-                className="px-8 py-3.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-sm hover:bg-[#234738] transition-all shadow-md flex items-center gap-2 w-full sm:w-auto justify-center"
+                className="px-8 py-3.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-sm hover:bg-[#234738] transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 flex items-center gap-2 w-full sm:w-auto justify-center"
               >
                 <span>Start for Free</span>
                 <ArrowRight size={16} />
@@ -233,7 +236,7 @@ export default function Landing() {
         </div>
 
         {/* Trust / Value Row */}
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-500 font-medium">
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-500 font-medium relative z-10">
           <div className="flex items-center gap-1.5">
             <Check size={14} className="text-[#2d5a47]" /> Free to get started
           </div>
@@ -248,7 +251,29 @@ export default function Landing() {
         {/* ══════════════════════════════════════════
             3. DASHBOARD PRODUCT PREVIEW MOCKUP
         ══════════════════════════════════════════ */}
-        <div className="mt-14 max-w-5xl mx-auto bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 text-left relative overflow-hidden">
+        <div className="mt-14 max-w-5xl mx-auto bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 text-left relative overflow-visible">
+
+          {/* Floating SaaS Widget 1: Bill Generated Notification */}
+          <div className="hidden md:flex items-center gap-2.5 bg-white/95 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border border-slate-200/90 shadow-xl absolute -top-5 -left-6 z-20 animate-float-slow">
+            <div className="w-8 h-8 rounded-xl bg-emerald-100 text-[#2d5a47] flex items-center justify-center font-black text-sm">
+              ⚡
+            </div>
+            <div className="text-left text-xs">
+              <p className="font-extrabold text-slate-900 leading-tight">Bill Generated</p>
+              <p className="text-[10px] text-slate-500 font-mono">Room 101 · ₹78,118</p>
+            </div>
+          </div>
+
+          {/* Floating SaaS Widget 2: WhatsApp Delivered Notification */}
+          <div className="hidden md:flex items-center gap-2.5 bg-white/95 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border border-slate-200/90 shadow-xl absolute -bottom-5 -right-6 z-20 animate-float-delayed">
+            <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+              <Check size={16} strokeWidth={3} />
+            </div>
+            <div className="text-left text-xs">
+              <p className="font-extrabold text-slate-900 leading-tight">Receipt Sent</p>
+              <p className="text-[10px] text-emerald-600 font-bold">WhatsApp · Delivered 1s ago</p>
+            </div>
+          </div>
           
           {/* Dashboard Header Bar */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-100">
