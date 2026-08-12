@@ -90,6 +90,13 @@ export default function Properties() {
   const [activeTab, setActiveTab] = useState(() => {
     return searchParams.get('tab') === 'bulk' ? 'bulkbill' : 'rooms';
   }); // 'rooms' | 'bulkbill'
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'bulk') {
+      setActiveTab('bulkbill');
+    }
+  }, [searchParams]);
   const [bulkMonth, setBulkMonth] = useState(() => {
     const now = new Date();
     return now.toLocaleString('default', { month: 'long' });
