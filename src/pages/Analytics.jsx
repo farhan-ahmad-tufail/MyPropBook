@@ -85,7 +85,22 @@ export default function Analytics() {
   const totalElectricityRevenueYear = useMemo(() => yearBills.reduce((sum, b) => {
     const units = parseFloat(b.units_consumed || 0);
     const rate = parseFloat(b.rate_per_unit || 0);
-    return sum + (units * rate);
+    const rent = parseFloat(b.rent_amount || 0);
+    const other = parseFloat(b.other_charges || 0);
+    const arrears = parseFloat(b.arrears || 0);
+    const total = parseFloat(b.total_payable || 0);
+
+    let elecAmt = 0;
+    if (b.electricity_amount !== undefined && b.electricity_amount !== null && !isNaN(b.electricity_amount)) {
+      elecAmt = parseFloat(b.electricity_amount);
+    } else if (b.elec_amount !== undefined && b.elec_amount !== null && !isNaN(b.elec_amount)) {
+      elecAmt = parseFloat(b.elec_amount);
+    } else if (units > 0 && rate > 0) {
+      elecAmt = units * rate;
+    } else if (total > 0) {
+      elecAmt = Math.max(0, total - rent - other - arrears);
+    }
+    return sum + elecAmt;
   }, 0), [yearBills]);
   const totalOtherChargesYear = useMemo(() => yearBills.reduce((sum, b) => sum + parseFloat(b.other_charges || 0), 0), [yearBills]);
 
@@ -362,9 +377,9 @@ export default function Analytics() {
                   </PieChart>
                 </ResponsiveContainer>
                 {/* Center metric */}
-                <div className="absolute text-center">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Total Billed</span>
-                  <span className="text-sm font-black text-slate-900">{formatINRShort(totalBilledYear)}</span>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Total Billed</span>
+                  <span className="text-base font-black text-slate-900 leading-tight">{formatINRShort(totalBilledYear)}</span>
                 </div>
               </div>
             ) : (
