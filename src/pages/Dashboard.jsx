@@ -216,20 +216,20 @@ export default function Dashboard() {
       const collected = monthBills.reduce((sum, b) => sum + parseFloat(b.amount_paid || 0), 0);
       const totalBilled = monthBills.reduce((sum, b) => sum + parseFloat(b.total_payable || 0), 0);
       
-      // Expected is monthly rent target or total billed
-      const expected = expectedMonthlyRevenue > 0 ? expectedMonthlyRevenue : (totalBilled > 0 ? totalBilled : 17276);
+      // Real expected target: total billed in that cycle, or active portfolio expected rent
+      const expected = totalBilled > 0 ? totalBilled : (monthBills.length > 0 ? totalBilled : expectedMonthlyRevenue);
 
       months.push({
         label: monthName,
         fullLabel: `${fullMonthName} ${yearVal}`,
-        collected: collected > 0 ? collected : (i === 0 ? totalCollected : Math.round(expected * (0.65 + (i * 0.06)))),
+        collected: collected,
         expected: expected,
         billsCount: monthBills.length
       });
     }
 
     return months;
-  }, [bills, expectedMonthlyRevenue, totalCollected, chartPeriod]);
+  }, [bills, expectedMonthlyRevenue, chartPeriod]);
 
   // Chart SVG Coordinates Generator
   const chartCoordinates = useMemo(() => {
