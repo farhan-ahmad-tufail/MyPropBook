@@ -357,13 +357,15 @@ export default function BillReceiptModal({ isOpen, onClose, bill, room, tenant, 
                               <span>{lbl.curLabel} <strong className="text-white font-bold">{bill.current_reading ?? bill.previous_reading ?? 0} {lbl.units}</strong></span>
                             </div>
                             <div className="flex justify-between items-center pt-0.5 font-mono">
-                              <span>{lbl.usageLabel} <strong className="text-white font-bold">{units.toFixed(1)} {lbl.units} × ₹{rate}</strong></span>
+                              <span>
+                                {lbl.usageLabel} <strong className="text-white font-bold">{units.toFixed(1)} {lbl.units} × ₹{rate}{bill.split_count > 1 ? ` (1/${bill.split_count} ${lang === 'hi' ? 'हिस्सा' : 'share'})` : ''}</strong>
+                              </span>
                               <span className="font-bold text-white text-xs">₹{fmt(elec)}</span>
                             </div>
                           </>
                         ) : (
                           <div className="flex justify-between items-center">
-                            <span>{lbl.electricity}</span>
+                            <span>{lbl.electricity}{bill.split_count > 1 ? ` (1/${bill.split_count} ${lang === 'hi' ? 'हिस्सा' : 'share'})` : ''}</span>
                             <span className="font-mono font-bold text-white text-xs">₹{fmt(elec)}</span>
                           </div>
                         )}

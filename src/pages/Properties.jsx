@@ -113,6 +113,11 @@ export default function Properties() {
   const monthDropdownRef = React.useRef(null);
   const yearDropdownRef = React.useRef(null);
 
+  // Bulk Electricity Utility Split State
+  const [showBulkSplitModal, setShowBulkSplitModal] = useState(false);
+  const [bulkSplitAmount, setBulkSplitAmount] = useState('');
+  const [bulkSplitTarget, setBulkSplitTarget] = useState('all'); // 'all' | 'shared_only'
+
   // Close dropdowns & action menus on outside click or Escape key
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -779,7 +784,128 @@ export default function Properties() {
                     </div>
                   )}
                 </div>
+
+                {/* Split Main Electricity Utility Tool Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowBulkSplitModal(v => !v)}
+                  className="flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-[#2d5a47] border border-emerald-200/80 rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all shadow-2xs cursor-pointer ml-auto"
+                  title="Split main building electricity bill equally across rooms"
+                >
+                  <span>🤝 Split Main Electricity Bill</span>
+                </button>
               </div>
+
+              {/* Expandable Bulk Electricity Splitter Panel */}
+              {showBulkSplitModal && occupiedRoomsForBulk.length > 0 && (
+                <div className="p-4 bg-emerald-50/70 border border-emerald-200/80 rounded-2xl space-y-3 animate-in fade-in duration-150">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                    <div>
+                      <h4 className="font-extrabold text-sm text-slate-900 flex items-center gap-1.5">
+                        <span>🤝 Building Electricity Bill Splitter</span>
+                      </h4>
+                      <p className="text-xs text-slate-600 mt-0.5">
+                        Enter the total electricity bill from your power board. It will be divided and filled into the matrix automatically.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowBulkSplitModal(false)}
+                      className="p-1 text-slate-400 hover:text-slate-600 rounded-lg"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+                    <div className="sm:col-span-4">
+                      <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block mb-1">
+                        Total Electricity Bill (₹)
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">₹</span>
+                        <input
+                          type="number"
+                          min="0"
+                          placeholder="e.g. 6000"
+                          value={bulkSplitAmount}
+                          onChange={e => setBulkSplitAmount(e.target.value)}
+                          className="w-full pl-7 pr-3 py-1.5 bg-white border border-slate-200 rounded-xl text-sm font-black text-slate-900 outline-none focus:border-[#2d5a47]"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="sm:col-span-5">
+                      <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block mb-1">
+                        Apply To
+                      </label>
+                      <div className="flex bg-white p-0.5 rounded-xl border border-slate-200 text-xs">
+                        <button
+                          type="button"
+                          onClick={() => setBulkSplitTarget('all')}
+                          className={`flex-1 py-1 px-2 rounded-lg font-bold transition-all ${
+                            bulkSplitTarget === 'all'
+                              ? 'bg-[#2d5a47] text-white shadow-2xs'
+                              : 'text-slate-600 hover:text-slate-900'
+                          }`}
+                        >
+                          All Occupied ({occupiedRoomsForBulk.length})
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setBulkSplitTarget('shared_only')}
+                          className={`flex-1 py-1 px-2 rounded-lg font-bold transition-all ${
+                            bulkSplitTarget === 'shared_only'
+                              ? 'bg-[#2d5a47] text-white shadow-2xs'
+                              : 'text-slate-600 hover:text-slate-900'
+                          }`}
+                        >
+                          Shared/Direct Only
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="sm:col-span-3 flex items-end">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const amt = parseFloat(bulkSplitAmount);
+                          if (isNaN(amt) || amt <= 0) {
+                            toast('Please enter a valid total electricity amount', 'error');
+                            return;
+                          }
+                          const targetList = bulkSplitTarget === 'all'
+                            ? occupiedRoomsForBulk
+                            : occupiedRoomsForBulk.filter(r => r.elec_mode === 'shared' || r.elec_mode === 'direct');
+                          
+                          if (targetList.length === 0) {
+                            toast('No eligible rooms found', 'warning');
+                            return;
+                          }
+
+                          const share = Math.round(amt / targetList.length);
+                          setBulkReadings(prev => {
+                            const updated = { ...prev };
+                            targetList.forEach(r => {
+                              updated[r.id] = {
+                                ...(updated[r.id] || {}),
+                                directElec: share.toString()
+                              };
+                            });
+                            return updated;
+                          });
+                          toast(`Applied ₹${share.toLocaleString('en-IN')}/room across ${targetList.length} rooms!`, 'success');
+                          setShowBulkSplitModal(false);
+                          setBulkSplitAmount('');
+                        }}
+                        className="w-full py-2 px-3 rounded-xl bg-[#2d5a47] hover:bg-[#234738] text-white font-bold text-xs shadow-2xs transition-all cursor-pointer text-center"
+                      >
+                        Apply to Matrix →
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {occupiedRoomsForBulk.length === 0 ? (
                 <div className="bg-white border border-slate-200/80 rounded-2xl p-10 text-center text-slate-500 text-sm shadow-sm">

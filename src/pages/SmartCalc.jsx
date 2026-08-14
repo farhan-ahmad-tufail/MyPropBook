@@ -270,6 +270,7 @@ export default function SmartCalc() {
 
   // Dropdown Selection States
   const [selectedPropertyId, setSelectedPropertyId] = useState('');
+  const [selectedSelectionKey, setSelectedSelectionKey] = useState('');
   const [selectedRoomId, setSelectedRoomId] = useState('');
 
   // Selected Room Details (Autofilled)
@@ -285,9 +286,11 @@ export default function SmartCalc() {
   const [currentReading, setCurrentReading] = useState('');
   const [otherCharges, setOtherCharges] = useState('');
 
-  // Electricity billing mode: 'submeter' | 'direct' | 'none'
+  // Electricity billing mode: 'submeter' | 'direct' | 'shared' | 'none'
   const [elecMode, setElecMode] = useState('submeter');
   const [directElecAmount, setDirectElecAmount] = useState('');
+  const [propertyTotalElec, setPropertyTotalElec] = useState('');
+  const [splitBasis, setSplitBasis] = useState('rooms'); // 'rooms' | 'tenants'
   const [multiRoomReadings, setMultiRoomReadings] = useState({});
 
   // Result & UI State
@@ -327,6 +330,7 @@ export default function SmartCalc() {
         const targetRoom = roomsList.find(r => r.id === urlRoomId);
         if (targetRoom) {
           setSelectedPropertyId(targetRoom.property_id);
+          setSelectedSelectionKey(targetRoom.id);
           setSelectedRoomId(targetRoom.id);
         }
       } else if (propsList.length > 0 && !selectedPropertyId) {
@@ -344,9 +348,10 @@ export default function SmartCalc() {
     loadAllData();
   }, [loadAllData]);
 
-  // Triggered when selected room changes (Autofill execution)
+  // Triggered when selected room/tenant changes (Autofill execution)
   useEffect(() => {
-    if (!selectedRoomId) {
+    if (!selectedSelectionKey) {
+      setSelectedRoomId('');
       setActiveRoom(null);
       setActiveTenant(null);
       setCalculatedArrears(0);
@@ -356,12 +361,37 @@ export default function SmartCalc() {
       return;
     }
 
-    const roomObj = rooms.find(r => r.id === selectedRoomId);
+    let actualRoomId = selectedSelectionKey;
+    let targetTenantId = null;
+
+    if (selectedSelectionKey.includes('__')) {
+      const parts = selectedSelectionKey.split('__');
+      actualRoomId = parts[0];
+      targetTenantId = parts[1];
+    }
+
+    setSelectedRoomId(actualRoomId);
+    const roomObj = rooms.find(r => r.id === actualRoomId);
     setActiveRoom(roomObj);
 
-    const activeLease = leases.find(l => l.room_id === selectedRoomId && l.is_active);
-    if (activeLease) {
-      const tenantObj = tenants.find(t => t.id === activeLease.tenant_id);
+    if (roomObj) {
+      // Set default mode based on room setting if not customized
+      const defaultMode = roomObj.elec_mode || (roomObj.has_submeter !== false ? 'submeter' : 'direct');
+      setElecMode(defaultMode);
+    }
+
+    // Find specific tenant or active lease for this room
+    let tenantObj = null;
+    if (targetTenantId) {
+      tenantObj = tenants.find(t => t.id === targetTenantId);
+    } else {
+      const activeLease = leases.find(l => l.room_id === actualRoomId && l.is_active);
+      if (activeLease) {
+        tenantObj = tenants.find(t => t.id === activeLease.tenant_id);
+      }
+    }
+
+    if (tenantObj) {
       setActiveTenant(tenantObj);
 
       // Find all rooms occupied by this tenant
@@ -378,7 +408,7 @@ export default function SmartCalc() {
       setCalculatedArrears(0);
       setCustomArrears('');
     }
-  }, [selectedRoomId, rooms, leases, tenants, bills]);
+  }, [selectedSelectionKey, rooms, leases, tenants, bills]);
 
   // Compute active tenant's multi-room list
   const tenantActiveRooms = React.useMemo(() => {
@@ -388,6 +418,31 @@ export default function SmartCalc() {
   }, [activeTenant, leases, rooms]);
 
   const isMultiRoomTenant = tenantActiveRooms.length > 1;
+
+  // Active tenants sharing this specific room (e.g. 3 beds in Room 101)
+  const roomActiveLeases = React.useMemo(() => {
+    if (!activeRoom) return [];
+    return leases.filter(l => l.room_id === activeRoom.id && l.is_active);
+  }, [activeRoom, leases]);
+
+  const roomTenantCount = roomActiveLeases.length || 1;
+  const isSharedRoomTenants = roomTenantCount > 1;
+
+  // Property-level occupied room and active tenant counts for shared utility splits
+  const propertyOccupiedRooms = React.useMemo(() => {
+    if (!selectedPropertyId) return [];
+    const propRooms = rooms.filter(r => r.property_id === selectedPropertyId);
+    return propRooms.filter(r => leases.some(l => l.room_id === r.id && l.is_active));
+  }, [selectedPropertyId, rooms, leases]);
+
+  const propertyActiveTenants = React.useMemo(() => {
+    if (!selectedPropertyId) return [];
+    const propRooms = rooms.filter(r => r.property_id === selectedPropertyId);
+    const propRoomIds = propRooms.map(r => r.id);
+    const activePropLeases = leases.filter(l => propRoomIds.includes(l.room_id) && l.is_active);
+    const tenantIds = [...new Set(activePropLeases.map(l => l.tenant_id))];
+    return tenantIds.map(tid => tenants.find(t => t.id === tid)).filter(Boolean);
+  }, [selectedPropertyId, rooms, leases, tenants]);
 
   // Multi-room calculation breakdown
   const multiRoomItems = React.useMemo(() => {
@@ -428,19 +483,28 @@ export default function SmartCalc() {
   }, [isMultiRoomTenant, tenantActiveRooms, multiRoomReadings]);
 
   // Real-time calculation computation
-  const activeProperty = properties.find(p => p.id === selectedPropertyId);
   const prevReading = parseFloat(activeRoom?.current_meter_reading) || 0;
   const currReading = parseFloat(currentReading) || 0;
   const rate = parseFloat(activeRoom?.rate_per_unit) || 10;
   const unitsConsumed = (currentReading !== '' && currReading >= prevReading) ? (currReading - prevReading) : 0;
+  const roomTotalElec = unitsConsumed * rate;
 
   let calculatedElecAmount = 0;
   if (isMultiRoomTenant) {
     calculatedElecAmount = multiRoomItems.reduce((sum, item) => sum + item.elec_amount, 0);
   } else if (elecMode === 'submeter') {
-    calculatedElecAmount = unitsConsumed * rate;
+    calculatedElecAmount = isSharedRoomTenants ? Math.round(roomTotalElec / roomTenantCount) : roomTotalElec;
   } else if (elecMode === 'direct') {
-    calculatedElecAmount = parseFloat(directElecAmount) || 0;
+    const rawDirect = parseFloat(directElecAmount) || 0;
+    calculatedElecAmount = isSharedRoomTenants ? Math.round(rawDirect / roomTenantCount) : rawDirect;
+  } else if (elecMode === 'shared') {
+    const totalPropBill = parseFloat(propertyTotalElec) || 0;
+    if (splitBasis === 'rooms') {
+      const roomShare = Math.round(totalPropBill / Math.max(1, propertyOccupiedRooms.length));
+      calculatedElecAmount = isSharedRoomTenants ? Math.round(roomShare / roomTenantCount) : roomShare;
+    } else {
+      calculatedElecAmount = Math.round(totalPropBill / Math.max(1, propertyActiveTenants.length));
+    }
   }
 
   const baseRentAmount = isMultiRoomTenant 
@@ -474,6 +538,9 @@ export default function SmartCalc() {
       } else if (elecMode === 'direct' && (directElecAmount === '' || isNaN(parseFloat(directElecAmount)))) {
         setError('Please enter a valid electricity bill amount');
         return;
+      } else if (elecMode === 'shared' && (propertyTotalElec === '' || isNaN(parseFloat(propertyTotalElec)))) {
+        setError('Please enter the total property electricity bill amount');
+        return;
       }
     }
 
@@ -493,6 +560,9 @@ export default function SmartCalc() {
       current_reading: currReading,
       units_consumed: unitsConsumed,
       rate_per_unit: rate,
+      room_total_elec: elecMode === 'submeter' ? roomTotalElec : calculatedElecAmount,
+      split_count: isSharedRoomTenants ? roomTenantCount : (elecMode === 'shared' ? (splitBasis === 'rooms' ? propertyOccupiedRooms.length : propertyActiveTenants.length) : 1),
+      split_type: isSharedRoomTenants ? 'room_sharing' : (elecMode === 'shared' ? splitBasis : 'individual'),
       elec_amount: calculatedElecAmount,
       electricity_amount: calculatedElecAmount,
       rent_amount: baseRentAmount,
@@ -582,16 +652,38 @@ export default function SmartCalc() {
 
   const roomOptions = rooms
     .filter(r => r.property_id === selectedPropertyId)
-    .map(r => {
-      const activeLease = leases.find(l => l.room_id === r.id && l.is_active);
-      const tenant = activeLease ? tenants.find(t => t.id === activeLease.tenant_id) : null;
-      return {
-        value: r.id,
-        label: `Room ${r.room_number}`,
-        sublabel: tenant ? tenant.name : 'Vacant',
-        disabled: !activeLease,
-        icon: <Home size={14} className={activeLease ? 'text-emerald-600' : 'text-slate-300'} />
-      };
+    .flatMap(r => {
+      const activeLeasesForRoom = leases.filter(l => l.room_id === r.id && l.is_active);
+      if (activeLeasesForRoom.length === 0) {
+        return [{
+          value: r.id,
+          label: `Room ${r.room_number}`,
+          sublabel: 'Vacant',
+          disabled: true,
+          icon: <Home size={14} className="text-slate-300" />
+        }];
+      }
+      if (activeLeasesForRoom.length === 1) {
+        const tenant = tenants.find(t => t.id === activeLeasesForRoom[0].tenant_id);
+        return [{
+          value: r.id,
+          label: `Room ${r.room_number}`,
+          sublabel: tenant ? tenant.name : 'Occupied',
+          disabled: false,
+          icon: <Home size={14} className="text-emerald-600" />
+        }];
+      }
+      // If multi-tenant room (PG bed sharing): list each tenant individually!
+      return activeLeasesForRoom.map(l => {
+        const tenant = tenants.find(t => t.id === l.tenant_id);
+        return {
+          value: `${r.id}__${tenant?.id || l.id}`,
+          label: `Room ${r.room_number} · ${tenant?.name || 'Tenant'}`,
+          sublabel: `Shared (${activeLeasesForRoom.length} tenants)`,
+          disabled: false,
+          icon: <Home size={14} className="text-emerald-600" />
+        };
+      });
     });
 
   if (loading) {
@@ -679,6 +771,7 @@ export default function SmartCalc() {
                   value={selectedPropertyId}
                   onChange={(v) => {
                     setSelectedPropertyId(v);
+                    setSelectedSelectionKey('');
                     setSelectedRoomId('');
                   }}
                   options={propertyOptions}
@@ -691,13 +784,13 @@ export default function SmartCalc() {
                   label="Room / Tenant"
                   required
                   placeholder={selectedPropertyId ? 'Choose Room / Tenant…' : 'Select property first'}
-                  value={selectedRoomId}
+                  value={selectedSelectionKey}
                   onChange={(v) => {
-                    setSelectedRoomId(v);
+                    setSelectedSelectionKey(v);
                     setCurrentReading('');
                     setOtherCharges('');
                     setDirectElecAmount('');
-                    setElecMode('submeter');
+                    setPropertyTotalElec('');
                     setMultiRoomReadings({});
                     setResult(null);
                     setIsSaved(false);
@@ -789,6 +882,7 @@ export default function SmartCalc() {
                       {[
                         { id: 'submeter', label: 'Submeter' },
                         { id: 'direct', label: 'Direct Amount' },
+                        { id: 'shared', label: 'Shared / Split' },
                         { id: 'none', label: 'Included' }
                       ].map(mode => (
                         <button
@@ -805,6 +899,19 @@ export default function SmartCalc() {
                       ))}
                     </div>
                   </div>
+
+                  {/* PG Multi-Tenant Submeter Split Banner */}
+                  {isSharedRoomTenants && elecMode === 'submeter' && (
+                    <div className="p-3 bg-amber-50 border border-amber-200/80 rounded-xl text-xs space-y-1 text-amber-900">
+                      <div className="flex items-center gap-1.5 font-bold">
+                        <span>👥 PG / Shared Room</span>
+                        <span className="bg-amber-200 text-amber-900 px-1.5 py-0.2 rounded text-[10px]">{roomTenantCount} Active Tenants</span>
+                      </div>
+                      <p className="text-[11px] text-amber-800 leading-snug">
+                        Room {activeRoom?.room_number} submeter electricity ({formatINR(roomTotalElec)}) will be split equally (<strong>1/{roomTenantCount} share = {formatINR(calculatedElecAmount)}</strong> for {activeTenant?.name}).
+                      </p>
+                    </div>
+                  )}
 
                   {elecMode === 'submeter' && (
                     <div className="space-y-2.5">
@@ -831,12 +938,19 @@ export default function SmartCalc() {
                       </div>
 
                       <div className="flex justify-between items-center text-xs font-semibold pt-0.5">
-                        <span className="text-slate-500 text-[11px]">Usage breakdown</span>
+                        <span className="text-slate-500 text-[11px]">
+                          {isSharedRoomTenants ? `Room usage (${unitsConsumed}u) ÷ ${roomTenantCount} tenants` : 'Usage breakdown'}
+                        </span>
                         <div className="flex items-center gap-1">
                           <span className="px-2 py-0.5 rounded-lg bg-white border border-slate-200 text-[#2d5a47] font-black text-xs">
                             {unitsConsumed} units
                           </span>
                           <span className="text-slate-400 font-mono text-[11px]">× ₹{rate}/unit</span>
+                          {isSharedRoomTenants && (
+                            <span className="text-amber-700 font-bold font-mono text-[11px] bg-amber-50 px-1.5 py-0.5 rounded">
+                              → {formatINR(calculatedElecAmount)}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -844,7 +958,14 @@ export default function SmartCalc() {
 
                   {elecMode === 'direct' && (
                     <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-slate-700 block">Direct Electricity Amount (₹)</label>
+                      <div className="flex justify-between items-center">
+                        <label className="text-[11px] font-bold text-slate-700 block">Direct Electricity Amount (₹)</label>
+                        {isSharedRoomTenants && (
+                          <span className="text-[10px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded-full">
+                            Split across {roomTenantCount} tenants (₹{calculatedElecAmount} each)
+                          </span>
+                        )}
+                      </div>
                       <div className="relative bg-white rounded-xl border border-slate-200/80 px-3 py-1.5">
                         <input
                           type="number"
@@ -856,6 +977,72 @@ export default function SmartCalc() {
                           onChange={e => setDirectElecAmount(e.target.value)}
                         />
                       </div>
+                    </div>
+                  )}
+
+                  {elecMode === 'shared' && (
+                    <div className="p-3.5 bg-white rounded-xl border border-slate-200/80 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                          <span>🤝 Total Property Bill Split</span>
+                        </span>
+                      </div>
+
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                          Main Electricity Bill Amount (₹)
+                        </label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">₹</span>
+                          <input
+                            type="number"
+                            min="0"
+                            placeholder="e.g. 6000"
+                            value={propertyTotalElec}
+                            onChange={e => setPropertyTotalElec(e.target.value)}
+                            className="w-full pl-7 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-base font-black text-slate-900 outline-none focus:border-[#2d5a47] focus:bg-white"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                          Split Method
+                        </label>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <button
+                            type="button"
+                            onClick={() => setSplitBasis('rooms')}
+                            className={`p-2 rounded-xl border text-left transition-all ${
+                              splitBasis === 'rooms'
+                                ? 'bg-emerald-50 border-[#2d5a47] text-[#2d5a47] font-bold shadow-2xs'
+                                : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 font-medium'
+                            }`}
+                          >
+                            <div className="text-[11px]">By Occupied Rooms</div>
+                            <div className="text-[10px] text-slate-400">{propertyOccupiedRooms.length} rooms</div>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSplitBasis('tenants')}
+                            className={`p-2 rounded-xl border text-left transition-all ${
+                              splitBasis === 'tenants'
+                                ? 'bg-emerald-50 border-[#2d5a47] text-[#2d5a47] font-bold shadow-2xs'
+                                : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 font-medium'
+                            }`}
+                          >
+                            <div className="text-[11px]">By Tenant Headcount</div>
+                            <div className="text-[10px] text-slate-400">{propertyActiveTenants.length} tenants</div>
+                          </button>
+                        </div>
+                      </div>
+
+                      {parseFloat(propertyTotalElec) > 0 && (
+                        <div className="p-2.5 bg-emerald-50/70 border border-emerald-200/70 rounded-xl text-xs flex justify-between items-center text-[#2d5a47]">
+                          <span className="font-medium">This tenant's electricity share:</span>
+                          <span className="font-black text-sm">{formatINR(calculatedElecAmount)}</span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -931,8 +1118,9 @@ export default function SmartCalc() {
               {showHowItWorks && (
                 <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs text-slate-600 space-y-1">
                   <p className="font-bold text-slate-900">Calculation breakdown:</p>
-                  <p>• <strong>Electricity:</strong> (Current Reading - Previous Reading) × Unit Rate</p>
-                  <p>• <strong>Total Payable:</strong> Monthly Rent + Electricity + Arrears + Other Charges</p>
+                  <p>• <strong>Electricity (Submeter):</strong> (Current Reading - Previous Reading) × Rate {isSharedRoomTenants ? `÷ ${roomTenantCount} tenants` : ''}</p>
+                  <p>• <strong>Electricity (Shared Bill):</strong> Property Total ÷ {splitBasis === 'rooms' ? `${propertyOccupiedRooms.length} rooms` : `${propertyActiveTenants.length} tenants`}</p>
+                  <p>• <strong>Total Payable:</strong> Monthly Rent + Electricity Share + Arrears + Other Charges</p>
                 </div>
               )}
 
@@ -1087,14 +1275,24 @@ export default function SmartCalc() {
                               <span>{t.curLabel} <strong className="text-white font-bold">{currReading} {t.units}</strong></span>
                             </div>
                             <div className="flex justify-between items-center pt-0.5 font-mono">
-                              <span>{t.usageLabel} <strong className="text-white font-bold">{unitsConsumed} {t.units} × ₹{rate}</strong></span>
+                              <span>
+                                {t.usageLabel} <strong className="text-white font-bold">{unitsConsumed} {t.units} × ₹{rate}{isSharedRoomTenants ? ` = ₹${roomTotalElec.toLocaleString('en-IN')} (1/${roomTenantCount} ${billLanguage === 'hi' ? 'हिस्सा' : 'share'})` : ''}</strong>
+                              </span>
                               <span className="font-bold text-white text-xs">₹{calculatedElecAmount.toLocaleString('en-IN')}</span>
                             </div>
                           </>
                         )}
                         {elecMode === 'direct' && (
                           <div className="flex justify-between items-center">
-                            <span>{t.electricity}</span>
+                            <span>{t.electricity}{isSharedRoomTenants ? ` (1/${roomTenantCount} ${billLanguage === 'hi' ? 'हिस्सा' : 'share'})` : ''}</span>
+                            <span className="font-mono font-bold text-white text-xs">₹{calculatedElecAmount.toLocaleString('en-IN')}</span>
+                          </div>
+                        )}
+                        {elecMode === 'shared' && (
+                          <div className="flex justify-between items-center">
+                            <span>
+                              {billLanguage === 'hi' ? 'साझा बिजली बिल' : 'Shared Utility Split'} ({splitBasis === 'rooms' ? `1/${propertyOccupiedRooms.length} ${billLanguage === 'hi' ? 'कमरे' : 'rooms'}` : `1/${propertyActiveTenants.length} ${billLanguage === 'hi' ? 'किरायेदार' : 'tenants'}`})
+                            </span>
                             <span className="font-mono font-bold text-white text-xs">₹{calculatedElecAmount.toLocaleString('en-IN')}</span>
                           </div>
                         )}

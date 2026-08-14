@@ -487,10 +487,13 @@ export default function RoomDrawer({
 
               {/* SHARED BILL MODE */}
               {elecMode === 'shared' && (
-                <div className="mt-5 p-3.5 bg-amber-50 border border-amber-200/60 rounded-xl animate-fade-in-up active">
-                  <p className="text-xs text-amber-800 font-medium">Shared utility billing</p>
-                  <p className="text-xs text-amber-700/70 mt-0.5 leading-relaxed">
-                    Electricity will be split using your property-level settings during bill generation.
+                <div className="mt-5 p-4 bg-emerald-50/80 border border-emerald-200/80 rounded-xl space-y-2 animate-fade-in-up active">
+                  <div className="flex items-center gap-2 text-[#2d5a47] font-bold text-xs">
+                    <span className="text-sm">🤝</span>
+                    <span>Shared property/floor utility billing</span>
+                  </div>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    When you enter the main electricity bill during billing, this room automatically receives its fair share (split equally among occupied rooms or active tenant headcount).
                   </p>
                 </div>
               )}
