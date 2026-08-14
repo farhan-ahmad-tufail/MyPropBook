@@ -510,24 +510,47 @@ export default function Dashboard() {
             {/* Interactive SVG Chart */}
             <div className="w-full bg-[#f8faf9] rounded-2xl p-4 flex flex-col justify-between relative overflow-visible border border-slate-100/90 shadow-inner">
               
-              {/* Floating Tooltip */}
+              {/* Floating Tooltip (Smart Clamped & Mobile Safe) */}
               {hoveredDataPoint && (
                 <div 
-                  className="absolute z-20 bg-slate-900 text-white text-[11px] px-3 py-2 rounded-xl shadow-xl border border-slate-700 pointer-events-none transition-all duration-150 transform -translate-x-1/2 -translate-y-full mb-3"
-                  style={{ 
-                    left: `${(hoveredDataPoint.x / 500) * 100}%`,
-                    top: `${(hoveredDataPoint.yCollected / 110) * 100}%` 
-                  }}
+                  className="absolute z-20 bg-slate-900/95 backdrop-blur-md text-white text-[11px] px-3.5 py-2.5 rounded-2xl shadow-2xl border border-slate-700/80 pointer-events-none transition-all duration-150 hidden sm:block min-w-[165px]"
+                  style={(() => {
+                    const totalPts = chartCoordinates.points.length;
+                    const idx = hoveredDataPoint.index;
+                    const xPct = (hoveredDataPoint.x / 500) * 100;
+                    const yPct = (hoveredDataPoint.yCollected / 110) * 100;
+                    
+                    // Smart horizontal clamp so numbers never go outside the chart box
+                    let translateX = '-50%';
+                    let leftVal = `${xPct}%`;
+                    if (idx === 0 || xPct < 25) {
+                      translateX = '0%';
+                      leftVal = '16px';
+                    } else if (idx === totalPts - 1 || xPct > 75) {
+                      translateX = '-100%';
+                      leftVal = 'calc(100% - 16px)';
+                    }
+
+                    // Smart vertical flip if point is high up near top
+                    const translateY = yPct < 40 ? '12px' : 'calc(-100% - 12px)';
+
+                    return {
+                      left: leftVal,
+                      top: `${yPct}%`,
+                      transform: `translate(${translateX}, ${translateY})`
+                    };
+                  })()}
                 >
-                  <div className="font-bold text-slate-300 border-b border-slate-700 pb-1 mb-1">
-                    {hoveredDataPoint.data.fullLabel}
+                  <div className="font-extrabold text-slate-200 border-b border-slate-700/80 pb-1 mb-1.5 flex items-center justify-between">
+                    <span>{hoveredDataPoint.data.fullLabel}</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                   </div>
-                  <div className="flex items-center justify-between gap-3 text-emerald-400 font-extrabold">
-                    <span>Collected:</span>
+                  <div className="flex items-center justify-between gap-3 text-emerald-400 font-black">
+                    <span className="text-slate-400 font-medium">Collected:</span>
                     <span>{formatINR(hoveredDataPoint.data.collected)}</span>
                   </div>
-                  <div className="flex items-center justify-between gap-3 text-slate-300 font-semibold">
-                    <span>Expected:</span>
+                  <div className="flex items-center justify-between gap-3 text-slate-300 font-bold mt-0.5">
+                    <span className="text-slate-400 font-medium">Expected:</span>
                     <span>{formatINR(hoveredDataPoint.data.expected)}</span>
                   </div>
                 </div>
@@ -579,8 +602,8 @@ export default function Dashboard() {
                     <g 
                       key={idx} 
                       className="cursor-pointer" 
-                      onClick={() => setSelectedMonthIdx(idx)}
-                      onTouchStart={() => setSelectedMonthIdx(idx)}
+                      onClick={() => { setSelectedMonthIdx(idx); }}
+                      onTouchStart={() => { setSelectedMonthIdx(idx); }}
                       onMouseEnter={() => setHoveredDataPoint(pt)} 
                       onMouseLeave={() => setHoveredDataPoint(null)}
                     >
@@ -614,8 +637,8 @@ export default function Dashboard() {
                   return (
                     <span 
                       key={idx} 
-                      onClick={() => setSelectedMonthIdx(idx)}
-                      onTouchStart={() => setSelectedMonthIdx(idx)}
+                      onClick={() => { setSelectedMonthIdx(idx); }}
+                      onTouchStart={() => { setSelectedMonthIdx(idx); }}
                       onMouseEnter={() => setHoveredDataPoint(chartCoordinates.points[idx])}
                       onMouseLeave={() => setHoveredDataPoint(null)}
                       className={`transition-all cursor-pointer px-2 py-0.5 rounded-lg ${
