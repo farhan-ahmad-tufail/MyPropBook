@@ -389,8 +389,7 @@ export default function Layout({ children }) {
                   {/* Backdrop to close */}
                   <div className="fixed inset-0 z-[998]" onClick={() => setShowNotifications(false)} />
                   <div
-                    className="fixed z-[999] bg-white rounded-2xl shadow-xl border border-slate-200/80 overflow-hidden"
-                    style={{ top: '64px', right: '88px', width: '320px' }}
+                    className="fixed z-[999] bg-white rounded-2xl shadow-xl border border-slate-200/80 overflow-hidden top-16 right-4 sm:right-20 w-[calc(100vw-32px)] sm:w-80 max-w-sm"
                   >
                     {/* Header */}
                     <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/80">

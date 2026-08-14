@@ -52,13 +52,12 @@ function SaasDropdown({
         type="button"
         disabled={disabled}
         onClick={() => { if (!disabled) setOpen(v => !v); setQuery(''); }}
-        className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl border text-sm font-semibold text-left transition-all duration-200 ${
-          disabled
-            ? 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed'
-            : open
+        className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl border text-sm font-semibold text-left transition-all duration-200 ${disabled
+          ? 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed'
+          : open
             ? 'bg-white border-[#2d5a47] shadow-sm'
             : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-sm'
-        }`}
+          }`}
         style={open ? { boxShadow: '0 0 0 3px rgba(45,90,71,0.1)' } : {}}
       >
         {/* Leading icon */}
@@ -124,13 +123,12 @@ function SaasDropdown({
                 type="button"
                 disabled={opt.disabled}
                 onClick={() => { if (!opt.disabled) { onChange(opt.value); setOpen(false); } }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-100 text-xs ${
-                  opt.disabled
-                    ? 'text-slate-300 cursor-not-allowed'
-                    : opt.value === value
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-100 text-xs ${opt.disabled
+                  ? 'text-slate-300 cursor-not-allowed'
+                  : opt.value === value
                     ? 'bg-[#edf5f1] text-[#2d5a47] font-bold'
                     : 'text-slate-700 hover:bg-slate-50 font-semibold'
-                }`}
+                  }`}
               >
                 {opt.icon && <span className="flex-shrink-0">{opt.icon}</span>}
                 <span className="flex-1 truncate">{opt.label}</span>
@@ -173,9 +171,8 @@ function SaasDateInput({ label, value, onChange, required = false, placeholder =
       <div className="relative">
         <Calendar
           size={15}
-          className={`absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none transition-colors ${
-            focused ? 'text-[#2d5a47]' : 'text-slate-400'
-          }`}
+          className={`absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none transition-colors ${focused ? 'text-[#2d5a47]' : 'text-slate-400'
+            }`}
         />
         <input
           ref={inputRef}
@@ -185,11 +182,10 @@ function SaasDateInput({ label, value, onChange, required = false, placeholder =
           onChange={e => onChange(e.target.value)}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          className={`w-full pl-10 pr-4 py-3 rounded-2xl border text-sm font-semibold text-slate-900 bg-white outline-none transition-all duration-200 cursor-pointer ${
-            focused
-              ? 'border-[#2d5a47]'
-              : 'border-slate-200 hover:border-slate-300'
-          }`}
+          className={`w-full pl-10 pr-4 py-3 rounded-2xl border text-sm font-semibold text-slate-900 bg-white outline-none transition-all duration-200 cursor-pointer ${focused
+            ? 'border-[#2d5a47]'
+            : 'border-slate-200 hover:border-slate-300'
+            }`}
           style={focused ? { boxShadow: '0 0 0 3px rgba(45,90,71,0.1)' } : {}}
         />
         {/* Click overlay to open native picker */}
@@ -237,7 +233,7 @@ export default function Tenants() {
     if (highlightRowRef.current && highlightName) {
       setTimeout(() => highlightRowRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 350);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [highlightName]);
 
   // Data lists
@@ -594,31 +590,28 @@ export default function Tenants() {
         <div className="flex bg-slate-200/60 p-1 rounded-2xl w-full md:w-auto">
           <button
             onClick={() => setActiveTab('tenants')}
-            className={`flex-1 md:flex-none px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-              activeTab === 'tenants'
-                ? 'bg-[#2d5a47] text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
+            className={`flex-1 md:flex-none px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${activeTab === 'tenants'
+              ? 'bg-[#2d5a47] text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900'
+              }`}
           >
             <Users size={14} /> Tenants
           </button>
           <button
             onClick={() => setActiveTab('leases')}
-            className={`flex-1 md:flex-none px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-              activeTab === 'leases'
-                ? 'bg-[#2d5a47] text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
+            className={`flex-1 md:flex-none px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${activeTab === 'leases'
+              ? 'bg-[#2d5a47] text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900'
+              }`}
           >
             <Key size={14} /> Allocations ({activeLeasesCount})
           </button>
           <button
             onClick={() => setActiveTab('deposits')}
-            className={`flex-1 md:flex-none px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-              activeTab === 'deposits'
-                ? 'bg-[#2d5a47] text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
+            className={`flex-1 md:flex-none px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${activeTab === 'deposits'
+              ? 'bg-[#2d5a47] text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900'
+              }`}
           >
             <Shield size={14} /> Deposits ({heldDepositsCount})
           </button>
@@ -756,7 +749,8 @@ export default function Tenants() {
             </div>
           ) : (
             <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-              <table className="w-full text-left border-collapse">
+              <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[600px]">
                 <thead>
                   <tr className="border-b border-slate-100 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50/50">
                     <th className="px-6 py-4">NAME</th>
@@ -775,11 +769,10 @@ export default function Tenants() {
                         <tr
                           key={t.id}
                           ref={isHighlighted ? highlightRowRef : null}
-                          className={`transition-all duration-700 ${
-                            isHighlighted && !highlightFading
-                              ? 'bg-emerald-50/80 ring-2 ring-inset ring-[#2d5a47]/40'
-                              : 'hover:bg-slate-50/60'
-                          }`}
+                          className={`transition-all duration-700 ${isHighlighted && !highlightFading
+                            ? 'bg-emerald-50/80 ring-2 ring-inset ring-[#2d5a47]/40'
+                            : 'hover:bg-slate-50/60'
+                            }`}
                         >
                           <td className="px-6 py-4 font-bold text-slate-800">
                             <div className="flex items-center gap-2">
@@ -792,11 +785,10 @@ export default function Tenants() {
                           <td className="px-6 py-4 text-slate-500">{t.phone || '-'}</td>
                           <td className="px-6 py-4 text-slate-500">{t.email || '-'}</td>
                           <td className="px-6 py-4">
-                            <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                              t.active
-                                ? 'bg-emerald-50 text-emerald-700'
-                                : 'bg-slate-100 text-slate-500'
-                            }`}>
+                            <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold ${t.active
+                              ? 'bg-emerald-50 text-emerald-700'
+                              : 'bg-slate-100 text-slate-500'
+                              }`}>
                               {t.active ? 'Active' : 'Inactive'}
                             </span>
                           </td>
@@ -824,6 +816,7 @@ export default function Tenants() {
                   }
                 </tbody>
               </table>
+              </div>
             </div>
           )}
         </div>
@@ -992,38 +985,40 @@ export default function Tenants() {
             </div>
           ) : (
             <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-100 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50/50">
-                    <th className="px-6 py-4">TENANT NAME</th>
-                    <th className="px-6 py-4">ALLOCATED PROPERTY &amp; ROOM</th>
-                    <th className="px-6 py-4">START DATE</th>
-                    <th className="px-6 py-4">END DATE</th>
-                    <th className="px-6 py-4 text-right">ACTIONS</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 font-medium text-xs">
-                  {leases
-                    .filter(l => l.is_active)
-                    .map(l => (
-                      <tr key={l.id} className="hover:bg-slate-50/60 transition-colors">
-                        <td className="px-6 py-4 font-bold text-slate-800">{getTenantName(l.tenant_id)}</td>
-                        <td className="px-6 py-4 text-slate-600 font-semibold">{getRoomName(l.room_id)}</td>
-                        <td className="px-6 py-4 text-slate-500">{l.start_date}</td>
-                        <td className="px-6 py-4 text-slate-500">{l.end_date || 'Ongoing'}</td>
-                        <td className="px-6 py-4 text-right">
-                          <button
-                            onClick={() => handleDeactivateLease(l.id)}
-                            className="px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs transition-colors cursor-pointer"
-                            title="End Lease Agreement"
-                          >
-                            Terminate Lease
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse min-w-[600px]">
+                  <thead>
+                    <tr className="border-b border-slate-100 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50/50">
+                      <th className="px-6 py-4">TENANT NAME</th>
+                      <th className="px-6 py-4">ALLOCATED PROPERTY &amp; ROOM</th>
+                      <th className="px-6 py-4">START DATE</th>
+                      <th className="px-6 py-4">END DATE</th>
+                      <th className="px-6 py-4 text-right">ACTIONS</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-medium text-xs">
+                    {leases
+                      .filter(l => l.is_active)
+                      .map(l => (
+                        <tr key={l.id} className="hover:bg-slate-50/60 transition-colors">
+                          <td className="px-6 py-4 font-bold text-slate-800">{getTenantName(l.tenant_id)}</td>
+                          <td className="px-6 py-4 text-slate-600 font-semibold">{getRoomName(l.room_id)}</td>
+                          <td className="px-6 py-4 text-slate-500">{l.start_date}</td>
+                          <td className="px-6 py-4 text-slate-500">{l.end_date || 'Ongoing'}</td>
+                          <td className="px-6 py-4 text-right">
+                            <button
+                              onClick={() => handleDeactivateLease(l.id)}
+                              className="px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs transition-colors cursor-pointer"
+                              title="End Lease Agreement"
+                            >
+                              Terminate Lease
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
@@ -1201,9 +1196,8 @@ export default function Tenants() {
                 const isActive = dep.status === 'held' || dep.status === 'deducted';
 
                 return (
-                  <div key={dep.id} className={`bg-white rounded-3xl border shadow-sm overflow-hidden transition-all ${
-                    isActive ? 'border-slate-200/80' : 'border-slate-100 opacity-80'
-                  }`}>
+                  <div key={dep.id} className={`bg-white rounded-3xl border shadow-sm overflow-hidden transition-all ${isActive ? 'border-slate-200/80' : 'border-slate-100 opacity-80'
+                    }`}>
                     {/* Card Header */}
                     <div className="p-5 pb-4">
                       <div className="flex flex-wrap items-start justify-between gap-3">
