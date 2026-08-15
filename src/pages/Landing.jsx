@@ -675,9 +675,8 @@ export default function Landing() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h4 className="font-extrabold text-slate-900 text-sm tracking-tight">Farhan Ahmad Tufail</h4>
-                    <span className="text-[9px] font-black bg-[#edf5f1] text-[#2d5a47] px-2 py-0.5 rounded-full uppercase tracking-wider border border-[#c8ddd4]">Founder</span>
                   </div>
-                  <p className="text-xs text-slate-400 font-medium mt-0.5">Founder &amp; Software Engineer · India</p>
+                  <p className="text-xs text-slate-400 font-medium mt-0.5">Founder · Full-Stack Software Engineer · India</p>
                 </div>
 
                 {/* Social icon links */}
