@@ -435,7 +435,7 @@ export default function Landing() {
                 Electricity billing, your way.
               </h2>
               <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-                Some rooms have submeters. Some properties receive one provider bill. BillRoom supports both — so your process fits the property, not the other way around.
+                Split shared room bills fairly, or generate individual receipts instantly — BillRoom handles every scenario so your process fits the property, not the other way around.
               </p>
               <div className="pt-2">
                 <Link
@@ -451,52 +451,90 @@ export default function Landing() {
             {/* Right Column Visual Comparison Cards */}
             <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
               
-              {/* Card 01 — SUBMETER */}
-              <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm space-y-4 text-left">
-                <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">01 · SUBMETER</span>
+              {/* Card 01 — SHARED ROOM SPLIT */}
+              <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm space-y-4 text-left">
+                <div>
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">01 · Shared Room</span>
+                  <h4 className="text-sm font-extrabold text-slate-900 mt-1 leading-snug">Split bills between roommates</h4>
                 </div>
-                <h4 className="text-sm font-extrabold text-slate-900">Calculate from readings</h4>
-                
-                <div className="space-y-2 text-xs font-medium pt-1">
-                  <div className="flex justify-between text-slate-600">
-                    <span>Previous reading</span>
-                    <span className="font-mono font-bold text-slate-800">124</span>
+
+                {/* Tenant pills */}
+                <div className="flex gap-2">
+                  <div className="flex items-center gap-1.5 bg-[#edf5f1] text-[#2d5a47] px-2.5 py-1 rounded-full">
+                    <div className="w-4 h-4 rounded-full bg-[#2d5a47] text-white flex items-center justify-center text-[8px] font-black">A</div>
+                    <span className="text-[10px] font-bold">Arjun</span>
                   </div>
-                  <div className="flex justify-between text-slate-600">
-                    <span>Current reading</span>
-                    <span className="font-mono font-bold text-slate-800">168</span>
+                  <div className="flex items-center gap-1.5 bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">
+                    <div className="w-4 h-4 rounded-full bg-slate-500 text-white flex items-center justify-center text-[8px] font-black">S</div>
+                    <span className="text-[10px] font-bold">Sara</span>
                   </div>
-                  <div className="flex justify-between text-slate-500 text-[11px] pt-1 border-t border-slate-100">
-                    <span>Usage × ₹8/unit</span>
-                    <span className="font-mono">44 × ₹8</span>
+                </div>
+
+                <div className="space-y-1.5 text-[11px]">
+                  <div className="flex justify-between text-slate-500">
+                    <span>Room rent</span>
+                    <span className="font-mono font-bold text-slate-700">₹8,000</span>
                   </div>
-                  <div className="flex justify-between text-slate-900 font-black text-sm pt-2 border-t border-slate-200">
-                    <span>Electricity</span>
-                    <span className="text-[#2d5a47]">₹352</span>
+                  <div className="flex justify-between text-slate-500">
+                    <span>Electricity (split 1/2)</span>
+                    <span className="font-mono font-bold text-slate-700">₹425</span>
                   </div>
+                  <div className="flex justify-between text-slate-500">
+                    <span>Prev. balance</span>
+                    <span className="font-mono font-bold text-amber-600">₹500</span>
+                  </div>
+                  <div className="h-px bg-slate-100 my-1" />
+                  <div className="flex justify-between text-slate-900 font-black text-sm">
+                    <span>Arjun pays</span>
+                    <span className="text-[#2d5a47]">₹8,925</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 bg-[#edf5f1] rounded-xl px-3 py-2">
+                  <CheckCircle2 size={13} className="text-[#2d5a47] shrink-0" />
+                  <span className="text-[10px] font-bold text-[#2d5a47]">Individual receipts generated for each roommate</span>
                 </div>
               </div>
 
-              {/* Card 02 — DIRECT BILL */}
-              <div className="bg-[#2d5a47] text-white rounded-2xl p-6 shadow-md space-y-4 text-left">
-                <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-black text-white/60 uppercase tracking-wider">02 · DIRECT BILL</span>
+              {/* Card 02 — INSTANT BILL + SHARE */}
+              <div className="bg-[#2d5a47] text-white rounded-2xl p-5 shadow-md space-y-4 text-left">
+                <div>
+                  <span className="text-[9px] font-black text-white/50 uppercase tracking-wider">02 · Instant Receipt</span>
+                  <h4 className="text-sm font-extrabold text-white mt-1 leading-snug">Generate & share in seconds</h4>
                 </div>
-                <h4 className="text-sm font-extrabold text-white">Already have the amount?</h4>
-                
-                <div className="space-y-2 text-xs font-medium pt-1">
+
+                {/* Mini receipt preview */}
+                <div className="bg-white/10 rounded-xl p-3 space-y-2 text-[11px]">
                   <div className="flex justify-between text-white/80">
-                    <span>Electricity bill received</span>
-                    <span className="font-mono font-bold text-white">₹1,850</span>
+                    <span>Tenant</span>
+                    <span className="font-bold text-white">Rahul Sharma</span>
                   </div>
                   <div className="flex justify-between text-white/80">
-                    <span>Added to tenant bill</span>
-                    <span className="font-mono font-bold text-white">₹1,850</span>
+                    <span>Room</span>
+                    <span className="font-mono font-bold text-white">201</span>
                   </div>
-                  <div className="flex justify-between text-white font-black text-sm pt-4 border-t border-white/20">
-                    <span>Ready to share</span>
-                    <CheckCircle2 size={18} className="text-emerald-300" />
+                  <div className="flex justify-between text-white/80">
+                    <span>Electricity</span>
+                    <span className="font-mono font-bold text-white">₹1,020</span>
+                  </div>
+                  <div className="flex justify-between text-white/80">
+                    <span>Rent</span>
+                    <span className="font-mono font-bold text-white">₹7,000</span>
+                  </div>
+                  <div className="h-px bg-white/15 my-1" />
+                  <div className="flex justify-between text-white font-black text-sm">
+                    <span>Total Payable</span>
+                    <span className="text-emerald-300">₹8,020</span>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="flex items-center justify-center gap-1.5 bg-white/15 hover:bg-white/20 rounded-xl px-2 py-2 transition-all">
+                    <span className="text-[10px] font-bold text-white">📄 PDF</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-1.5 bg-emerald-400/20 hover:bg-emerald-400/30 rounded-xl px-2 py-2 transition-all">
+                    <span className="text-[10px] font-bold text-emerald-300">📲 WhatsApp</span>
                   </div>
                 </div>
               </div>
@@ -506,6 +544,7 @@ export default function Landing() {
           </div>
         </div>
       </section>
+
 
       {/* ══════════════════════════════════════════
           6. FEATURES ("The Everyday Essentials")
