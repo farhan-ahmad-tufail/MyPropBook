@@ -156,7 +156,7 @@ export default function Login() {
             {/* Top Brand Header */}
             <div className="relative z-10">
               <Link to="/" className="inline-block">
-                <Logo size={36} />
+                <Logo size={36} dark />
               </Link>
             </div>
 

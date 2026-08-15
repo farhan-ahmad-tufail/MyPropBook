@@ -236,13 +236,13 @@ export default function Landing() {
 
         {/* Main Headline */}
         <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-[#0f172a] tracking-tight leading-[1.05] relative z-10">
-          Modern property records.<br />
+          Modern property management.<br />
           <span className="text-[#2d5a47]">Simple utility billing.</span>
         </h1>
 
         {/* Supporting Copy */}
         <p className="mt-6 max-w-2xl mx-auto text-base sm:text-lg text-slate-500 leading-relaxed font-medium relative z-10">
-          Manage properties, tenants, rent and utility bills from one calm dashboard — built for landlords and property managers in India.
+          Manage properties, tenants, rent, utility bills, and receipts from one simple workspace.
         </p>
 
         {/* CTAs */}
@@ -261,7 +261,7 @@ export default function Landing() {
                 to="/signup"
                 className="px-8 py-3.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-sm hover:bg-[#234738] transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 flex items-center gap-2 w-full sm:w-auto justify-center"
               >
-                <span>Start for Free</span>
+                <span>Create Free Account</span>
                 <ArrowRight size={16} />
               </Link>
               <Link
@@ -280,7 +280,7 @@ export default function Landing() {
             <Check size={14} className="text-[#2d5a47]" /> Free to get started
           </div>
           <div className="flex items-center gap-1.5">
-            <Check size={14} className="text-[#2d5a47]" /> Works on your phone
+            <Check size={14} className="text-[#2d5a47]" /> Works on any device
           </div>
           <div className="flex items-center gap-1.5">
             <Check size={14} className="text-[#2d5a47]" /> WhatsApp-friendly receipts
