@@ -654,52 +654,105 @@ export default function Landing() {
       {/* ══════════════════════════════════════════
           7. QUICK SETUP / HOW IT WORKS
       ══════════════════════════════════════════ */}
-      <section id="how-it-works" className="py-24 px-6 bg-[#0b1a14] relative overflow-hidden">
-        {/* Subtle background glow for dark section */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#2d5a47] opacity-20 blur-[120px] rounded-full pointer-events-none"></div>
+      <section id="how-it-works" className="py-24 px-6 relative overflow-hidden" style={{background: 'linear-gradient(135deg, #0d1f18 0%, #111f1a 50%, #0a1a12 100%)'}}>
+        {/* Radial emerald glow — ambient light effect */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] rounded-full opacity-30" style={{background: 'radial-gradient(ellipse at center, #2d5a47 0%, transparent 70%)'}}></div>
+          <div className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-10 blur-3xl" style={{background: '#10b981'}}></div>
+          <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full opacity-10 blur-3xl" style={{background: '#059669'}}></div>
+        </div>
 
         <div className="max-w-5xl mx-auto text-center relative z-10">
-          <div className="space-y-3 mb-14">
-            <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest block">
+          {/* Section Header */}
+          <div className="space-y-4 mb-16">
+            <span className="inline-flex items-center gap-2 text-[10px] font-black text-emerald-400 uppercase tracking-[0.25em]">
+              <span className="w-4 h-px bg-emerald-500/60"></span>
               QUICK SETUP
+              <span className="w-4 h-px bg-emerald-500/60"></span>
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-              Ready in under 5 minutes.
+              Ready in under <span className="text-emerald-400">5 minutes.</span>
             </h2>
-            <p className="text-emerald-50/70 text-sm max-w-xl mx-auto leading-relaxed">
+            <p className="text-slate-400 text-sm max-w-md mx-auto leading-relaxed">
               No complex setup. Add your property, add tenants, and start billing.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-4 pt-6">
+          {/* Step Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 px-4">
             {steps.map((s, idx) => {
               const Icon = s.icon;
+              // Per-card accent tints — subtle, each feels distinct
+              const cardAccents = [
+                { glow: 'rgba(52,211,153,0.22)', border: 'rgba(52,211,153,0.28)', topBar: 'rgba(52,211,153,0.5)' },
+                { glow: 'rgba(16,185,129,0.20)', border: 'rgba(16,185,129,0.26)', topBar: 'rgba(16,185,129,0.45)' },
+                { glow: 'rgba(5,150,105,0.22)',  border: 'rgba(5,150,105,0.28)',  topBar: 'rgba(5,150,105,0.5)'  },
+                { glow: 'rgba(52,211,153,0.18)', border: 'rgba(52,211,153,0.22)', topBar: 'rgba(52,211,153,0.4)' },
+              ];
+              const accent = cardAccents[idx];
               return (
+                <div
+                  key={s.step}
+                  className="group relative rounded-2xl overflow-hidden text-left cursor-default flex flex-col justify-between h-[270px]"
+                  style={{
+                    background: 'linear-gradient(145deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.04) 100%)',
+                    border: '1px solid rgba(255,255,255,0.10)',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.07)',
+                    backdropFilter: 'blur(16px)',
+                    transition: 'all 0.35s cubic-bezier(0.4,0,0.2,1)',
+                    padding: '1.75rem',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = `linear-gradient(145deg, rgba(45,90,71,0.22) 0%, rgba(45,90,71,0.12) 100%)`;
+                    e.currentTarget.style.borderColor = accent.border;
+                    e.currentTarget.style.boxShadow = `0 24px 48px rgba(0,0,0,0.5), 0 0 0 1px ${accent.border}, inset 0 1px 0 rgba(255,255,255,0.09)`;
+                    e.currentTarget.style.transform = 'translateY(-7px)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = 'linear-gradient(145deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.04) 100%)';
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.10)';
+                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.07)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  {/* Top luminous accent bar */}
+                  <div className="absolute top-0 left-0 right-0 h-px" style={{background: `linear-gradient(90deg, transparent 0%, ${accent.topBar} 50%, transparent 100%)`}}></div>
+
+                  {/* Corner glow — always slightly visible, brightens on hover */}
                   <div
-                    key={s.step}
-                    className="group relative bg-white/5 rounded-3xl p-8 border border-white/10 shadow-xl hover:shadow-2xl hover:shadow-emerald-900/40 hover:-translate-y-2 hover:bg-white/10 transition-all duration-300 flex flex-col justify-between h-[280px] overflow-hidden text-left backdrop-blur-sm"
-                  >
-                    {/* Subtle Background Glow on Hover */}
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-10 -mt-10 transition-all duration-500 group-hover:bg-emerald-400/20"></div>
-                    
-                    {/* Header: Number and Icon */}
-                    <div className="flex justify-between items-start relative z-10">
-                      <span className="text-4xl font-black text-white/5 group-hover:text-emerald-400/20 transition-colors duration-300">{s.step}</span>
-                      <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center text-emerald-100 group-hover:bg-emerald-500 group-hover:text-white group-hover:border-emerald-400 transition-all duration-300 shadow-sm">
-                        <Icon size={20} strokeWidth={2.5} />
-                      </div>
-                    </div>
-                    
-                    {/* Copy */}
-                    <div className="space-y-3 relative z-10">
-                      <div className="w-8 h-1 bg-white/20 rounded-full group-hover:bg-emerald-400 transition-colors duration-300"></div>
-                      <h4 className="font-extrabold text-lg text-white leading-tight">{s.title}</h4>
-                      <p className="text-sm text-emerald-50/60 leading-relaxed font-medium">{s.desc}</p>
+                    className="absolute -top-6 -right-6 w-28 h-28 rounded-full pointer-events-none transition-opacity duration-500"
+                    style={{background: `radial-gradient(circle, ${accent.glow} 0%, transparent 70%)`, opacity: 0.5}}
+                  ></div>
+
+                  {/* Top row: step number + icon */}
+                  <div className="flex justify-between items-start relative z-10">
+                    <span className="text-5xl font-black leading-none select-none" style={{color: 'rgba(255,255,255,0.10)', letterSpacing: '-0.04em'}}>{s.step}</span>
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110"
+                      style={{
+                        background: `rgba(52,211,153,0.12)`,
+                        border: `1px solid rgba(52,211,153,0.22)`,
+                        color: '#6ee7b7',
+                      }}
+                    >
+                      <Icon size={18} strokeWidth={2} />
                     </div>
                   </div>
+
+                  {/* Step label + content */}
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="h-px w-6" style={{background: accent.topBar}}></div>
+                      <span className="text-[9px] font-bold tracking-[0.2em] uppercase" style={{color: 'rgba(52,211,153,0.65)'}}>Step {idx + 1}</span>
+                    </div>
+                    <h4 className="font-bold text-[15px] text-white mb-1.5 leading-snug">{s.title}</h4>
+                    <p className="text-xs leading-relaxed" style={{color: 'rgba(255,255,255,0.50)'}}>{s.desc}</p>
+                  </div>
+                </div>
               );
             })}
           </div>
+
         </div>
       </section>
 
