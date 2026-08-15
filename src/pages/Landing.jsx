@@ -607,7 +607,7 @@ export default function Landing() {
       {/* ══════════════════════════════════════════
           6. FEATURES ("The Everyday Essentials")
       ══════════════════════════════════════════ */}
-      <section id="features" className="py-20 px-6 max-w-6xl mx-auto text-center overflow-hidden">
+      <section id="features" className="py-14 sm:py-20 px-4 sm:px-6 max-w-6xl mx-auto text-center overflow-hidden">
         <div 
           ref={featuresRef}
           className={`space-y-3 mb-14 transition-all duration-1000 ease-out transform-gpu ${
@@ -625,25 +625,44 @@ export default function Landing() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 text-left">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 text-left px-0 sm:px-4">
           {features.map((f) => {
             const Icon = f.icon;
             return (
               <div
                 key={f.title}
-                className={`bg-white border border-slate-100 rounded-3xl p-6 shadow-xs hover:border-slate-200 transition-all duration-300 hover:-translate-y-1 ${f.hoverBorder} ${f.hoverShadow} space-y-4 group cursor-pointer`}
+                className={`bg-white border border-slate-100 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm hover:shadow-md hover:border-slate-200 transition-all duration-300 hover:-translate-y-1 ${f.hoverBorder} ${f.hoverShadow} flex sm:block items-start gap-4 sm:gap-0 group cursor-pointer`}
               >
-                <div className="flex items-center justify-between">
-                  <div className={`w-10 h-10 rounded-2xl ${f.bgClass} flex items-center justify-center transition-all duration-300 group-hover:scale-105`}>
-                    <Icon size={20} className={`${f.accentClass}`} />
+                {/* Mobile: Horizontal Layout (Icon Left) */}
+                <div className="sm:hidden flex items-start gap-4 w-full">
+                  <div className={`shrink-0 w-11 h-11 rounded-xl ${f.bgClass} flex items-center justify-center transition-transform duration-300 group-hover:scale-105`}>
+                    <Icon size={18} className={`${f.accentClass}`} />
                   </div>
-                  <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${f.bgClass} ${f.accentClass}`}>
-                    {f.tag}
-                  </span>
+                  <div className="flex-1 min-w-0 pt-0.5">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className={`text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${f.bgClass} ${f.accentClass}`}>
+                        {f.tag}
+                      </span>
+                    </div>
+                    <h3 className="font-bold text-[15px] text-slate-900 group-hover:text-[#2d5a47] transition-colors leading-snug mb-1">{f.title}</h3>
+                    <p className="text-xs text-slate-500 leading-relaxed">{f.desc}</p>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <h3 className="font-extrabold text-slate-900 text-base group-hover:text-[#2d5a47] transition-colors">{f.title}</h3>
-                  <p className="text-xs text-slate-500 leading-relaxed">{f.desc}</p>
+
+                {/* Desktop: Original Stacked Layout */}
+                <div className="hidden sm:block space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className={`w-10 h-10 rounded-2xl ${f.bgClass} flex items-center justify-center transition-all duration-300 group-hover:scale-105`}>
+                      <Icon size={20} className={`${f.accentClass}`} />
+                    </div>
+                    <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${f.bgClass} ${f.accentClass}`}>
+                      {f.tag}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="font-extrabold text-slate-900 text-base group-hover:text-[#2d5a47] transition-colors">{f.title}</h3>
+                    <p className="text-xs text-slate-500 leading-relaxed">{f.desc}</p>
+                  </div>
                 </div>
               </div>
             );
