@@ -94,21 +94,41 @@ const steps = [
     step: '01',
     title: 'Add your property',
     desc: 'Add buildings, rooms and rent details.',
+    rotate: 'lg:-rotate-2 hover:rotate-0',
+    bg: 'bg-[#0f172a] border-slate-800',
+    text: 'text-white',
+    numberText: 'text-slate-700/40',
+    descText: 'text-slate-300'
   },
   {
     step: '02',
     title: 'Add tenants',
     desc: 'Assign tenants to rooms and keep records current.',
+    rotate: 'lg:rotate-1.5 hover:rotate-0',
+    bg: 'bg-[#1a3d2f] border-[#224b3b]',
+    text: 'text-white',
+    numberText: 'text-[#2a5944]/40',
+    descText: 'text-emerald-100/90'
   },
   {
     step: '03',
     title: 'Create a bill',
     desc: 'Enter a meter reading or add a direct utility amount.',
+    rotate: 'lg:-rotate-1 hover:rotate-0',
+    bg: 'bg-[#1e293b] border-slate-700',
+    text: 'text-white',
+    numberText: 'text-slate-600/40',
+    descText: 'text-slate-300'
   },
   {
     step: '04',
     title: 'Share & collect',
     desc: 'Generate a receipt and share it with the tenant.',
+    rotate: 'lg:rotate-2 hover:rotate-0',
+    bg: 'bg-[#2d5a47] border-[#396c56]',
+    text: 'text-white',
+    numberText: 'text-[#3e7d62]/40',
+    descText: 'text-emerald-50/90'
   },
 ];
 
@@ -624,12 +644,26 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-left">
-            {steps.map((s) => (
-              <div key={s.step} className="p-6 bg-[#f8faf9] border border-slate-100 rounded-3xl space-y-3">
-                <span className="text-3xl font-black text-[#2d5a47] font-mono block leading-none">{s.step}</span>
-                <h4 className="font-extrabold text-slate-900 text-sm">{s.title}</h4>
-                <p className="text-xs text-slate-500 leading-relaxed">{s.desc}</p>
+          <div className="flex flex-col lg:flex-row items-center justify-center gap-6 lg:gap-0 px-4 pt-6">
+            {steps.map((s, idx) => (
+              <div
+                key={s.step}
+                className={`w-full max-w-[260px] h-[220px] rounded-3xl p-6 border shadow-lg ${s.bg} ${s.text} ${s.rotate} transition-all duration-300 hover:rotate-0 hover:-translate-y-3 hover:shadow-2xl relative z-10 hover:z-30 cursor-pointer flex flex-col justify-between ${idx > 0 ? 'lg:-ml-4 ml-0' : 'ml-0'}`}
+                style={{
+                  transformOrigin: 'center center'
+                }}
+              >
+                {/* Number badge */}
+                <div className="flex justify-between items-start">
+                  <span className={`text-5xl font-black font-mono leading-none tracking-tighter ${s.numberText}`}>{s.step}</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-white/20" />
+                </div>
+                
+                {/* Copy */}
+                <div className="space-y-1.5 text-left">
+                  <h4 className="font-extrabold text-white text-base leading-tight">{s.title}</h4>
+                  <p className={`text-xs ${s.descText} leading-relaxed`}>{s.desc}</p>
+                </div>
               </div>
             ))}
           </div>
