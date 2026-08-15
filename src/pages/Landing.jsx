@@ -90,45 +90,33 @@ const features = [
 
 // 4-Step Setup Workflow
 const steps = [
-  {
-    step: '01',
-    title: 'Add your property',
-    desc: 'Add buildings, rooms and rent details.',
-    rotate: 'lg:-rotate-2 hover:rotate-0',
-    bg: 'bg-[#edf5f1] border-[#c8ddd4]',
-    text: 'text-[#1a3d2f]',
-    numberText: 'text-[#2d5a47]/30',
-    descText: 'text-[#2d5a47]'
+  { 
+    step: '01', 
+    title: 'Add your property', 
+    desc: 'Add buildings, rooms and rent details.', 
+    icon: Building2,
+    gradient: 'from-emerald-50 to-transparent'
   },
-  {
-    step: '02',
-    title: 'Add tenants',
-    desc: 'Assign tenants to rooms and keep records current.',
-    rotate: 'lg:rotate-2 hover:rotate-0',
-    bg: 'bg-[#2d5a47] border-[#396c56]',
-    text: 'text-white',
-    numberText: 'text-white/15',
-    descText: 'text-emerald-100/80'
+  { 
+    step: '02', 
+    title: 'Add tenants', 
+    desc: 'Assign tenants to rooms and keep records current.', 
+    icon: Users,
+    gradient: 'from-[#f0f7f4] to-transparent'
   },
-  {
-    step: '03',
-    title: 'Create a bill',
-    desc: 'Enter a meter reading or add a direct utility amount.',
-    rotate: 'lg:-rotate-1 hover:rotate-0',
-    bg: 'bg-[#f0f7f4] border-[#d4e8e0]',
-    text: 'text-[#1a3d2f]',
-    numberText: 'text-[#2d5a47]/30',
-    descText: 'text-[#2d5a47]'
+  { 
+    step: '03', 
+    title: 'Create a bill', 
+    desc: 'Enter a meter reading or add a direct utility amount.', 
+    icon: FileText,
+    gradient: 'from-emerald-50/80 to-transparent'
   },
-  {
-    step: '04',
-    title: 'Share & collect',
-    desc: 'Generate a receipt and share it with the tenant.',
-    rotate: 'lg:rotate-1 hover:rotate-0',
-    bg: 'bg-[#1a3d2f] border-[#254d3b]',
-    text: 'text-white',
-    numberText: 'text-white/15',
-    descText: 'text-emerald-50/80'
+  { 
+    step: '04', 
+    title: 'Share & collect', 
+    desc: 'Generate a receipt and share it with the tenant.', 
+    icon: Share2,
+    gradient: 'from-[#edf5f1] to-transparent'
   },
 ];
 
@@ -680,28 +668,31 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="flex flex-col lg:flex-row items-center justify-center gap-6 lg:gap-0 px-4 pt-6">
-            {steps.map((s, idx) => (
-              <div
-                key={s.step}
-                className={`w-full max-w-[260px] h-[220px] rounded-3xl p-6 border shadow-lg ${s.bg} ${s.text} ${s.rotate} transition-all duration-300 hover:rotate-0 hover:-translate-y-3 hover:shadow-2xl relative z-10 hover:z-30 cursor-pointer flex flex-col justify-between ${idx > 0 ? 'lg:-ml-4 ml-0' : 'ml-0'}`}
-                style={{
-                  transformOrigin: 'center center'
-                }}
-              >
-                {/* Number badge */}
-                <div className="flex justify-between items-start">
-                  <span className={`text-5xl font-black font-mono leading-none tracking-tighter ${s.numberText}`}>{s.step}</span>
-                  <span className={`w-1.5 h-1.5 rounded-full ${s.text === 'text-white' ? 'bg-white/20' : 'bg-[#2d5a47]/20'}`} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-4 pt-6">
+            {steps.map((s, idx) => {
+              const Icon = s.icon;
+              return (
+                <div
+                  key={s.step}
+                  className={`group relative bg-white bg-gradient-to-br ${s.gradient} rounded-3xl p-8 border border-slate-200/60 shadow-lg shadow-slate-200/20 hover:shadow-2xl hover:shadow-[#2d5a47]/10 hover:-translate-y-2 transition-all duration-300 flex flex-col justify-between h-[280px] overflow-hidden text-left`}
+                >
+                  {/* Header: Number and Icon */}
+                  <div className="flex justify-between items-start relative z-10">
+                    <span className="text-4xl font-black text-slate-100 group-hover:text-emerald-100 transition-colors duration-300">{s.step}</span>
+                    <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 shadow-sm flex items-center justify-center text-slate-400 group-hover:bg-[#2d5a47] group-hover:text-white group-hover:border-[#2d5a47] transition-all duration-300">
+                      <Icon size={20} strokeWidth={2.5} />
+                    </div>
+                  </div>
+                  
+                  {/* Copy */}
+                  <div className="space-y-3 relative z-10">
+                    <div className="w-8 h-1 bg-emerald-100 rounded-full group-hover:bg-[#2d5a47] transition-colors duration-300"></div>
+                    <h4 className="font-extrabold text-lg text-slate-900 leading-tight">{s.title}</h4>
+                    <p className="text-sm text-slate-500 leading-relaxed font-medium">{s.desc}</p>
+                  </div>
                 </div>
-                
-                {/* Copy */}
-                <div className="space-y-1.5 text-left">
-                  <h4 className={`font-extrabold text-base leading-tight ${s.text}`}>{s.title}</h4>
-                  <p className={`text-xs ${s.descText} leading-relaxed`}>{s.desc}</p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
