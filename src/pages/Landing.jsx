@@ -654,16 +654,19 @@ export default function Landing() {
       {/* ══════════════════════════════════════════
           7. QUICK SETUP / HOW IT WORKS
       ══════════════════════════════════════════ */}
-      <section id="how-it-works" className="py-20 px-6 bg-white border-y border-slate-200/80">
-        <div className="max-w-5xl mx-auto text-center">
+      <section id="how-it-works" className="py-24 px-6 bg-[#0b1a14] relative overflow-hidden">
+        {/* Subtle background glow for dark section */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#2d5a47] opacity-20 blur-[120px] rounded-full pointer-events-none"></div>
+
+        <div className="max-w-5xl mx-auto text-center relative z-10">
           <div className="space-y-3 mb-14">
-            <span className="text-[10px] font-black text-[#2d5a47] uppercase tracking-widest block">
+            <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest block">
               QUICK SETUP
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
               Ready in under 5 minutes.
             </h2>
-            <p className="text-slate-500 text-sm max-w-xl mx-auto leading-relaxed">
+            <p className="text-emerald-50/70 text-sm max-w-xl mx-auto leading-relaxed">
               No complex setup. Add your property, add tenants, and start billing.
             </p>
           </div>
@@ -672,25 +675,28 @@ export default function Landing() {
             {steps.map((s, idx) => {
               const Icon = s.icon;
               return (
-                <div
-                  key={s.step}
-                  className={`group relative bg-white bg-gradient-to-br ${s.gradient} rounded-3xl p-8 border border-slate-200/60 shadow-lg shadow-slate-200/20 hover:shadow-2xl hover:shadow-[#2d5a47]/10 hover:-translate-y-2 transition-all duration-300 flex flex-col justify-between h-[280px] overflow-hidden text-left`}
-                >
-                  {/* Header: Number and Icon */}
-                  <div className="flex justify-between items-start relative z-10">
-                    <span className="text-4xl font-black text-slate-300/80 group-hover:text-[#2d5a47]/30 transition-colors duration-300">{s.step}</span>
-                    <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 shadow-sm flex items-center justify-center text-slate-400 group-hover:bg-[#2d5a47] group-hover:text-white group-hover:border-[#2d5a47] transition-all duration-300">
-                      <Icon size={20} strokeWidth={2.5} />
+                  <div
+                    key={s.step}
+                    className="group relative bg-white/5 rounded-3xl p-8 border border-white/10 shadow-xl hover:shadow-2xl hover:shadow-emerald-900/40 hover:-translate-y-2 hover:bg-white/10 transition-all duration-300 flex flex-col justify-between h-[280px] overflow-hidden text-left backdrop-blur-sm"
+                  >
+                    {/* Subtle Background Glow on Hover */}
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-10 -mt-10 transition-all duration-500 group-hover:bg-emerald-400/20"></div>
+                    
+                    {/* Header: Number and Icon */}
+                    <div className="flex justify-between items-start relative z-10">
+                      <span className="text-4xl font-black text-white/5 group-hover:text-emerald-400/20 transition-colors duration-300">{s.step}</span>
+                      <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center text-emerald-100 group-hover:bg-emerald-500 group-hover:text-white group-hover:border-emerald-400 transition-all duration-300 shadow-sm">
+                        <Icon size={20} strokeWidth={2.5} />
+                      </div>
+                    </div>
+                    
+                    {/* Copy */}
+                    <div className="space-y-3 relative z-10">
+                      <div className="w-8 h-1 bg-white/20 rounded-full group-hover:bg-emerald-400 transition-colors duration-300"></div>
+                      <h4 className="font-extrabold text-lg text-white leading-tight">{s.title}</h4>
+                      <p className="text-sm text-emerald-50/60 leading-relaxed font-medium">{s.desc}</p>
                     </div>
                   </div>
-                  
-                  {/* Copy */}
-                  <div className="space-y-3 relative z-10">
-                    <div className="w-8 h-1 bg-emerald-100 rounded-full group-hover:bg-[#2d5a47] transition-colors duration-300"></div>
-                    <h4 className="font-extrabold text-lg text-slate-900 leading-tight">{s.title}</h4>
-                    <p className="text-sm text-slate-500 leading-relaxed font-medium">{s.desc}</p>
-                  </div>
-                </div>
               );
             })}
           </div>
