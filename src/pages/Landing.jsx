@@ -215,7 +215,7 @@ export default function Landing() {
           <div className="hidden md:flex items-center gap-8 text-xs font-semibold text-slate-600">
             <a href="#features" className="hover:text-[#2d5a47] transition-colors">Features</a>
             <a href="#how-it-works" className="hover:text-[#2d5a47] transition-colors">How it works</a>
-            <a href="#about" className="hover:text-[#2d5a47] transition-colors">About</a>
+            <a href="#who-its-for" className="hover:text-[#2d5a47] transition-colors">Who it's for</a>
           </div>
 
           {/* Right Action Buttons */}
@@ -259,7 +259,7 @@ export default function Landing() {
           <div className="sm:hidden pt-4 pb-3 space-y-3 border-t border-slate-100 mt-3 text-xs font-semibold">
             <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block px-2 text-slate-600 hover:text-[#2d5a47]">Features</a>
             <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="block px-2 text-slate-600 hover:text-[#2d5a47]">How it works</a>
-            <a href="#about" onClick={() => setMobileMenuOpen(false)} className="block px-2 text-slate-600 hover:text-[#2d5a47]">About</a>
+            <a href="#who-its-for" onClick={() => setMobileMenuOpen(false)} className="block px-2 text-slate-600 hover:text-[#2d5a47]">Who it's for</a>
             <div className="pt-2 flex flex-col gap-2">
               <Link to="/quick-calc" className="w-full text-center py-2.5 rounded-xl border border-slate-200 bg-white font-bold text-slate-700">Quick Calculator</Link>
               <Link to={user ? "/dashboard" : "/signup"} className="w-full text-center py-2.5 rounded-xl bg-[#2d5a47] font-bold text-white">
@@ -476,7 +476,7 @@ export default function Landing() {
       {/* ══════════════════════════════════════════
           4. PROPERTY TYPES SECTION
       ══════════════════════════════════════════ */}
-      <section className="py-20 px-6 border-y border-slate-200/80 text-center overflow-hidden" style={{ backgroundColor: '#EEF1EE' }}>
+      <section id="who-its-for" className="py-20 px-6 border-y border-slate-200/80 text-center overflow-hidden" style={{ backgroundColor: '#EEF1EE' }}>
         <div 
           ref={typesRef}
           className={`max-w-6xl mx-auto transition-all duration-1000 ease-out transform-gpu ${
@@ -495,8 +495,8 @@ export default function Landing() {
             </p>
           </div>
 
-          {/* SaaS Style Cards Row */}
-          <div className="flex overflow-x-auto hide-scrollbar gap-4 pb-6 snap-x snap-mandatory pt-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          {/* SaaS Style Cards Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 pt-4">
             {propertyTypes.map((pt, idx) => {
               const Icon = pt.icon;
               const isActive = activePropertyIndex === idx;
@@ -504,24 +504,24 @@ export default function Landing() {
                 <div
                   key={pt.label}
                   onClick={() => setActivePropertyIndex(idx)}
-                  className={`min-w-[200px] w-[200px] sm:w-[220px] shrink-0 snap-start bg-white rounded-xl p-5 text-left cursor-pointer transition-all duration-300 relative ${
+                  className={`bg-white rounded-xl p-4 sm:p-5 text-left cursor-pointer transition-all duration-300 relative ${
                     isActive 
                       ? 'border-2 border-indigo-600 shadow-md transform -translate-y-1' 
                       : 'border border-transparent shadow-sm opacity-80 hover:opacity-100 hover:shadow-md'
                   }`}
                 >
-                  <div className="mb-4">
+                  <div className="mb-3 sm:mb-4">
                     <Icon size={20} className={isActive ? "text-indigo-600" : "text-[#2d5a47]"} />
                   </div>
-                  <h4 className="font-bold text-sm text-slate-900 mb-2">{pt.label}</h4>
-                  <p className="text-[11px] text-slate-500 leading-relaxed">{pt.desc}</p>
+                  <h4 className="font-bold text-xs sm:text-sm text-slate-900 mb-1.5 sm:mb-2">{pt.label}</h4>
+                  <p className="text-[10px] sm:text-[11px] text-slate-500 leading-relaxed hidden sm:block">{pt.desc}</p>
                 </div>
               );
             })}
           </div>
 
           {/* Dynamic Footer Context Line */}
-          <div className="mt-8 flex justify-center">
+          <div className="mt-8 pt-2 flex justify-center">
             <p className="text-xs font-medium text-slate-600 flex items-center gap-2">
               <span className="w-1 h-1 rounded-full bg-[#2d5a47]"></span>
               {propertyTypes[activePropertyIndex].desc}
