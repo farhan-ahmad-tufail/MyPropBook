@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function Logo({ size = 32, showText = true, className = '' }) {
+export default function Logo({ size = 32, showText = true, className = '', dark = false }) {
   return (
     <div className={`flex items-center gap-2.5 ${className}`}>
       {/* Sleek green building icon badge from modern SaaS design */}
@@ -39,16 +39,16 @@ export default function Logo({ size = 32, showText = true, className = '' }) {
       {showText && (
         <div className="flex flex-col leading-tight">
           <span 
-            className="font-extrabold tracking-tight text-slate-800 select-none"
+            className={`font-extrabold tracking-tight select-none ${dark ? 'text-white' : 'text-slate-800'}`}
             style={{
               fontSize: `${size * 0.58}px`,
               letterSpacing: '-0.03em',
               fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
             }}
           >
-            MyProp<span className="text-[#2d5a47]">Book</span>
+            MyProp<span className="text-[#4a9978]">Book</span>
           </span>
-          <span className="text-[8px] font-bold tracking-widest text-slate-400 uppercase -mt-0.5">
+          <span className={`text-[8px] font-bold tracking-widest uppercase -mt-0.5 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
             PROPERTY OPERATIONS
           </span>
         </div>
@@ -56,4 +56,3 @@ export default function Logo({ size = 32, showText = true, className = '' }) {
     </div>
   );
 }
-
