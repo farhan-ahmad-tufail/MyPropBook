@@ -1020,12 +1020,13 @@ export default function SmartCalc() {
 
               {/* ELECTRICITY MODE TOGGLE & COMPACT METER INPUT (Only for single room tenants) */}
               {!isMultiRoomTenant && (
-                <div className="p-4.5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-3.5">
-                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-                    <span className="font-extrabold text-slate-900 flex items-center gap-1.5">
-                      <Zap size={14} className="text-[#2d5a47]" /> Electricity billing mode:
+                <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm space-y-4">
+                  {/* Row 1: Mode Toggle Header */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3.5 border-b border-slate-100">
+                    <span className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
+                      <Zap size={15} className="text-[#2d5a47]" /> Electricity billing mode:
                     </span>
-                    <div className="flex bg-slate-100/80 p-0.5 rounded-xl gap-0.5 border border-slate-200/60">
+                    <div className="flex bg-slate-100/90 p-1 rounded-xl gap-1 border border-slate-200/70">
                       {[
                         { id: 'submeter', label: isSharedRoomTenants ? '⚡ Room Submeter (Shared)' : '⚡ Submeter' },
                         { id: 'direct', label: '📄 Direct' },
@@ -1036,9 +1037,9 @@ export default function SmartCalc() {
                           key={mode.id}
                           type="button"
                           onClick={() => setElecMode(mode.id)}
-                          className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${elecMode === mode.id
+                          className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${elecMode === mode.id
                               ? 'bg-[#2d5a47] text-white shadow-xs'
-                              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+                              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
                             }`}
                         >
                           {mode.label}
@@ -1064,16 +1065,17 @@ export default function SmartCalc() {
                     </div>
                   )}
 
+                  {/* Row 2: Meter Reading Box with Generous Breathing Space */}
                   {elecMode === 'submeter' && (
-                    <div className="space-y-2.5">
+                    <div className="space-y-3 pt-1">
                       <div className="flex justify-between items-center text-xs">
-                        <span className="text-[11px] text-slate-500 font-medium">Enter current meter reading</span>
-                        <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 font-extrabold text-[11px] border border-slate-200/60">
+                        <span className="text-xs font-bold text-slate-700">Enter current meter reading</span>
+                        <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 font-extrabold text-[11px] border border-slate-200/70">
                           Prev: {prevReading} units
                         </span>
                       </div>
 
-                      <div className="relative bg-slate-50/70 focus-within:bg-white rounded-xl border border-slate-200 px-3.5 py-2 focus-within:border-[#2d5a47] focus-within:ring-2 focus-within:ring-[#2d5a47]/10 transition-all">
+                      <div className="relative bg-slate-50/80 focus-within:bg-white rounded-xl border border-slate-200/90 px-4 py-2.5 focus-within:border-[#2d5a47] focus-within:ring-2 focus-within:ring-[#2d5a47]/10 transition-all shadow-2xs">
                         <input
                           type="number"
                           required
@@ -1088,7 +1090,7 @@ export default function SmartCalc() {
                         </span>
                       </div>
 
-                      <div className="flex justify-between items-center text-xs font-semibold pt-0.5">
+                      <div className="flex justify-between items-center text-xs font-semibold pt-1">
                         <span className="text-slate-500 text-[11px]">
                           {isSharedRoomTenants ? `Room usage (${unitsConsumed}u) ÷ ${roomTenantCount} tenants` : 'Usage breakdown'}
                         </span>
@@ -1108,16 +1110,16 @@ export default function SmartCalc() {
                   )}
 
                   {elecMode === 'direct' && (
-                    <div className="space-y-1.5">
+                    <div className="space-y-2 pt-1">
                       <div className="flex justify-between items-center">
-                        <label className="text-[11px] font-bold text-slate-700 block">Direct Electricity Amount (₹)</label>
+                        <label className="text-xs font-bold text-slate-700 block">Direct Electricity Amount (₹)</label>
                         {isSharedRoomTenants && (
                           <span className="text-[10px] text-[#2d5a47] font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
                             Split across {roomTenantCount} tenants (₹{calculatedElecAmount} each)
                           </span>
                         )}
                       </div>
-                      <div className="relative bg-slate-50/70 focus-within:bg-white rounded-xl border border-slate-200 px-3.5 py-2 focus-within:border-[#2d5a47] focus-within:ring-2 focus-within:ring-[#2d5a47]/10 transition-all">
+                      <div className="relative bg-slate-50/80 focus-within:bg-white rounded-xl border border-slate-200/90 px-4 py-2.5 focus-within:border-[#2d5a47] focus-within:ring-2 focus-within:ring-[#2d5a47]/10 transition-all shadow-2xs">
                         <input
                           type="number"
                           required
@@ -1132,7 +1134,7 @@ export default function SmartCalc() {
                   )}
 
                   {elecMode === 'shared' && (
-                    <div className="p-3.5 bg-slate-50/60 rounded-xl border border-slate-200/80 space-y-3">
+                    <div className="p-4 bg-slate-50/60 rounded-xl border border-slate-200/80 space-y-3 pt-1">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                           <span>🤝 Total Property Bill Split</span>
