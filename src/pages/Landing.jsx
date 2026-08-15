@@ -654,7 +654,7 @@ export default function Landing() {
       {/* ══════════════════════════════════════════
           7. QUICK SETUP / HOW IT WORKS
       ══════════════════════════════════════════ */}
-      <section id="how-it-works" className="py-24 px-6 relative overflow-hidden" style={{background: 'linear-gradient(135deg, #0d1f18 0%, #111f1a 50%, #0a1a12 100%)'}}>
+      <section id="how-it-works" className="py-14 sm:py-20 lg:py-24 px-4 sm:px-6 relative overflow-hidden" style={{background: 'linear-gradient(135deg, #0d1f18 0%, #111f1a 50%, #0a1a12 100%)'}}>
         {/* Radial emerald glow — ambient light effect */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] rounded-full opacity-30" style={{background: 'radial-gradient(ellipse at center, #2d5a47 0%, transparent 70%)'}}></div>
@@ -678,8 +678,8 @@ export default function Landing() {
             </p>
           </div>
 
-          {/* Step Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 px-4">
+          {/* Step Cards Grid — horizontal on mobile, 2-col on tablet, 4-col on desktop */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 px-0 sm:px-4">
             {steps.map((s, idx) => {
               const Icon = s.icon;
               // Per-card accent tints — subtle, each feels distinct
@@ -693,20 +693,22 @@ export default function Landing() {
               return (
                 <div
                   key={s.step}
-                  className="group relative rounded-2xl overflow-hidden text-left cursor-default flex flex-col justify-between h-[270px]"
+                  className="group relative rounded-2xl overflow-hidden text-left cursor-default flex flex-col lg:justify-between h-auto lg:h-[270px]"
                   style={{
                     background: 'linear-gradient(145deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.04) 100%)',
                     border: '1px solid rgba(255,255,255,0.10)',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.07)',
                     backdropFilter: 'blur(16px)',
                     transition: 'all 0.35s cubic-bezier(0.4,0,0.2,1)',
-                    padding: '1.75rem',
+                    padding: '1rem 1.25rem',
                   }}
                   onMouseEnter={e => {
-                    e.currentTarget.style.background = `linear-gradient(145deg, rgba(45,90,71,0.22) 0%, rgba(45,90,71,0.12) 100%)`;
-                    e.currentTarget.style.borderColor = accent.border;
-                    e.currentTarget.style.boxShadow = `0 24px 48px rgba(0,0,0,0.5), 0 0 0 1px ${accent.border}, inset 0 1px 0 rgba(255,255,255,0.09)`;
-                    e.currentTarget.style.transform = 'translateY(-7px)';
+                    if (window.innerWidth >= 1024) {
+                      e.currentTarget.style.background = `linear-gradient(145deg, rgba(45,90,71,0.22) 0%, rgba(45,90,71,0.12) 100%)`;
+                      e.currentTarget.style.borderColor = accent.border;
+                      e.currentTarget.style.boxShadow = `0 24px 48px rgba(0,0,0,0.5), 0 0 0 1px ${accent.border}, inset 0 1px 0 rgba(255,255,255,0.09)`;
+                      e.currentTarget.style.transform = 'translateY(-7px)';
+                    }
                   }}
                   onMouseLeave={e => {
                     e.currentTarget.style.background = 'linear-gradient(145deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.04) 100%)';
@@ -724,8 +726,35 @@ export default function Landing() {
                     style={{background: `radial-gradient(circle, ${accent.glow} 0%, transparent 70%)`, opacity: 0.5}}
                   ></div>
 
+                {/* MOBILE: compact horizontal layout — icon left, content right */}
+                <div className="flex lg:hidden items-center gap-4 relative z-10 w-full">
+                  {/* Icon */}
+                  <div
+                    className="shrink-0 w-11 h-11 rounded-xl flex items-center justify-center"
+                    style={{
+                      background: `rgba(52,211,153,0.12)`,
+                      border: `1px solid rgba(52,211,153,0.22)`,
+                      color: '#6ee7b7',
+                    }}
+                  >
+                    <Icon size={18} strokeWidth={2} />
+                  </div>
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[9px] font-bold tracking-[0.18em] uppercase" style={{color: 'rgba(52,211,153,0.65)'}}>Step {idx + 1}</span>
+                    </div>
+                    <h4 className="font-bold text-sm text-white leading-snug">{s.title}</h4>
+                    <p className="text-xs mt-0.5 leading-relaxed" style={{color: 'rgba(255,255,255,0.50)'}}>{s.desc}</p>
+                  </div>
+                  {/* Step number — decorative, right aligned */}
+                  <span className="shrink-0 text-3xl font-black select-none" style={{color: 'rgba(255,255,255,0.08)', letterSpacing: '-0.04em'}}>{s.step}</span>
+                </div>
+
+                {/* DESKTOP: original stacked layout */}
+                <div className="hidden lg:flex flex-col justify-between h-full relative z-10">
                   {/* Top row: step number + icon */}
-                  <div className="flex justify-between items-start relative z-10">
+                  <div className="flex justify-between items-start">
                     <span className="text-5xl font-black leading-none select-none" style={{color: 'rgba(255,255,255,0.10)', letterSpacing: '-0.04em'}}>{s.step}</span>
                     <div
                       className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110"
@@ -738,9 +767,8 @@ export default function Landing() {
                       <Icon size={18} strokeWidth={2} />
                     </div>
                   </div>
-
                   {/* Step label + content */}
-                  <div className="relative z-10">
+                  <div>
                     <div className="flex items-center gap-2 mb-3">
                       <div className="h-px w-6" style={{background: accent.topBar}}></div>
                       <span className="text-[9px] font-bold tracking-[0.2em] uppercase" style={{color: 'rgba(52,211,153,0.65)'}}>Step {idx + 1}</span>
@@ -748,6 +776,7 @@ export default function Landing() {
                     <h4 className="font-bold text-[15px] text-white mb-1.5 leading-snug">{s.title}</h4>
                     <p className="text-xs leading-relaxed" style={{color: 'rgba(255,255,255,0.50)'}}>{s.desc}</p>
                   </div>
+                </div>
                 </div>
               );
             })}
