@@ -678,7 +678,7 @@ export default function Landing() {
                 >
                   {/* Header: Number and Icon */}
                   <div className="flex justify-between items-start relative z-10">
-                    <span className="text-4xl font-black text-slate-100 group-hover:text-emerald-100 transition-colors duration-300">{s.step}</span>
+                    <span className="text-4xl font-black text-slate-300/80 group-hover:text-[#2d5a47]/30 transition-colors duration-300">{s.step}</span>
                     <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 shadow-sm flex items-center justify-center text-slate-400 group-hover:bg-[#2d5a47] group-hover:text-white group-hover:border-[#2d5a47] transition-all duration-300">
                       <Icon size={20} strokeWidth={2.5} />
                     </div>
