@@ -1731,7 +1731,33 @@ export default function SmartCalc() {
                         <span>Share {cTenant?.name}'s Bill via WhatsApp</span>
                       </button>
 
-                 const sBill = (isSaved && result) ? result : null;
+                      <button
+                        type="button"
+                        disabled={safeIdx === groupResults.length - 1}
+                        onClick={() => setCarouselIndex(i => Math.min(groupResults.length - 1, i + 1))}
+                        className="w-10 h-10 rounded-2xl bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 flex items-center justify-center text-slate-700 transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-sm flex-shrink-0"
+                      >
+                        <ChevronRight size={18} />
+                      </button>
+                    </div>
+
+                    {/* Download PDF for current */}
+                    <button
+                      onClick={handleDownloadPDF}
+                      className="w-full py-2.5 px-3 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs border border-slate-200 transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+                    >
+                      <Download size={14} />
+                      <span>Download PDF — {cTenant?.name}</span>
+                    </button>
+
+                    <p className="text-[11px] text-center font-medium text-slate-500 bg-slate-100/70 py-1.5 px-2.5 rounded-xl border border-slate-200/60">
+                      ← Swipe left/right or use arrows to view each roommate's bill
+                    </p>
+                  </div>
+                </div>
+              );
+            })() : (() => {
+              const sBill = (isSaved && result) ? result : null;
               const sRent = sBill ? (parseFloat(sBill.rent_amount) || 0) : baseRentAmount;
               const sElec = sBill ? (parseFloat(sBill.elec_amount || sBill.electricity_amount) || 0) : calculatedElecAmount;
               const sPrev = sBill ? (parseFloat(sBill.previous_reading) || 0) : prevReading;
@@ -1934,7 +1960,8 @@ export default function SmartCalc() {
                   </p>
                 </div>
               </>
-            )}
+            );
+          })()}
 
           </div>
 
