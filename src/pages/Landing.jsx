@@ -28,43 +28,61 @@ import Logo from '../components/Logo';
 const features = [
   {
     icon: Building2,
-    accent: '#2d5a47',
-    bg: '#edf5f1',
+    accentClass: 'text-indigo-600',
+    bgClass: 'bg-indigo-50/70 border border-indigo-100/50',
+    tag: 'Portfolio',
+    hoverBorder: 'hover:border-indigo-200/80',
+    hoverShadow: 'hover:shadow-lg hover:shadow-indigo-500/5',
     title: 'Multi-property management',
-    desc: 'Manage buildings, rooms, tenants and rent from one place.',
+    desc: 'Manage buildings, rooms, tenants and rent from one calm workspace.',
   },
   {
     icon: Zap,
-    accent: '#2d5a47',
-    bg: '#edf5f1',
+    accentClass: 'text-amber-600',
+    bgClass: 'bg-amber-50/70 border border-amber-100/50',
+    tag: 'Utility Split',
+    hoverBorder: 'hover:border-amber-200/80',
+    hoverShadow: 'hover:shadow-lg hover:shadow-amber-500/5',
     title: 'Flexible utility billing',
     desc: 'Use submeter readings or add a direct electricity bill amount.',
   },
   {
     icon: Receipt,
-    accent: '#2d5a47',
-    bg: '#edf5f1',
+    accentClass: 'text-emerald-600',
+    bgClass: 'bg-emerald-50/70 border border-emerald-100/50',
+    tag: 'Billing',
+    hoverBorder: 'hover:border-emerald-200/80',
+    hoverShadow: 'hover:shadow-lg hover:shadow-emerald-500/5',
     title: 'Professional receipts',
-    desc: 'Generate clear receipts and share them with tenants through WhatsApp.',
+    desc: 'Generate clean receipts and share them with tenants through WhatsApp.',
   },
   {
     icon: Users,
-    accent: '#2d5a47',
-    bg: '#edf5f1',
+    accentClass: 'text-sky-600',
+    bgClass: 'bg-sky-50/70 border border-sky-100/50',
+    tag: 'Leasing',
+    hoverBorder: 'hover:border-sky-200/80',
+    hoverShadow: 'hover:shadow-lg hover:shadow-sky-500/5',
     title: 'Tenant & lease tracking',
     desc: 'Keep tenant details, room assignments and lease records organized.',
   },
   {
     icon: BarChart3,
-    accent: '#2d5a47',
-    bg: '#edf5f1',
+    accentClass: 'text-rose-600',
+    bgClass: 'bg-rose-50/70 border border-rose-100/50',
+    tag: 'Analytics',
+    hoverBorder: 'hover:border-rose-200/80',
+    hoverShadow: 'hover:shadow-lg hover:shadow-rose-500/5',
     title: 'Revenue & collections',
     desc: 'See expected rent, collected amounts and pending balances at a glance.',
   },
   {
     icon: Share2,
-    accent: '#2d5a47',
-    bg: '#edf5f1',
+    accentClass: 'text-fuchsia-600',
+    bgClass: 'bg-fuchsia-50/70 border border-fuchsia-100/50',
+    tag: 'Roommates',
+    hoverBorder: 'hover:border-fuchsia-200/80',
+    hoverShadow: 'hover:shadow-lg hover:shadow-fuchsia-500/5',
     title: 'Shared room splitting',
     desc: 'Split rent and utility bills fairly between roommates with individual roommate receipts.',
   },
@@ -563,19 +581,26 @@ export default function Landing() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 text-left">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 text-left">
           {features.map((f) => {
             const Icon = f.icon;
             return (
               <div
                 key={f.title}
-                className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm hover:shadow-md transition-all space-y-3"
+                className={`bg-white border border-slate-100 rounded-3xl p-6 shadow-xs hover:border-slate-200 transition-all duration-300 hover:-translate-y-1 ${f.hoverBorder} ${f.hoverShadow} space-y-4 group cursor-pointer`}
               >
-                <div className="w-10 h-10 rounded-2xl bg-[#edf5f1] text-[#2d5a47] flex items-center justify-center">
-                  <Icon size={20} />
+                <div className="flex items-center justify-between">
+                  <div className={`w-10 h-10 rounded-2xl ${f.bgClass} flex items-center justify-center transition-all duration-300 group-hover:scale-105`}>
+                    <Icon size={20} className={`${f.accentClass}`} />
+                  </div>
+                  <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${f.bgClass} ${f.accentClass}`}>
+                    {f.tag}
+                  </span>
                 </div>
-                <h3 className="font-extrabold text-slate-900 text-base">{f.title}</h3>
-                <p className="text-xs text-slate-500 leading-relaxed">{f.desc}</p>
+                <div className="space-y-2">
+                  <h3 className="font-extrabold text-slate-900 text-base group-hover:text-[#2d5a47] transition-colors">{f.title}</h3>
+                  <p className="text-xs text-slate-500 leading-relaxed">{f.desc}</p>
+                </div>
               </div>
             );
           })}
