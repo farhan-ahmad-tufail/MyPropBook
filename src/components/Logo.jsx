@@ -46,7 +46,7 @@ export default function Logo({ size = 32, showText = true, className = '' }) {
               fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
             }}
           >
-            Bill<span className="text-[#2d5a47]">Room</span>
+            MyProp<span className="text-[#2d5a47]">Book</span>
           </span>
           <span className="text-[8px] font-bold tracking-widest text-slate-400 uppercase -mt-0.5">
             PROPERTY OPERATIONS

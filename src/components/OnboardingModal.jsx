@@ -203,7 +203,7 @@ export default function OnboardingModal({ isOpen, onClose, onComplete }) {
             <div className="space-y-4">
               <div>
                 <h3 className="text-xl font-bold text-slate-100">How do you handle utility billing?</h3>
-                <p className="text-sm text-slate-400 mt-1">BillRoom supports multiple flexible billing methods per property or room.</p>
+                <p className="text-sm text-slate-400 mt-1">MyPropBook supports multiple flexible billing methods per property or room.</p>
               </div>
 
               <div className="space-y-2.5 pt-2">

@@ -87,7 +87,7 @@ export default function Login() {
           return;
         }
         await signUp(email, password, fullName);
-        setSuccessMessage('Your BillRoom account is ready!');
+        setSuccessMessage('Your MyPropBook account is ready!');
         setTimeout(() => navigate('/dashboard?newuser=true'), 600);
       } else {
         await signIn(email, password);
@@ -147,7 +147,7 @@ export default function Login() {
       {isSignUpMode ? (
         <div className="h-screen w-full grid grid-cols-1 md:grid-cols-12 bg-[#f8faf9] overflow-hidden">
           
-          {/* ── LEFT PANEL (Dark BillRoom Brand Intro) ── */}
+          {/* ── LEFT PANEL (Dark MyPropBook Brand Intro) ── */}
           <div className="hidden md:flex md:col-span-5 lg:col-span-5 bg-[#0b1320] text-slate-100 p-8 lg:p-12 flex-col justify-between relative overflow-hidden h-screen">
             {/* Ambient Radial Background */}
             <div className="absolute -top-20 -left-20 w-72 h-72 bg-[#2d5a47]/20 rounded-full blur-3xl pointer-events-none" />
@@ -248,7 +248,7 @@ export default function Login() {
                   A BETTER RENT ROLL STARTS HERE
                 </span>
                 <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-                  Create your BillRoom account
+                  Create your MyPropBook account
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5">
                   Start managing your properties professionally.
@@ -401,14 +401,14 @@ export default function Login() {
                 {/* Terms Acknowledgement */}
                 <div className="pt-1 text-center text-[10px] text-slate-500 flex items-center justify-center gap-1.5">
                   <CheckCircle2 size={12} className="text-[#2d5a47]" />
-                  <span>By creating an account, you agree to BillRoom's terms and privacy policy.</span>
+                  <span>By creating an account, you agree to MyPropBook's terms and privacy policy.</span>
                 </div>
               </form>
             </div>
 
             {/* Bottom Footer Credit */}
             <div className="pt-2 text-center text-[10px] text-slate-400">
-              © {new Date().getFullYear()} BillRoom · Built for property owners in India
+              © {new Date().getFullYear()} MyPropBook · Built for property owners in India
             </div>
 
           </div>
@@ -584,13 +584,13 @@ export default function Login() {
                 className="text-xs text-slate-500 hover:text-[#2d5a47] font-semibold transition-colors inline-flex items-center gap-1.5 cursor-pointer"
               >
                 <Sparkles size={13} className="text-amber-500" />
-                <span>Try BillRoom Demo instantly</span>
+                <span>Try MyPropBook Demo instantly</span>
               </button>
             </div>
 
             {/* Bottom Switch Link */}
             <div className="pt-3 border-t border-slate-100 text-center text-xs font-medium text-slate-500">
-              New to BillRoom?{' '}
+              New to MyPropBook?{' '}
               <button
                 type="button"
                 onClick={() => toggleMode(true)}
@@ -604,7 +604,7 @@ export default function Login() {
 
           {/* Footer */}
           <footer className="py-2 text-center text-[10px] text-slate-400">
-            © {new Date().getFullYear()} BillRoom · Property Management Software
+            © {new Date().getFullYear()} MyPropBook · Property Management Software
           </footer>
         </div>
       )}

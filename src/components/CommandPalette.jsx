@@ -225,7 +225,7 @@ export default function CommandPalette({ isOpen, onClose }) {
             </div>
             <div className="flex items-center gap-1 text-[#2d5a47] font-bold">
               <Command size={12} />
-              <span>BillRoom Command Palette</span>
+              <span>MyPropBook Command Palette</span>
             </div>
           </div>
 

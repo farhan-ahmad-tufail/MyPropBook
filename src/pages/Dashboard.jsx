@@ -926,7 +926,7 @@ export default function Dashboard() {
                   <BookOpen size={18} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-900 text-base">BillRoom Quick Start & User Guide</h3>
+                  <h3 className="font-bold text-slate-900 text-base">MyPropBook Quick Start & User Guide</h3>
                   <p className="text-slate-400 text-xs">Step-by-step instructions to manage your property portfolio.</p>
                 </div>
               </div>

@@ -496,7 +496,7 @@ export default function Layout({ children }) {
                     </div>
                     <span className="text-[10px] font-bold text-[#2d5a47] uppercase tracking-widest">Quick Guide</span>
                   </div>
-                  <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">How to use BillRoom</h2>
+                  <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">How to use MyPropBook</h2>
                   <p className="text-xs text-slate-500 mt-0.5">Follow these steps to set up and generate your first bill.</p>
                 </div>
                 <button

@@ -197,8 +197,8 @@ export default function Landing() {
 
         {/* Main Headline */}
         <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-[#0f172a] tracking-tight leading-[1.05] relative z-10">
-          Manage Every Property.<br />
-          <span className="text-[#2d5a47]">Bill Every Room.</span>
+          Modern property records.<br />
+          <span className="text-[#2d5a47]">Simple utility billing.</span>
         </h1>
 
         {/* Supporting Copy */}
@@ -401,7 +401,7 @@ export default function Landing() {
             One workspace for the way you rent.
           </h2>
           <p className="text-slate-500 text-sm max-w-xl mx-auto leading-relaxed">
-            Whether you manage a single building or a growing portfolio, BillRoom keeps every room and rupee accounted for.
+            Whether you manage a single building or a growing portfolio, MyPropBook keeps every room and rupee accounted for.
           </p>
 
           {/* Chips */}
@@ -435,7 +435,7 @@ export default function Landing() {
                 Electricity billing, your way.
               </h2>
               <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-                Split shared room bills fairly, or generate individual receipts instantly — BillRoom handles every scenario so your process fits the property, not the other way around.
+                Split shared room bills fairly, or generate individual receipts instantly — MyPropBook handles every scenario so your process fits the property, not the other way around.
               </p>
               <div className="pt-2">
                 <Link
@@ -625,10 +625,10 @@ export default function Landing() {
               Built for landlords. Built from a real problem.
             </h2>
             <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-              BillRoom began with a simple problem: rent, utility bills, tenant records, and collections were scattered across notebooks, spreadsheets, and WhatsApp.
+              MyPropBook began with a simple problem: rent, utility bills, tenant records, and collections were scattered across notebooks, spreadsheets, and WhatsApp.
             </p>
             <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-              I built BillRoom to bring these everyday tasks into one reliable workspace — from managing properties and tenants to calculating utility bills and generating shareable receipts.
+              I built MyPropBook to bring these everyday tasks into one reliable workspace — from managing properties and tenants to calculating utility bills and generating shareable receipts.
             </p>
 
             <div className="space-y-2 pt-2 text-xs font-semibold text-slate-700">
@@ -693,7 +693,7 @@ export default function Landing() {
               {/* Quote */}
               <div className="relative pl-3 border-l-2 border-[#2d5a47]/30">
                 <p className="text-xs text-slate-600 leading-relaxed italic">
-                  "I built BillRoom because managing a property shouldn't mean juggling spreadsheets, notebooks, and WhatsApp every month."
+                  "I built MyPropBook because managing a property shouldn't mean juggling spreadsheets, notebooks, and WhatsApp every month."
                 </p>
               </div>
 
@@ -784,7 +784,7 @@ export default function Landing() {
           {/* Bottom Bar */}
           <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
             <p className="text-xs text-slate-400 font-medium">
-              © {year} <span className="font-bold text-slate-600">BillRoom</span> · Property Management Software
+              © {year} <span className="font-bold text-slate-600">MyPropBook</span> · Property Management Software
             </p>
             <div className="flex items-center gap-4 text-xs text-slate-400 font-medium">
               <span>Made with ♥ in India</span>
