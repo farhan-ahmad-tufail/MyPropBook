@@ -615,13 +615,10 @@ export default function Landing() {
                   </div>
                 </div>
               </div>
-
-              </div>
             </div>
           </div>
         </div>
       </section>
-
 
       {/* ══════════════════════════════════════════
           6. FEATURES ("The Everyday Essentials")
