@@ -550,8 +550,15 @@ export default function SmartCalc() {
     ? multiRoomItems.reduce((sum, item) => sum + item.rent_amount, 0)
     : (parseFloat(activeRoom?.base_rent) || 0);
 
-  const arrearsAmount = customArrears !== '' ? (parseFloat(customArrears) || 0) : calculatedArrears;
-  const otherChargesAmount = parseFloat(otherCharges) || 0;
+  const activeTenantGroupInput = (isGroupRoomSelection && activeTenant) ? (groupTenantReadings[activeTenant.id] || {}) : {};
+  const arrearsAmount = isGroupRoomSelection
+    ? (activeTenantGroupInput.arrears !== undefined && activeTenantGroupInput.arrears !== '' ? (parseFloat(activeTenantGroupInput.arrears) || 0) : 0)
+    : (customArrears !== '' ? (parseFloat(customArrears) || 0) : calculatedArrears);
+
+  const otherChargesAmount = isGroupRoomSelection
+    ? (parseFloat(activeTenantGroupInput.otherCharges) || 0)
+    : (parseFloat(otherCharges) || 0);
+
   const grandTotalAmount = baseRentAmount + calculatedElecAmount + arrearsAmount + otherChargesAmount;
 
   const handleCalculate = async (e) => {
@@ -631,7 +638,17 @@ export default function SmartCalc() {
           generatedBillsList.push({
             bill: savedBill,
             tenant: tObj,
-            totalPayable: tTotal
+            totalPayable: tTotal,
+            baseRentAmount,
+            calculatedElecAmount,
+            prevReading,
+            currReading,
+            unitsConsumed,
+            rate,
+            roomTotalElec: elecMode === 'submeter' ? roomTotalElec : (elecMode === 'direct' ? parseFloat(directElecAmount) || 0 : calculatedElecAmount * roomTenantsList.length),
+            tArrears,
+            tOther,
+            elecMode
           });
         }
 
@@ -1500,15 +1517,49 @@ export default function SmartCalc() {
               const safeIdx = Math.max(0, Math.min(carouselIndex, groupResults.length - 1));
               const current = groupResults[safeIdx];
               const cTenant = current?.tenant;
-              const cBill = current?.bill;
-              const cTotal = current?.totalPayable || 0;
-              const cInputs = groupTenantReadings[cTenant?.id] || {};
-              const cArrears = parseFloat(cInputs.arrears) || 0;
-              const cOther = parseFloat(cInputs.otherCharges) || 0;
+              const cBill = current?.bill || {};
+              const cTotal = current?.tTotal ?? current?.totalPayable ?? 0;
+              const cArrears = current?.tArrears ?? parseFloat(cBill.arrears || 0);
+              const cOther = current?.tOther ?? parseFloat(cBill.other_charges || 0);
+              const cRent = current?.baseRentAmount ?? parseFloat(cBill.rent_amount || 0);
+              const cElec = current?.calculatedElecAmount ?? parseFloat(cBill.elec_amount || cBill.electricity_amount || 0);
+              const cPrev = current?.prevReading ?? parseFloat(cBill.previous_reading || 0);
+              const cCurr = current?.currReading ?? parseFloat(cBill.current_reading || 0);
+              const cUnits = current?.unitsConsumed ?? parseFloat(cBill.units_consumed || 0);
+              const cRate = current?.rate ?? parseFloat(cBill.rate_per_unit || 17);
+              const cRoomTotalElec = current?.roomTotalElec ?? (cUnits * cRate);
+              const cElecMode = current?.elecMode || elecMode;
 
               const handleGroupShare = async () => {
                 try {
-                  const text = `🏠 Rent Receipt - ${billMonth} ${billYear}\n👤 Tenant: ${cTenant?.name}\n🏠 Room: ${activeRoom?.room_number}\n⚡ Electricity: ₹${calculatedElecAmount.toLocaleString('en-IN')} (1/${groupResults.length} share)\n💰 Total Payable: ₹${cTotal.toLocaleString('en-IN')}\n📅 Due: 10 ${billMonth} ${billYear}`;
+                  const text = `🏠 *RENT RECEIPT - ${billMonth} ${billYear}*\n` +
+                    `👤 *Tenant:* ${cTenant?.name || 'Tenant'}\n` +
+                    `🏠 *Room:* ${activeRoom?.room_number || ''} (${activeProperty?.name || ''})\n` +
+                    `--------------------------------\n` +
+                    `🏢 *Base Rent:* ₹${cRent.toLocaleString('en-IN')}\n` +
+                    (cElec > 0 ? `⚡ *Electricity (1/${groupResults.length} share):* ₹${cElec.toLocaleString('en-IN')} (${cPrev}u → ${cCurr}u = ${cUnits} units)\n` : '') +
+                    (cArrears > 0 ? `📋 *Previous Balance:* ₹${cArrears.toLocaleString('en-IN')}\n` : '') +
+                    (cOther > 0 ? `📦 *Other Charges:* ₹${cOther.toLocaleString('en-IN')}\n` : '') +
+                    `--------------------------------\n` +
+                    `💰 *TOTAL PAYABLE: ₹${cTotal.toLocaleString('en-IN')}*\n` +
+                    `📅 *Due Date:* 10 ${billMonth} ${billYear}\n\n` +
+                    `Thank you for your payment!`;
+
+                  if (receiptRef.current) {
+                    try {
+                      const canvas = await html2canvas(receiptRef.current, { scale: 2, backgroundColor: activeTheme.bg, logging: false });
+                      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                      const file = new File([blob], `Bill_${cTenant?.name || 'Tenant'}.png`, { type: 'image/png' });
+
+                      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                        await navigator.share({ files: [file], title: `Rent Receipt - ${cTenant?.name}`, text });
+                        return;
+                      }
+                    } catch (e) {
+                      console.warn('Image share fallback:', e);
+                    }
+                  }
+
                   const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
                   window.open(url, '_blank');
                 } catch (err) {
@@ -1585,27 +1636,27 @@ export default function SmartCalc() {
                             <Home size={14} className="text-white/80" />
                             <span>{activeRoom?.room_type ? `${activeRoom.room_type} (Room ${activeRoom?.room_number})` : `Room ${activeRoom?.room_number}`}</span>
                           </div>
-                          <span className="font-mono text-sm">₹{baseRentAmount.toLocaleString('en-IN')}</span>
+                          <span className="font-mono text-sm">₹{cRent.toLocaleString('en-IN')}</span>
                         </div>
 
-                        {calculatedElecAmount > 0 && (
+                        {cElec > 0 && (
                           <div className="space-y-1 pt-1.5 border-t border-white/10 text-[11px] text-white/90">
-                            {elecMode === 'submeter' && (
+                            {cElecMode === 'submeter' && (
                               <>
                                 <div className="flex justify-between items-center">
-                                  <span>{t.preLabel} <strong className="text-white">{prevReading} {t.units}</strong></span>
-                                  <span>{t.curLabel} <strong className="text-white">{currReading} {t.units}</strong></span>
+                                  <span>{t.preLabel} <strong className="text-white">{cPrev} {t.units}</strong></span>
+                                  <span>{t.curLabel} <strong className="text-white">{cCurr} {t.units}</strong></span>
                                 </div>
                                 <div className="flex justify-between items-center pt-0.5 font-mono">
-                                  <span>{t.usageLabel} <strong className="text-white">{unitsConsumed} {t.units} × ₹{rate} = ₹{roomTotalElec.toLocaleString('en-IN')} (1/{groupResults.length} share)</strong></span>
-                                  <span className="font-bold text-white">₹{calculatedElecAmount.toLocaleString('en-IN')}</span>
+                                  <span>{t.usageLabel} <strong className="text-white">{cUnits} {t.units} × ₹{cRate} = ₹{cRoomTotalElec.toLocaleString('en-IN')} (1/{groupResults.length} share)</strong></span>
+                                  <span className="font-bold text-white">₹{cElec.toLocaleString('en-IN')}</span>
                                 </div>
                               </>
                             )}
-                            {elecMode === 'direct' && (
+                            {cElecMode === 'direct' && (
                               <div className="flex justify-between">
                                 <span>{t.electricity} (1/{groupResults.length} share)</span>
-                                <span className="font-mono font-bold text-white">₹{calculatedElecAmount.toLocaleString('en-IN')}</span>
+                                <span className="font-mono font-bold text-white">₹{cElec.toLocaleString('en-IN')}</span>
                               </div>
                             )}
                           </div>
@@ -1615,12 +1666,12 @@ export default function SmartCalc() {
                       <div className="space-y-2 pt-2 border-t border-white/15">
                         <div className="flex justify-between text-white/90">
                           <span>{t.totalRent}</span>
-                          <span className="font-mono font-bold text-white">₹{baseRentAmount.toLocaleString('en-IN')}</span>
+                          <span className="font-mono font-bold text-white">₹{cRent.toLocaleString('en-IN')}</span>
                         </div>
-                        {calculatedElecAmount > 0 && (
+                        {cElec > 0 && (
                           <div className="flex justify-between text-white/90">
                             <span>{t.totalElectricity}</span>
-                            <span className="font-mono font-bold text-white">₹{calculatedElecAmount.toLocaleString('en-IN')}</span>
+                            <span className="font-mono font-bold text-white">₹{cElec.toLocaleString('en-IN')}</span>
                           </div>
                         )}
                         {cOther > 0 && (
@@ -1680,194 +1731,182 @@ export default function SmartCalc() {
                         <span>Share {cTenant?.name}'s Bill via WhatsApp</span>
                       </button>
 
-                      <button
-                        type="button"
-                        disabled={safeIdx === groupResults.length - 1}
-                        onClick={() => setCarouselIndex(i => Math.min(groupResults.length - 1, i + 1))}
-                        className="w-10 h-10 rounded-2xl bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 flex items-center justify-center text-slate-700 transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-sm flex-shrink-0"
-                      >
-                        <ChevronRight size={18} />
-                      </button>
+                 const sBill = (isSaved && result) ? result : null;
+              const sRent = sBill ? (parseFloat(sBill.rent_amount) || 0) : baseRentAmount;
+              const sElec = sBill ? (parseFloat(sBill.elec_amount || sBill.electricity_amount) || 0) : calculatedElecAmount;
+              const sPrev = sBill ? (parseFloat(sBill.previous_reading) || 0) : prevReading;
+              const sCurr = sBill ? (parseFloat(sBill.current_reading) || 0) : currReading;
+              const sUnits = sBill ? (parseFloat(sBill.units_consumed) || 0) : unitsConsumed;
+              const sRate = sBill ? (parseFloat(sBill.rate_per_unit) || 17) : rate;
+              const sArrears = sBill ? (parseFloat(sBill.arrears) || 0) : arrearsAmount;
+              const sOther = sBill ? (parseFloat(sBill.other_charges) || 0) : otherChargesAmount;
+              const sTotal = sBill ? (parseFloat(sBill.total_payable) || 0) : grandTotalAmount;
+              const sElecMode = sBill ? sBill.elec_mode : elecMode;
+              const sRoomTotalElec = sBill ? (sBill.room_total_elec || (sUnits * sRate)) : roomTotalElec;
+
+              return (
+                <>
+                  {/* NORMAL SINGLE-TENANT INVOICE PREVIEW */}
+                  <div
+                    ref={receiptRef}
+                    className="text-white rounded-3xl p-6 shadow-xl relative overflow-hidden space-y-4 border transition-colors duration-200"
+                    style={{
+                      background: activeTheme.gradient,
+                      borderColor: activeTheme.border
+                    }}
+                  >
+                    {/* Background Decorative Rings */}
+                    <div className="absolute -top-12 -right-12 w-44 h-44 rounded-full bg-white/5 pointer-events-none" />
+                    <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-white/5 pointer-events-none" />
+
+                    {/* Top header row */}
+                    <div className="flex justify-between items-start relative z-10">
+                      <div>
+                        <span className={`text-[10px] font-bold uppercase tracking-widest block ${activeTheme.textAccent}`}>
+                          {t.previewLabel}
+                        </span>
+                        <h3 className="text-2xl font-black tracking-tight mt-0.5">{billMonth} {billYear}</h3>
+                      </div>
+                      <div className="w-9 h-9 rounded-xl bg-white/10 text-white flex items-center justify-center backdrop-blur-sm">
+                        <Receipt size={18} />
+                      </div>
                     </div>
 
-                    {/* Download PDF for current */}
-                    <button
-                      onClick={handleDownloadPDF}
-                      className="w-full py-2.5 px-3 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs border border-slate-200 transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
-                    >
-                      <Download size={14} />
-                      <span>Download PDF — {cTenant?.name}</span>
-                    </button>
+                    <div className="h-px bg-white/15 w-full" />
 
-                    <p className="text-[11px] text-center font-medium text-slate-500 bg-slate-100/70 py-1.5 px-2.5 rounded-xl border border-slate-200/60">
-                      ← Swipe left/right or use arrows to view each roommate's bill
-                    </p>
-                  </div>
-                </div>
-              );
-            })() : (
-              <>
-                {/* NORMAL SINGLE-TENANT INVOICE PREVIEW */}
-                <div
-                  ref={receiptRef}
-                  className="text-white rounded-3xl p-6 shadow-xl relative overflow-hidden space-y-4 border transition-colors duration-200"
-                  style={{
-                    background: activeTheme.gradient,
-                    borderColor: activeTheme.border
-                  }}
-                >
-                  {/* Background Decorative Rings */}
-                  <div className="absolute -top-12 -right-12 w-44 h-44 rounded-full bg-white/5 pointer-events-none" />
-                  <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-white/5 pointer-events-none" />
-
-                  {/* Top header row */}
-                  <div className="flex justify-between items-start relative z-10">
-                    <div>
-                      <span className={`text-[10px] font-bold uppercase tracking-widest block ${activeTheme.textAccent}`}>
-                        {t.previewLabel}
-                      </span>
-                      <h3 className="text-2xl font-black tracking-tight mt-0.5">{billMonth} {billYear}</h3>
+                    {/* Tenant Section */}
+                    <div className="space-y-0.5 relative z-10">
+                      <span className={`text-[10px] font-bold uppercase tracking-widest block ${activeTheme.textAccent}`}>{t.billedTo}</span>
+                      <h4 className="text-xl font-black text-white tracking-tight">{activeTenant?.name || (billLanguage === 'hi' ? 'कमरा चुनें' : 'Select a room')}</h4>
+                      <p className="text-xs text-white/70">
+                        {activeProperty?.name || 'Property'} · {isMultiRoomTenant ? `Rooms ${tenantActiveRooms.map(r => r.room_number).join(', ')}` : `${t.room} ${activeRoom?.room_number || '00'}`}
+                      </p>
                     </div>
-                    <div className="w-9 h-9 rounded-xl bg-white/10 text-white flex items-center justify-center backdrop-blur-sm">
-                      <Receipt size={18} />
-                    </div>
-                  </div>
 
-                  <div className="h-px bg-white/15 w-full" />
-
-                  {/* Tenant Section */}
-                  <div className="space-y-0.5 relative z-10">
-                    <span className={`text-[10px] font-bold uppercase tracking-widest block ${activeTheme.textAccent}`}>{t.billedTo}</span>
-                    <h4 className="text-xl font-black text-white tracking-tight">{activeTenant?.name || (billLanguage === 'hi' ? 'कमरा चुनें' : 'Select a room')}</h4>
-                    <p className="text-xs text-white/70">
-                      {activeProperty?.name || 'Property'} · {isMultiRoomTenant ? `Rooms ${tenantActiveRooms.map(r => r.room_number).join(', ')}` : `${t.room} ${activeRoom?.room_number || '00'}`}
-                    </p>
-                  </div>
-
-                  {/* Room Breakdown & Charges */}
-                  <div className="space-y-3 pt-1 relative z-10 text-xs">
-                    {isMultiRoomTenant ? (
-                      <div className="space-y-2.5">
-                        {multiRoomItems.map((item, idx) => {
-                          return (
-                            <div key={idx} className="bg-black/20 border border-white/15 rounded-2xl p-3.5 space-y-2 text-xs backdrop-blur-xs">
-                              <div className="flex justify-between items-center font-extrabold text-white">
-                                <div className="flex items-center gap-1.5 truncate">
-                                  <Home size={14} className="text-white/80 flex-shrink-0" />
-                                  <span className="truncate">{item.room_type ? `${item.room_type} (Room ${item.room_number})` : `Room ${item.room_number}`}</span>
+                    {/* Room Breakdown & Charges */}
+                    <div className="space-y-3 pt-1 relative z-10 text-xs">
+                      {isMultiRoomTenant ? (
+                        <div className="space-y-2.5">
+                          {multiRoomItems.map((item, idx) => {
+                            return (
+                              <div key={idx} className="bg-black/20 border border-white/15 rounded-2xl p-3.5 space-y-2 text-xs backdrop-blur-xs">
+                                <div className="flex justify-between items-center font-extrabold text-white">
+                                  <div className="flex items-center gap-1.5 truncate">
+                                    <Home size={14} className="text-white/80 flex-shrink-0" />
+                                    <span className="truncate">{item.room_type ? `${item.room_type} (Room ${item.room_number})` : `Room ${item.room_number}`}</span>
+                                  </div>
+                                  <span className="font-mono text-sm ml-2">₹{item.rent_amount.toLocaleString('en-IN')}</span>
                                 </div>
-                                <span className="font-mono text-sm ml-2">₹{item.rent_amount.toLocaleString('en-IN')}</span>
+                                {item.elec_amount > 0 && (
+                                  <div className="space-y-1 pt-1.5 border-t border-white/10 text-[11px] text-white/90">
+                                    <div className="flex justify-between items-center">
+                                      <span>{t.preLabel} <strong className="text-white font-bold">{item.previous_reading} {t.units}</strong></span>
+                                      <span>{t.curLabel} <strong className="text-white font-bold">{item.current_reading} {t.units}</strong></span>
+                                    </div>
+                                    <div className="flex justify-between items-center pt-0.5 font-mono">
+                                      <span>{t.usageLabel} <strong className="text-white font-bold">{item.units_consumed} {t.units} × ₹{item.rate_per_unit}</strong></span>
+                                      <span className="font-bold text-white text-xs">₹{item.elec_amount.toLocaleString('en-IN')}</span>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
-                              {item.elec_amount > 0 && (
-                                <div className="space-y-1 pt-1.5 border-t border-white/10 text-[11px] text-white/90">
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="bg-black/20 border border-white/15 rounded-2xl p-3.5 space-y-2 text-xs backdrop-blur-xs">
+                          <div className="flex justify-between items-center font-extrabold text-white">
+                            <div className="flex items-center gap-1.5 truncate">
+                              <Home size={14} className="text-white/80 flex-shrink-0" />
+                              <span className="truncate">{activeRoom?.room_type ? `${activeRoom.room_type} (Room ${activeRoom.room_number})` : `Room ${activeRoom?.room_number || '00'}`}</span>
+                            </div>
+                            <span className="font-mono text-sm ml-2">₹{sRent.toLocaleString('en-IN')}</span>
+                          </div>
+
+                          {sElec > 0 && (
+                            <div className="space-y-1 pt-1.5 border-t border-white/10 text-[11px] text-white/90">
+                              {sElecMode === 'submeter' && (
+                                <>
                                   <div className="flex justify-between items-center">
-                                    <span>{t.preLabel} <strong className="text-white font-bold">{item.previous_reading} {t.units}</strong></span>
-                                    <span>{t.curLabel} <strong className="text-white font-bold">{item.current_reading} {t.units}</strong></span>
+                                    <span>{t.preLabel} <strong className="text-white font-bold">{sPrev} {t.units}</strong></span>
+                                    <span>{t.curLabel} <strong className="text-white font-bold">{sCurr} {t.units}</strong></span>
                                   </div>
                                   <div className="flex justify-between items-center pt-0.5 font-mono">
-                                    <span>{t.usageLabel} <strong className="text-white font-bold">{item.units_consumed} {t.units} × ₹{item.rate_per_unit}</strong></span>
-                                    <span className="font-bold text-white text-xs">₹{item.elec_amount.toLocaleString('en-IN')}</span>
+                                    <span>
+                                      {t.usageLabel} <strong className="text-white font-bold">{sUnits} {t.units} × ₹{sRate}{isSharedRoomTenants ? ` = ₹${sRoomTotalElec.toLocaleString('en-IN')} (1/${roomTenantCount} ${billLanguage === 'hi' ? 'हिस्सा' : 'share'})` : ''}</strong>
+                                    </span>
+                                    <span className="font-bold text-white text-xs">₹{sElec.toLocaleString('en-IN')}</span>
                                   </div>
+                                </>
+                              )}
+                              {sElecMode === 'direct' && (
+                                <div className="flex justify-between items-center">
+                                  <span>{t.electricity}{isSharedRoomTenants ? ` (1/${roomTenantCount} ${billLanguage === 'hi' ? 'हिस्सा' : 'share'})` : ''}</span>
+                                  <span className="font-mono font-bold text-white text-xs">₹{sElec.toLocaleString('en-IN')}</span>
+                                </div>
+                              )}
+                              {sElecMode === 'shared' && (
+                                <div className="flex justify-between items-center">
+                                  <span>
+                                    {billLanguage === 'hi' ? 'साझा बिजली बिल' : 'Shared Utility Split'} ({splitBasis === 'rooms' ? `1/${propertyOccupiedRooms.length} ${billLanguage === 'hi' ? 'कमरे' : 'rooms'}` : `1/${propertyActiveTenants.length} ${billLanguage === 'hi' ? 'किरायेदार' : 'tenants'}`})
+                                  </span>
+                                  <span className="font-mono font-bold text-white text-xs">₹{sElec.toLocaleString('en-IN')}</span>
                                 </div>
                               )}
                             </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div className="bg-black/20 border border-white/15 rounded-2xl p-3.5 space-y-2 text-xs backdrop-blur-xs">
-                        <div className="flex justify-between items-center font-extrabold text-white">
-                          <div className="flex items-center gap-1.5 truncate">
-                            <Home size={14} className="text-white/80 flex-shrink-0" />
-                            <span className="truncate">{activeRoom?.room_type ? `${activeRoom.room_type} (Room ${activeRoom.room_number})` : `Room ${activeRoom?.room_number || '00'}`}</span>
-                          </div>
-                          <span className="font-mono text-sm ml-2">₹{baseRentAmount.toLocaleString('en-IN')}</span>
+                          )}
                         </div>
+                      )}
 
-                        {calculatedElecAmount > 0 && (
-                          <div className="space-y-1 pt-1.5 border-t border-white/10 text-[11px] text-white/90">
-                            {elecMode === 'submeter' && (
-                              <>
-                                <div className="flex justify-between items-center">
-                                  <span>{t.preLabel} <strong className="text-white font-bold">{prevReading} {t.units}</strong></span>
-                                  <span>{t.curLabel} <strong className="text-white font-bold">{currReading} {t.units}</strong></span>
-                                </div>
-                                <div className="flex justify-between items-center pt-0.5 font-mono">
-                                  <span>
-                                    {t.usageLabel} <strong className="text-white font-bold">{unitsConsumed} {t.units} × ₹{rate}{isSharedRoomTenants ? ` = ₹${roomTotalElec.toLocaleString('en-IN')} (1/${roomTenantCount} ${billLanguage === 'hi' ? 'हिस्सा' : 'share'})` : ''}</strong>
-                                  </span>
-                                  <span className="font-bold text-white text-xs">₹{calculatedElecAmount.toLocaleString('en-IN')}</span>
-                                </div>
-                              </>
-                            )}
-                            {elecMode === 'direct' && (
-                              <div className="flex justify-between items-center">
-                                <span>{t.electricity}{isSharedRoomTenants ? ` (1/${roomTenantCount} ${billLanguage === 'hi' ? 'हिस्सा' : 'share'})` : ''}</span>
-                                <span className="font-mono font-bold text-white text-xs">₹{calculatedElecAmount.toLocaleString('en-IN')}</span>
-                              </div>
-                            )}
-                            {elecMode === 'shared' && (
-                              <div className="flex justify-between items-center">
-                                <span>
-                                  {billLanguage === 'hi' ? 'साझा बिजली बिल' : 'Shared Utility Split'} ({splitBasis === 'rooms' ? `1/${propertyOccupiedRooms.length} ${billLanguage === 'hi' ? 'कमरे' : 'rooms'}` : `1/${propertyActiveTenants.length} ${billLanguage === 'hi' ? 'किरायेदार' : 'tenants'}`})
-                                </span>
-                                <span className="font-mono font-bold text-white text-xs">₹{calculatedElecAmount.toLocaleString('en-IN')}</span>
-                              </div>
-                            )}
+                      {/* Summary Totals */}
+                      <div className="space-y-2 pt-2 border-t border-white/15 text-xs">
+                        <div className="flex justify-between items-center text-white/90">
+                          <span className="font-medium">{t.totalRent}</span>
+                          <span className="font-mono font-bold text-white">₹{sRent.toLocaleString('en-IN')}</span>
+                        </div>
+                        {sElec > 0 && (
+                          <div className="flex justify-between items-center text-white/90">
+                            <span className="font-medium">{t.totalElectricity}</span>
+                            <span className="font-mono font-bold text-white">₹{sElec.toLocaleString('en-IN')}</span>
+                          </div>
+                        )}
+                        {sOther > 0 && (
+                          <div className="flex justify-between items-center text-white/90">
+                            <span className="font-medium">{t.otherCharges}</span>
+                            <span className="font-mono font-bold text-white">₹{sOther.toLocaleString('en-IN')}</span>
+                          </div>
+                        )}
+                        {sArrears > 0 && (
+                          <div className="flex justify-between items-center text-white/90">
+                            <span className="font-medium">{t.previousBalance}</span>
+                            <span className="font-mono font-bold text-white">₹{sArrears.toLocaleString('en-IN')}</span>
                           </div>
                         )}
                       </div>
-                    )}
-
-                    {/* Summary Totals */}
-                    <div className="space-y-2 pt-2 border-t border-white/15 text-xs">
-                      <div className="flex justify-between items-center text-white/90">
-                        <span className="font-medium">{t.totalRent}</span>
-                        <span className="font-mono font-bold text-white">₹{baseRentAmount.toLocaleString('en-IN')}</span>
-                      </div>
-                      {calculatedElecAmount > 0 && (
-                        <div className="flex justify-between items-center text-white/90">
-                          <span className="font-medium">{t.totalElectricity}</span>
-                          <span className="font-mono font-bold text-white">₹{calculatedElecAmount.toLocaleString('en-IN')}</span>
-                        </div>
-                      )}
-                      {otherChargesAmount > 0 && (
-                        <div className="flex justify-between items-center text-white/90">
-                          <span className="font-medium">{t.otherCharges}</span>
-                          <span className="font-mono font-bold text-white">₹{otherChargesAmount.toLocaleString('en-IN')}</span>
-                        </div>
-                      )}
-                      {arrearsAmount > 0 && (
-                        <div className="flex justify-between items-center text-white/90">
-                          <span className="font-medium">{t.previousBalance}</span>
-                          <span className="font-mono font-bold text-white">₹{arrearsAmount.toLocaleString('en-IN')}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="h-px bg-white/15 w-full" />
-
-                  {/* Amount Due Section */}
-                  <div className="flex justify-between items-end relative z-10 pt-0.5">
-                    <div>
-                      <span className={`text-xs font-semibold block ${activeTheme.textAccent}`}>{t.amountDue}</span>
-                      <div className="text-3xl font-black tracking-tight text-white mt-0.5">
-                        ₹{grandTotalAmount.toLocaleString('en-IN')}
-                      </div>
                     </div>
 
-                    <span className={`px-3 py-1 rounded-full font-extrabold text-[10px] tracking-wider uppercase shadow-sm ${activeTheme.pillBg} ${activeTheme.pillText}`}>
-                      {t.dueBadge(billMonth)}
-                    </span>
-                  </div>
+                    <div className="h-px bg-white/15 w-full" />
 
-                  {/* Footer */}
-                  <div className="flex justify-center items-center text-[10px] text-white/50 pt-3 border-t border-white/10 relative z-10 italic">
-                    <span>{t.thankYou}</span>
-                  </div>
+                    {/* Amount Due Section */}
+                    <div className="flex justify-between items-end relative z-10 pt-0.5">
+                      <div>
+                        <span className={`text-xs font-semibold block ${activeTheme.textAccent}`}>{t.amountDue}</span>
+                        <div className="text-3xl font-black tracking-tight text-white mt-0.5">
+                          ₹{sTotal.toLocaleString('en-IN')}
+                        </div>
+                      </div>
 
-                </div>
+                      <span className={`px-3 py-1 rounded-full font-extrabold text-[10px] tracking-wider uppercase shadow-sm ${activeTheme.pillBg} ${activeTheme.pillText}`}>
+                        {t.dueBadge(billMonth)}
+                      </span>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="flex justify-center items-center text-[10px] text-white/50 pt-3 border-t border-white/10 relative z-10 italic">
+                      <span>{t.thankYou}</span>
+                    </div>
+
+                  </div>
 
                 {/* Quick Action Toolbar underneath preview */}
                 <div className="space-y-2">

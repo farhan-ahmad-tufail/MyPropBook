@@ -586,8 +586,8 @@ export default function Properties() {
                   key={p.id}
                   onClick={() => setSelectedPropertyId(p.id)}
                   className={`bg-white p-5 rounded-3xl border shadow-sm flex flex-col justify-between cursor-pointer transition-all duration-200 relative group ${isSelected
-                      ? 'border-[#2d5a47] ring-2 ring-[#2d5a47]/20 bg-[#edf5f1]/40 shadow-md'
-                      : 'border-slate-100 hover:border-slate-200 hover:shadow'
+                    ? 'border-[#2d5a47] ring-2 ring-[#2d5a47]/20 bg-[#edf5f1]/40 shadow-md'
+                    : 'border-slate-100 hover:border-slate-200 hover:shadow'
                     }`}
                 >
                   <div className="flex justify-between items-start">
@@ -683,8 +683,8 @@ export default function Properties() {
             <button
               onClick={() => setActiveTab('rooms')}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === 'rooms'
-                  ? 'bg-[#2d5a47] text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-[#2d5a47] text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
                 }`}
             >
               <Home size={13} /> Rooms List
@@ -692,8 +692,8 @@ export default function Properties() {
             <button
               onClick={() => setActiveTab('bulkbill')}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer relative ${activeTab === 'bulkbill'
-                  ? 'bg-amber-600 text-white shadow-sm'
-                  : 'text-amber-700 bg-amber-50 border border-amber-200/80 hover:bg-amber-100'
+                ? 'bg-amber-600 text-white shadow-sm'
+                : 'text-amber-700 bg-amber-50 border border-amber-200/80 hover:bg-amber-100'
                 }`}
             >
               <Zap size={14} className={activeTab === 'bulkbill' ? 'text-white' : 'text-amber-600'} />
@@ -751,8 +751,8 @@ export default function Properties() {
                             type="button"
                             onClick={() => { setBulkMonth(m); setMonthDropdownOpen(false); }}
                             className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-100 ${bulkMonth === m
-                                ? 'bg-[#2d5a47]/8 text-[#2d5a47] font-bold'
-                                : 'text-slate-700 hover:bg-slate-50 font-medium'
+                              ? 'bg-[#2d5a47]/8 text-[#2d5a47] font-bold'
+                              : 'text-slate-700 hover:bg-slate-50 font-medium'
                               }`}
                           >
                             <span>{m}</span>
@@ -786,8 +786,8 @@ export default function Properties() {
                             type="button"
                             onClick={() => { setBulkYear(y.toString()); setYearDropdownOpen(false); }}
                             className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-100 ${bulkYear === y.toString()
-                                ? 'bg-[#2d5a47]/8 text-[#2d5a47] font-bold'
-                                : 'text-slate-700 hover:bg-slate-50 font-medium'
+                              ? 'bg-[#2d5a47]/8 text-[#2d5a47] font-bold'
+                              : 'text-slate-700 hover:bg-slate-50 font-medium'
                               }`}
                           >
                             <span>{y}</span>
@@ -858,8 +858,8 @@ export default function Properties() {
                           type="button"
                           onClick={() => setBulkSplitTarget('all')}
                           className={`flex-1 py-1 px-2 rounded-lg font-bold transition-all ${bulkSplitTarget === 'all'
-                              ? 'bg-[#2d5a47] text-white shadow-2xs'
-                              : 'text-slate-600 hover:text-slate-900'
+                            ? 'bg-[#2d5a47] text-white shadow-2xs'
+                            : 'text-slate-600 hover:text-slate-900'
                             }`}
                         >
                           All Occupied ({occupiedRoomsForBulk.length})
@@ -868,8 +868,8 @@ export default function Properties() {
                           type="button"
                           onClick={() => setBulkSplitTarget('shared_only')}
                           className={`flex-1 py-1 px-2 rounded-lg font-bold transition-all ${bulkSplitTarget === 'shared_only'
-                              ? 'bg-[#2d5a47] text-white shadow-2xs'
-                              : 'text-slate-600 hover:text-slate-900'
+                            ? 'bg-[#2d5a47] text-white shadow-2xs'
+                            : 'text-slate-600 hover:text-slate-900'
                             }`}
                         >
                           Shared/Direct Only
@@ -1353,8 +1353,8 @@ export default function Properties() {
                             <div
                               key={item.billId || idx}
                               className={`rounded-2xl border p-4 text-xs space-y-2.5 shadow-sm transition-all ${isSuccess
-                                  ? 'bg-white border-slate-200/80'
-                                  : 'bg-red-50/50 border-red-200'
+                                ? 'bg-white border-slate-200/80'
+                                : 'bg-red-50/50 border-red-200'
                                 }`}
                             >
                               <div className="flex justify-between items-center">
@@ -1420,8 +1420,8 @@ export default function Properties() {
                       key={st}
                       onClick={() => setRoomStatusFilter(st)}
                       className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${roomStatusFilter === st
-                          ? 'bg-[#2d5a47] text-white shadow-sm'
-                          : 'text-slate-600 hover:text-slate-900'
+                        ? 'bg-[#2d5a47] text-white shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
                         }`}
                     >
                       {st}
@@ -1553,12 +1553,12 @@ export default function Properties() {
 
                                 <td className="px-6 py-4">
                                   <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold ${roomTenants.length > 1
-                                      ? 'bg-amber-50 text-amber-800 border border-amber-200/80'
-                                      : isOccupied
-                                        ? 'bg-emerald-50 text-emerald-700'
-                                        : room.status === 'Maintenance'
-                                          ? 'bg-purple-50 text-purple-700'
-                                          : 'bg-amber-50 text-amber-700'
+                                    ? 'bg-amber-50 text-amber-800 border border-amber-200/80'
+                                    : isOccupied
+                                      ? 'bg-emerald-50 text-emerald-700'
+                                      : room.status === 'Maintenance'
+                                        ? 'bg-purple-50 text-purple-700'
+                                        : 'bg-amber-50 text-amber-700'
                                     }`}>
                                     {roomTenants.length > 1 ? `Shared (${roomTenants.length})` : isOccupied ? 'Occupied' : room.status || 'Vacant'}
                                   </span>
@@ -1569,8 +1569,8 @@ export default function Properties() {
                                     <button
                                       onClick={() => setActiveMenuRoomId(activeMenuRoomId === room.id ? null : room.id)}
                                       className={`p-1.5 rounded-xl transition-all cursor-pointer ${activeMenuRoomId === room.id
-                                          ? 'bg-[#2d5a47] text-white shadow-sm ring-2 ring-[#2d5a47]/20'
-                                          : 'text-slate-400 hover:text-slate-800 hover:bg-slate-100'
+                                        ? 'bg-[#2d5a47] text-white shadow-sm ring-2 ring-[#2d5a47]/20'
+                                        : 'text-slate-400 hover:text-slate-800 hover:bg-slate-100'
                                         }`}
                                       title="Room Actions"
                                     >
