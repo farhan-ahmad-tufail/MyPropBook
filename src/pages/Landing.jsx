@@ -97,8 +97,8 @@ const steps = [
     rotate: 'lg:-rotate-2 hover:rotate-0',
     bg: 'bg-[#edf5f1] border-[#c8ddd4]',
     text: 'text-[#1a3d2f]',
-    numberText: 'text-[#2d5a47]/20',
-    descText: 'text-[#2d5a47]/70'
+    numberText: 'text-[#2d5a47]/30',
+    descText: 'text-[#2d5a47]'
   },
   {
     step: '02',
@@ -117,8 +117,8 @@ const steps = [
     rotate: 'lg:-rotate-1 hover:rotate-0',
     bg: 'bg-[#f0f7f4] border-[#d4e8e0]',
     text: 'text-[#1a3d2f]',
-    numberText: 'text-[#2d5a47]/20',
-    descText: 'text-[#2d5a47]/70'
+    numberText: 'text-[#2d5a47]/30',
+    descText: 'text-[#2d5a47]'
   },
   {
     step: '04',
@@ -656,12 +656,12 @@ export default function Landing() {
                 {/* Number badge */}
                 <div className="flex justify-between items-start">
                   <span className={`text-5xl font-black font-mono leading-none tracking-tighter ${s.numberText}`}>{s.step}</span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-white/20" />
+                  <span className={`w-1.5 h-1.5 rounded-full ${s.text === 'text-white' ? 'bg-white/20' : 'bg-[#2d5a47]/20'}`} />
                 </div>
                 
                 {/* Copy */}
                 <div className="space-y-1.5 text-left">
-                  <h4 className="font-extrabold text-white text-base leading-tight">{s.title}</h4>
+                  <h4 className={`font-extrabold text-base leading-tight ${s.text}`}>{s.title}</h4>
                   <p className={`text-xs ${s.descText} leading-relaxed`}>{s.desc}</p>
                 </div>
               </div>
