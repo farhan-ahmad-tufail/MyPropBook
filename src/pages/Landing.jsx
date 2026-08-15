@@ -95,40 +95,40 @@ const steps = [
     title: 'Add your property',
     desc: 'Add buildings, rooms and rent details.',
     rotate: 'lg:-rotate-2 hover:rotate-0',
-    bg: 'bg-[#0f172a] border-slate-800',
-    text: 'text-white',
-    numberText: 'text-slate-700/40',
-    descText: 'text-slate-300'
+    bg: 'bg-[#edf5f1] border-[#c8ddd4]',
+    text: 'text-[#1a3d2f]',
+    numberText: 'text-[#2d5a47]/20',
+    descText: 'text-[#2d5a47]/70'
   },
   {
     step: '02',
     title: 'Add tenants',
     desc: 'Assign tenants to rooms and keep records current.',
-    rotate: 'lg:rotate-1.5 hover:rotate-0',
-    bg: 'bg-[#1a3d2f] border-[#224b3b]',
+    rotate: 'lg:rotate-2 hover:rotate-0',
+    bg: 'bg-[#2d5a47] border-[#396c56]',
     text: 'text-white',
-    numberText: 'text-[#2a5944]/40',
-    descText: 'text-emerald-100/90'
+    numberText: 'text-white/15',
+    descText: 'text-emerald-100/80'
   },
   {
     step: '03',
     title: 'Create a bill',
     desc: 'Enter a meter reading or add a direct utility amount.',
     rotate: 'lg:-rotate-1 hover:rotate-0',
-    bg: 'bg-[#1e293b] border-slate-700',
-    text: 'text-white',
-    numberText: 'text-slate-600/40',
-    descText: 'text-slate-300'
+    bg: 'bg-[#f0f7f4] border-[#d4e8e0]',
+    text: 'text-[#1a3d2f]',
+    numberText: 'text-[#2d5a47]/20',
+    descText: 'text-[#2d5a47]/70'
   },
   {
     step: '04',
     title: 'Share & collect',
     desc: 'Generate a receipt and share it with the tenant.',
-    rotate: 'lg:rotate-2 hover:rotate-0',
-    bg: 'bg-[#2d5a47] border-[#396c56]',
+    rotate: 'lg:rotate-1 hover:rotate-0',
+    bg: 'bg-[#1a3d2f] border-[#254d3b]',
     text: 'text-white',
-    numberText: 'text-[#3e7d62]/40',
-    descText: 'text-emerald-50/90'
+    numberText: 'text-white/15',
+    descText: 'text-emerald-50/80'
   },
 ];
 
