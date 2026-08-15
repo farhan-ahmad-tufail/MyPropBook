@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -145,6 +145,27 @@ const propertyTypes = [
 export default function Landing() {
   const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isMockupVisible, setIsMockupVisible] = useState(false);
+  const mockupRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsMockupVisible(true);
+        }
+      },
+      { threshold: 0.2 }
+    );
+
+    if (mockupRef.current) {
+      observer.observe(mockupRef.current);
+    }
+
+    return () => {
+      if (mockupRef.current) observer.unobserve(mockupRef.current);
+    };
+  }, []);
   const year = new Date().getFullYear();
 
   return (
@@ -290,7 +311,24 @@ export default function Landing() {
         {/* ══════════════════════════════════════════
             3. DASHBOARD PRODUCT PREVIEW MOCKUP
         ══════════════════════════════════════════ */}
-        <div className="mt-14 max-w-5xl mx-auto bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 text-left relative overflow-visible">
+        <div style={{ perspective: '1000px' }}>
+          <div 
+            ref={mockupRef}
+            className={`mt-14 max-w-5xl mx-auto bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 text-left relative overflow-visible transition-all duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
+              isMockupVisible 
+                ? 'opacity-100' 
+                : 'opacity-0'
+            }`}
+            style={{
+              transformStyle: 'preserve-3d',
+              transform: isMockupVisible 
+                ? 'translateY(0) rotateX(0) scale(1)' 
+                : 'translateY(80px) rotateX(15deg) scale(0.95)',
+              boxShadow: isMockupVisible 
+                ? '0 25px 50px -12px rgba(45, 90, 71, 0.15), 0 0 0 1px rgba(0,0,0,0.05)'
+                : '0 0px 0px 0px rgba(0,0,0,0)'
+            }}
+          >
 
           {/* Floating SaaS Widget 1: Bill Generated Notification */}
           <div className="hidden md:flex items-center gap-2.5 bg-white/95 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border border-slate-200/90 shadow-xl absolute -top-5 -left-6 z-20 animate-float-slow">
@@ -424,8 +462,8 @@ export default function Landing() {
 
           </div>
 
+          </div>
         </div>
-
       </section>
 
       {/* ══════════════════════════════════════════
@@ -578,8 +616,8 @@ export default function Landing() {
                 </div>
               </div>
 
+              </div>
             </div>
-
           </div>
         </div>
       </section>
