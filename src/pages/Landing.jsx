@@ -142,30 +142,38 @@ const propertyTypes = [
   { label: 'Small landlords' },
 ];
 
-export default function Landing() {
-  const { user } = useAuth();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isMockupVisible, setIsMockupVisible] = useState(false);
-  const mockupRef = useRef(null);
+// Custom hook for reusable scroll animations
+function useScrollReveal(threshold = 0.2, margin = '0px') {
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsMockupVisible(true);
-        }
+        setIsVisible(entry.isIntersecting);
       },
-      { threshold: 0.2 }
+      { threshold, rootMargin: margin }
     );
 
-    if (mockupRef.current) {
-      observer.observe(mockupRef.current);
-    }
+    if (ref.current) observer.observe(ref.current);
 
     return () => {
-      if (mockupRef.current) observer.unobserve(mockupRef.current);
+      if (ref.current) observer.unobserve(ref.current);
     };
-  }, []);
+  }, [threshold, margin]);
+
+  return [ref, isVisible];
+}
+
+export default function Landing() {
+  const { user } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  const [mockupRef, isMockupVisible] = useScrollReveal(0.3);
+  const [typesRef, isTypesVisible] = useScrollReveal(0.2);
+  const [billingRef, isBillingVisible] = useScrollReveal(0.2);
+  const [featuresRef, isFeaturesVisible] = useScrollReveal(0.15);
+  const [stepsRef, isStepsVisible] = useScrollReveal(0.2);
   const year = new Date().getFullYear();
 
   return (
@@ -329,28 +337,6 @@ export default function Landing() {
                 : '0 0px 0px 0px rgba(0,0,0,0)'
             }}
           >
-
-          {/* Floating SaaS Widget 1: Bill Generated Notification */}
-          <div className="hidden md:flex items-center gap-2.5 bg-white/95 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border border-slate-200/90 shadow-xl absolute -top-5 -left-6 z-20 animate-float-slow">
-            <div className="w-8 h-8 rounded-xl bg-emerald-100 text-[#2d5a47] flex items-center justify-center font-black text-sm">
-              ⚡
-            </div>
-            <div className="text-left text-xs">
-              <p className="font-extrabold text-slate-900 leading-tight">Bill Generated</p>
-              <p className="text-[10px] text-slate-500 font-mono">Room 101 · ₹78,118</p>
-            </div>
-          </div>
-
-          {/* Floating SaaS Widget 2: WhatsApp Delivered Notification */}
-          <div className="hidden md:flex items-center gap-2.5 bg-white/95 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border border-slate-200/90 shadow-xl absolute -bottom-5 -right-6 z-20 animate-float-delayed">
-            <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
-              <Check size={16} strokeWidth={3} />
-            </div>
-            <div className="text-left text-xs">
-              <p className="font-extrabold text-slate-900 leading-tight">Receipt Sent</p>
-              <p className="text-[10px] text-emerald-600 font-bold">WhatsApp · Delivered 1s ago</p>
-            </div>
-          </div>
           
           {/* Dashboard Header Bar */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-100">
@@ -469,8 +455,13 @@ export default function Landing() {
       {/* ══════════════════════════════════════════
           4. PROPERTY TYPES SECTION
       ══════════════════════════════════════════ */}
-      <section className="py-16 px-6 bg-white border-y border-slate-200/80 text-center">
-        <div className="max-w-4xl mx-auto space-y-4">
+      <section className="py-16 px-6 bg-white border-y border-slate-200/80 text-center overflow-hidden">
+        <div 
+          ref={typesRef}
+          className={`max-w-4xl mx-auto space-y-4 transition-all duration-1000 ease-out transform-gpu ${
+            isTypesVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+          }`}
+        >
           <span className="text-[10px] font-black text-[#2d5a47] uppercase tracking-widest block">
             MADE FOR YOUR KIND OF PROPERTY
           </span>
@@ -499,8 +490,13 @@ export default function Landing() {
       {/* ══════════════════════════════════════════
           5. SMART BILLING SECTION (Key Differentiator)
       ══════════════════════════════════════════ */}
-      <section className="py-20 px-6 max-w-6xl mx-auto">
-        <div className="bg-[#edf5f1] border border-[#d8e7e0] rounded-3xl p-8 sm:p-12 lg:p-16">
+      <section className="py-20 px-6 max-w-6xl mx-auto overflow-hidden">
+        <div 
+          ref={billingRef}
+          className={`bg-[#edf5f1] border border-[#d8e7e0] rounded-3xl p-8 sm:p-12 lg:p-16 transition-all duration-1000 ease-out transform-gpu ${
+            isBillingVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-16 scale-95'
+          }`}
+        >
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             
             {/* Left Column Text */}
@@ -623,8 +619,13 @@ export default function Landing() {
       {/* ══════════════════════════════════════════
           6. FEATURES ("The Everyday Essentials")
       ══════════════════════════════════════════ */}
-      <section id="features" className="py-20 px-6 max-w-6xl mx-auto text-center">
-        <div className="space-y-3 mb-14">
+      <section id="features" className="py-20 px-6 max-w-6xl mx-auto text-center overflow-hidden">
+        <div 
+          ref={featuresRef}
+          className={`space-y-3 mb-14 transition-all duration-1000 ease-out transform-gpu ${
+            isFeaturesVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+          }`}
+        >
           <span className="text-[10px] font-black text-[#2d5a47] uppercase tracking-widest block">
             THE EVERYDAY ESSENTIALS
           </span>
