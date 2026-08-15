@@ -249,30 +249,53 @@ export const supabaseDb = {
     }
   },
   createBill: async (billData) => {
-    // Insert new bill
-    const { data: bill, error: billErr } = await supabase
-      .from('bills')
-      .insert([{
-        room_id: billData.room_id,
-        tenant_id: billData.tenant_id,
-        bill_month: billData.bill_month,
-        bill_year: parseInt(billData.bill_year),
-        previous_reading: parseFloat(billData.previous_reading || 0),
-        current_reading: parseFloat(billData.current_reading || 0),
-        units_consumed: parseFloat(billData.units_consumed || 0),
-        rate_per_unit: parseFloat(billData.rate_per_unit || 0),
-        rent_amount: parseFloat(billData.rent_amount || 0),
-        arrears: parseFloat(billData.arrears || 0),
-        other_charges: parseFloat(billData.other_charges || 0),
-        total_payable: parseFloat(billData.total_payable),
-        amount_paid: 0,
-        payment_status: billData.payment_status || 'Unpaid',
-        room_items: billData.room_items || null
-      }])
-      .select()
-      .single();
+    const basePayload = {
+      room_id: billData.room_id,
+      tenant_id: billData.tenant_id,
+      bill_month: billData.bill_month,
+      bill_year: parseInt(billData.bill_year),
+      previous_reading: parseFloat(billData.previous_reading || 0),
+      current_reading: parseFloat(billData.current_reading || 0),
+      units_consumed: parseFloat(billData.units_consumed || 0),
+      rate_per_unit: parseFloat(billData.rate_per_unit || 0),
+      rent_amount: parseFloat(billData.rent_amount || 0),
+      arrears: parseFloat(billData.arrears || 0),
+      other_charges: parseFloat(billData.other_charges || 0),
+      total_payable: parseFloat(billData.total_payable || 0),
+      amount_paid: parseFloat(billData.amount_paid || 0),
+      payment_status: billData.payment_status || 'Unpaid'
+    };
 
-    if (billErr) throw billErr;
+    let bill = null;
+
+    // 1. Try inserting with room_items if provided
+    if (billData.room_items) {
+      try {
+        const { data, error } = await supabase
+          .from('bills')
+          .insert([{ ...basePayload, room_items: billData.room_items }])
+          .select()
+          .single();
+        if (!error && data) {
+          bill = data;
+        } else {
+          console.warn("createBill with room_items failed (likely column missing in DB), falling back...", error);
+        }
+      } catch (err) {
+        console.warn("createBill with room_items exception, falling back...", err);
+      }
+    }
+
+    // 2. Standard Insert Fallback (100% compatible with default Supabase schema)
+    if (!bill) {
+      const { data, error } = await supabase
+        .from('bills')
+        .insert([basePayload])
+        .select()
+        .single();
+      if (error) throw error;
+      bill = data;
+    }
 
     // Update Room's current reading
     if (Array.isArray(billData.room_items) && billData.room_items.length > 0) {
@@ -282,18 +305,21 @@ export const supabaseDb = {
             return supabase
               .from('rooms')
               .update({ current_meter_reading: parseFloat(item.current_reading) })
-              .eq('id', item.room_id);
+              .eq('id', item.room_id)
+              .catch(e => console.warn('Room reading update error:', e));
           }
           return Promise.resolve();
         })
       );
     } else if (billData.room_id && billData.current_reading !== undefined && billData.current_reading !== null) {
-      const { error: roomErr } = await supabase
-        .from('rooms')
-        .update({ current_meter_reading: parseFloat(billData.current_reading) })
-        .eq('id', billData.room_id);
-
-      if (roomErr) console.warn('Could not update meter reading:', roomErr);
+      try {
+        await supabase
+          .from('rooms')
+          .update({ current_meter_reading: parseFloat(billData.current_reading) })
+          .eq('id', billData.room_id);
+      } catch (roomErr) {
+        console.warn('Could not update meter reading:', roomErr);
+      }
     }
 
     return bill;

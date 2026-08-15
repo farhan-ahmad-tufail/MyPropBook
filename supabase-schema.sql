@@ -66,6 +66,8 @@ create table if not exists public.bills (
     total_payable numeric(10, 2) default 0.00 not null,
     amount_paid numeric(10, 2) default 0.00 not null,
     payment_status text default 'Unpaid' check (payment_status in ('Paid', 'Partially Paid', 'Unpaid')),
+    room_items jsonb default null,
+    elec_mode text default null,
     generated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
