@@ -622,27 +622,31 @@ export default function Landing() {
               A TOOL WITH A REASON
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
-              Built from a real problem. Designed for everyday property management.
+              Built for landlords. Built from a real problem.
             </h2>
             <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-              BillRoom began with the everyday tangle of rent, utility bills, tenant records and collections spread across notebooks, spreadsheets and WhatsApp.
+              BillRoom began with a simple problem: rent, utility bills, tenant records, and collections were scattered across notebooks, spreadsheets, and WhatsApp.
             </p>
             <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-              It is designed to be instant to use on any device — because managing a property should feel clear, even on a busy day.
+              I built BillRoom to bring these everyday tasks into one reliable workspace — from managing properties and tenants to calculating utility bills and generating shareable receipts.
             </p>
 
             <div className="space-y-2 pt-2 text-xs font-semibold text-slate-700">
               <div className="flex items-center gap-2">
-                <Check size={14} className="text-[#2d5a47]" />
-                <span>No spreadsheets or manual calculations</span>
+                <Check size={14} className="text-[#2d5a47] shrink-0" />
+                <span>No spreadsheets or manual billing calculations</span>
               </div>
               <div className="flex items-center gap-2">
-                <Check size={14} className="text-[#2d5a47]" />
-                <span>Clear receipts tenants can understand</span>
+                <Check size={14} className="text-[#2d5a47] shrink-0" />
+                <span>Clear bills and receipts tenants can understand</span>
               </div>
               <div className="flex items-center gap-2">
-                <Check size={14} className="text-[#2d5a47]" />
-                <span>Works where your properties are</span>
+                <Check size={14} className="text-[#2d5a47] shrink-0" />
+                <span>One place for properties, rooms, tenants &amp; collections</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check size={14} className="text-[#2d5a47] shrink-0" />
+                <span>Shareable PDF and WhatsApp receipts in one tap</span>
               </div>
             </div>
           </div>
@@ -673,7 +677,7 @@ export default function Landing() {
                     <h4 className="font-extrabold text-slate-900 text-sm tracking-tight">Farhan Ahmad Tufail</h4>
                     <span className="text-[9px] font-black bg-[#edf5f1] text-[#2d5a47] px-2 py-0.5 rounded-full uppercase tracking-wider border border-[#c8ddd4]">Founder</span>
                   </div>
-                  <p className="text-xs text-slate-400 font-medium mt-0.5">Software Engineer · India</p>
+                  <p className="text-xs text-slate-400 font-medium mt-0.5">Founder &amp; Software Engineer · India</p>
                 </div>
 
                 {/* Social icon links */}
