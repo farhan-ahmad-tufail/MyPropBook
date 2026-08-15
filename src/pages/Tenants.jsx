@@ -558,13 +558,25 @@ export default function Tenants() {
   }));
 
   const roomOptions = filteredRoomsForProperty.map(r => {
-    const isOccupied = leases.some(l => l.room_id === r.id && l.is_active);
+    const activeLeases = leases.filter(l => l.room_id === r.id && l.is_active);
+    const tenantCount = activeLeases.length;
+
+    let sublabel;
+    if (tenantCount > 1) {
+      sublabel = `👥 ${tenantCount} Tenants (Shared)`;
+    } else if (tenantCount === 1) {
+      const firstTenant = tenants.find(t => t.id === activeLeases[0].tenant_id);
+      sublabel = `1 Tenant (${firstTenant?.name || 'Occupied'})`;
+    } else {
+      sublabel = r.room_type || 'Vacant';
+    }
+
     return {
       value: r.id,
       label: `Room ${r.room_number}`,
-      sublabel: isOccupied ? 'Occupied' : r.room_type || undefined,
-      disabled: isOccupied,
-      icon: <Home size={13} className={isOccupied ? 'text-slate-300' : 'text-emerald-500'} />
+      sublabel,
+      disabled: false,
+      icon: <Home size={13} className={tenantCount > 1 ? 'text-amber-500' : tenantCount === 1 ? 'text-blue-500' : 'text-emerald-500'} />
     };
   });
 
@@ -926,6 +938,35 @@ export default function Tenants() {
                     icon={Home}
                   />
                 </div>
+
+                {/* Shared room info note */}
+                {(() => {
+                  const selRoom = selectedRoomId ? filteredRoomsForProperty.find(r => r.id === selectedRoomId) : null;
+                  if (!selRoom) return null;
+                  const existingLeases = leases.filter(l => l.room_id === selectedRoomId && l.is_active);
+                  const existingTenantNames = existingLeases
+                    .map(l => tenants.find(t => t.id === l.tenant_id)?.name)
+                    .filter(Boolean);
+                  if (existingTenantNames.length === 0) return null;
+
+                  return (
+                    <div className="p-3.5 bg-amber-50/90 border border-amber-200 rounded-2xl text-xs text-amber-800 flex items-start gap-2.5 shadow-2xs">
+                      <span className="text-lg leading-none mt-0.5">👥</span>
+                      <div className="space-y-1">
+                        <p className="font-bold text-amber-900 text-xs">
+                          Adding Roommate / Co-Tenant to Room {selRoom.room_number}
+                        </p>
+                        <p className="text-[11px] text-amber-800 leading-snug">
+                          Current Occupants ({existingTenantNames.length}):{' '}
+                          <strong className="text-slate-900">{existingTenantNames.join(', ')}</strong>.
+                        </p>
+                        <p className="text-[10px] text-amber-700">
+                          This tenant will be added as a co-tenant. Electricity bills and charges will be split automatically between all {existingTenantNames.length + 1} tenants.
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Divider */}
                 <div className="flex items-center gap-3">

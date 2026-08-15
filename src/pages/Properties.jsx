@@ -224,11 +224,19 @@ export default function Properties() {
     );
   }, [properties, propertySearchQuery]);
 
-  // Map room to tenant & active lease
+  // Map room to its first active tenant (kept for backward compat)
   const getRoomTenant = (roomId) => {
     const activeLease = leases.find(l => l.room_id === roomId && l.is_active);
     if (!activeLease) return null;
     return tenants.find(t => t.id === activeLease.tenant_id) || null;
+  };
+
+  // Map room to ALL active tenants (for shared/PG rooms)
+  const getRoomTenants = (roomId) => {
+    return leases
+      .filter(l => l.room_id === roomId && l.is_active)
+      .map(l => tenants.find(t => t.id === l.tenant_id))
+      .filter(Boolean);
   };
 
   // Property calculation stats
@@ -421,6 +429,21 @@ export default function Properties() {
       [roomId]: { ...prev[roomId], [field]: value }
     }));
   };
+
+  const handleTenantReadingChange = (roomId, tenantId, field, value) => {
+    const key = `${roomId}__${tenantId}`;
+    setBulkReadings(prev => ({
+      ...prev,
+      [key]: { ...(prev[key] || {}), [field]: value }
+    }));
+  };
+
+  const totalBillsCount = useMemo(() => {
+    return occupiedRoomsForBulk.reduce((acc, r) => {
+      const rTenants = getRoomTenants(r.id);
+      return acc + Math.max(1, rTenants.length);
+    }, 0);
+  }, [occupiedRoomsForBulk, leases, tenants]);
 
   const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
@@ -935,7 +958,9 @@ export default function Properties() {
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                           {occupiedRoomsForBulk.map(room => {
-                            const tenant = getRoomTenant(room.id);
+                            const roomTenants = getRoomTenants(room.id);
+                            const tenantCount = Math.max(1, roomTenants.length);
+                            const isShared = roomTenants.length > 1;
                             const readings = bulkReadings[room.id] || {};
                             const prevReading = parseFloat(room.current_meter_reading || 0);
                             const rawCurr = readings.currentReading;
@@ -945,111 +970,224 @@ export default function Properties() {
                             const units = Math.max(0, currReading - prevReading);
                             const rate = parseFloat(room.rate_per_unit ?? room.elec_rate ?? 17);
                             const rent = parseFloat(room.base_rent || 0);
-                            const other = parseFloat(readings.otherCharges || 0);
 
-                            // Calculate auto arrears for this room/tenant from unpaid bills
-                            const autoArrears = tenant ? bills
-                              .filter(b => b.room_id === room.id && b.tenant_id === tenant.id && (b.payment_status === 'Unpaid' || b.payment_status === 'Partially Paid'))
-                              .reduce((sum, b) => sum + (parseFloat(b.total_payable || 0) - parseFloat(b.amount_paid || 0)), 0) : 0;
-
-                            const arrears = readings.arrears !== undefined && readings.arrears !== '' ? parseFloat(readings.arrears || 0) : autoArrears;
-
-                            let elec = 0;
+                            let totalRoomElec = 0;
                             let elecLabel = '';
-                            if (room.elec_mode === 'submeter') {
-                              elec = units * rate;
+                            if (room.elec_mode === 'submeter' || room.has_submeter !== false) {
+                              totalRoomElec = units * rate;
                               elecLabel = `${units.toFixed(0)}u × ₹${rate}`;
                             } else {
                               const customDirect = readings.directElec;
                               if (customDirect !== undefined && customDirect !== '' && !isNaN(customDirect)) {
-                                elec = parseFloat(customDirect);
+                                totalRoomElec = parseFloat(customDirect);
                               } else if (room.elec_mode === 'direct') {
-                                elec = parseFloat(room.direct_elec_amount || 0);
+                                totalRoomElec = parseFloat(room.direct_elec_amount || 0);
                               } else if (room.elec_mode === 'fixed') {
-                                elec = parseFloat(room.fixed_elec_amount || 0);
+                                totalRoomElec = parseFloat(room.fixed_elec_amount || 0);
                               }
                               elecLabel = room.elec_mode === 'direct' ? 'Direct' : room.elec_mode === 'fixed' ? 'Fixed' : 'Custom';
                             }
 
-                            const total = rent + elec + arrears + other;
+                            const tenantElecShare = isShared ? Math.round(totalRoomElec / tenantCount) : totalRoomElec;
 
+                            if (!isShared) {
+                              // Standard Single Tenant Row
+                              const singleTenant = roomTenants[0] || null;
+                              const autoArrears = singleTenant ? bills
+                                .filter(b => b.room_id === room.id && b.tenant_id === singleTenant.id && (b.payment_status === 'Unpaid' || b.payment_status === 'Partially Paid'))
+                                .reduce((sum, b) => sum + (parseFloat(b.total_payable || 0) - parseFloat(b.amount_paid || 0)), 0) : 0;
+                              const arrears = readings.arrears !== undefined && readings.arrears !== '' ? parseFloat(readings.arrears || 0) : autoArrears;
+                              const other = parseFloat(readings.otherCharges || 0);
+                              const total = rent + totalRoomElec + arrears + other;
+
+                              return (
+                                <tr key={room.id} className="hover:bg-slate-50/70 transition-colors text-xs">
+                                  <td className="px-3 py-3">
+                                    <div className="font-bold text-slate-900 truncate">Rm {room.room_number}</div>
+                                    <div className="text-[10px] text-slate-400 font-medium truncate">{room.room_type || 'Room'}</div>
+                                  </td>
+                                  <td className="px-3 py-3">
+                                    <div className="font-semibold text-slate-800 truncate">{singleTenant?.name || <span className="italic text-slate-400">None</span>}</div>
+                                  </td>
+                                  <td className="px-3 py-3 font-semibold text-slate-800">{formatINR(rent)}</td>
+                                  <td className="px-3 py-3">
+                                    {room.elec_mode === 'submeter' || room.has_submeter !== false ? (
+                                      <div className="font-mono font-bold text-slate-700">{prevReading} <span className="text-[9px] text-slate-400 font-normal">u</span></div>
+                                    ) : (
+                                      <span className="text-slate-400">—</span>
+                                    )}
+                                  </td>
+                                  <td className="px-3 py-3">
+                                    {room.elec_mode === 'submeter' || room.has_submeter !== false ? (
+                                      <input
+                                        type="number"
+                                        min={prevReading}
+                                        placeholder={`≥ ${prevReading}`}
+                                        value={readings.currentReading}
+                                        onChange={e => handleBulkReadingChange(room.id, 'currentReading', e.target.value)}
+                                        className="px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 placeholder:text-slate-400 w-full focus:outline-none focus:border-[#2d5a47] focus:bg-white focus:ring-1 focus:ring-[#2d5a47]/20 transition-all font-mono"
+                                      />
+                                    ) : (
+                                      <span className="text-slate-400">—</span>
+                                    )}
+                                  </td>
+                                  <td className="px-3 py-3">
+                                    {room.elec_mode === 'submeter' || room.has_submeter !== false ? (
+                                      <>
+                                        <div className="font-bold text-[#2d5a47]">{formatINR(totalRoomElec)}</div>
+                                        <div className="text-[9px] text-slate-400 font-medium truncate">{elecLabel}</div>
+                                      </>
+                                    ) : (
+                                      <div className="space-y-0.5">
+                                        <input
+                                          type="number"
+                                          min="0"
+                                          placeholder={formatINR(room.direct_elec_amount || room.fixed_elec_amount || 0)}
+                                          value={readings.directElec !== undefined ? readings.directElec : (room.direct_elec_amount || room.fixed_elec_amount || '')}
+                                          onChange={e => handleBulkReadingChange(room.id, 'directElec', e.target.value)}
+                                          className="px-2 py-1 bg-emerald-50/60 border border-emerald-200 rounded-lg text-xs font-bold text-[#2d5a47] placeholder:text-slate-400 w-full focus:outline-none focus:border-[#2d5a47] focus:bg-white focus:ring-1 focus:ring-[#2d5a47]/20 transition-all"
+                                        />
+                                        <div className="text-[9px] text-slate-400 font-medium truncate">{elecLabel}</div>
+                                      </div>
+                                    )}
+                                  </td>
+                                  <td className="px-3 py-3">
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      placeholder={formatINR(autoArrears)}
+                                      value={readings.arrears !== undefined ? readings.arrears : (autoArrears > 0 ? autoArrears : '')}
+                                      onChange={e => handleBulkReadingChange(room.id, 'arrears', e.target.value)}
+                                      className={`px-2 py-1 border rounded-lg text-xs font-semibold w-full focus:outline-none focus:ring-1 transition-all ${
+                                        arrears > 0 ? 'bg-amber-50/80 border-amber-300 text-amber-900 focus:border-amber-500 focus:ring-amber-500/20' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400 focus:border-[#2d5a47] focus:bg-white focus:ring-[#2d5a47]/20'
+                                      }`}
+                                    />
+                                  </td>
+                                  <td className="px-3 py-3">
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      placeholder="₹0"
+                                      value={readings.otherCharges}
+                                      onChange={e => handleBulkReadingChange(room.id, 'otherCharges', e.target.value)}
+                                      className="px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 placeholder:text-slate-400 w-full focus:outline-none focus:border-[#2d5a47] focus:bg-white focus:ring-1 focus:ring-[#2d5a47]/20 transition-all"
+                                    />
+                                  </td>
+                                  <td className="px-3 py-3 text-right">
+                                    <span className="font-black text-xs text-[#2d5a47]">{formatINR(total)}</span>
+                                  </td>
+                                </tr>
+                              );
+                            }
+
+                            // Multi-Tenant Shared Room Header + Sub-rows
                             return (
-                              <tr key={room.id} className="hover:bg-slate-50/70 transition-colors text-xs">
-                                <td className="px-3 py-3">
-                                  <div className="font-bold text-slate-900 truncate">Rm {room.room_number}</div>
-                                  <div className="text-[10px] text-slate-400 font-medium truncate">{room.room_type || 'Room'}</div>
-                                </td>
-                                <td className="px-3 py-3">
-                                  <div className="font-semibold text-slate-800 truncate">{tenant?.name || <span className="italic text-slate-400">None</span>}</div>
-                                </td>
-                                <td className="px-3 py-3 font-semibold text-slate-800">{formatINR(rent)}</td>
-                                <td className="px-3 py-3">
-                                  {room.elec_mode === 'submeter' ? (
-                                    <div className="font-mono font-bold text-slate-700">{prevReading} <span className="text-[9px] text-slate-400 font-normal">u</span></div>
-                                  ) : (
-                                    <span className="text-slate-400">—</span>
-                                  )}
-                                </td>
-                                <td className="px-3 py-3">
-                                  {room.elec_mode === 'submeter' ? (
+                              <React.Fragment key={room.id}>
+                                {/* Master Room Meter Row */}
+                                <tr className="bg-amber-50/40 border-t border-amber-200/60 text-xs">
+                                  <td className="px-3 py-2.5">
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="font-black text-slate-900">Rm {room.room_number}</span>
+                                      <span className="bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded text-[9px] font-black uppercase">Shared ({roomTenants.length})</span>
+                                    </div>
+                                  </td>
+                                  <td className="px-3 py-2.5 font-bold text-amber-900 text-[11px]">
+                                    {roomTenants.length} Roommates
+                                  </td>
+                                  <td className="px-3 py-2.5 font-bold text-slate-700">
+                                    {formatINR(rent)} <span className="text-[9px] text-slate-400 font-normal">/ea</span>
+                                  </td>
+                                  <td className="px-3 py-2.5 font-mono font-bold text-slate-700">
+                                    {prevReading} <span className="text-[9px] text-slate-400 font-normal">u</span>
+                                  </td>
+                                  <td className="px-3 py-2.5">
                                     <input
                                       type="number"
                                       min={prevReading}
                                       placeholder={`≥ ${prevReading}`}
                                       value={readings.currentReading}
                                       onChange={e => handleBulkReadingChange(room.id, 'currentReading', e.target.value)}
-                                      className="px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 placeholder:text-slate-400 w-full focus:outline-none focus:border-[#2d5a47] focus:bg-white focus:ring-1 focus:ring-[#2d5a47]/20 transition-all font-mono"
+                                      className="px-2 py-1 bg-white border border-amber-300 rounded-lg text-xs font-bold text-slate-900 placeholder:text-slate-400 w-full focus:outline-none focus:border-[#2d5a47] focus:ring-1 focus:ring-[#2d5a47]/20 font-mono shadow-2xs"
                                     />
-                                  ) : (
-                                    <span className="text-slate-400">—</span>
-                                  )}
-                                </td>
-                                <td className="px-3 py-3">
-                                  {room.elec_mode === 'submeter' ? (
-                                    <>
-                                      <div className="font-bold text-[#2d5a47]">{formatINR(elec)}</div>
-                                      <div className="text-[9px] text-slate-400 font-medium truncate">{elecLabel}</div>
-                                    </>
-                                  ) : (
-                                    <div className="space-y-0.5">
-                                      <input
-                                        type="number"
-                                        min="0"
-                                        placeholder={formatINR(room.direct_elec_amount || room.fixed_elec_amount || 0)}
-                                        value={readings.directElec !== undefined ? readings.directElec : (room.direct_elec_amount || room.fixed_elec_amount || '')}
-                                        onChange={e => handleBulkReadingChange(room.id, 'directElec', e.target.value)}
-                                        className="px-2 py-1 bg-emerald-50/60 border border-emerald-200 rounded-lg text-xs font-bold text-[#2d5a47] placeholder:text-slate-400 w-full focus:outline-none focus:border-[#2d5a47] focus:bg-white focus:ring-1 focus:ring-[#2d5a47]/20 transition-all"
-                                      />
-                                      <div className="text-[9px] text-slate-400 font-medium truncate">{elecLabel}</div>
+                                  </td>
+                                  <td className="px-3 py-2.5" colSpan={4}>
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center gap-1.5 text-amber-900 font-bold text-[11px]">
+                                        <span>⚡ Total: {formatINR(totalRoomElec)} ({units}u @ ₹{rate})</span>
+                                        <span className="bg-amber-200/80 text-amber-900 px-1.5 py-0.5 rounded text-[10px]">
+                                          → {formatINR(tenantElecShare)}/roommate
+                                        </span>
+                                      </div>
+                                      <span className="text-[10px] text-amber-700 italic hidden lg:inline">
+                                        Split 1/{roomTenants.length} per tenant below ↴
+                                      </span>
                                     </div>
-                                  )}
-                                </td>
-                                <td className="px-3 py-3">
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    placeholder={formatINR(autoArrears)}
-                                    value={readings.arrears !== undefined ? readings.arrears : (autoArrears > 0 ? autoArrears : '')}
-                                    onChange={e => handleBulkReadingChange(room.id, 'arrears', e.target.value)}
-                                    className={`px-2 py-1 border rounded-lg text-xs font-semibold w-full focus:outline-none focus:ring-1 transition-all ${
-                                      arrears > 0 ? 'bg-amber-50/80 border-amber-300 text-amber-900 focus:border-amber-500 focus:ring-amber-500/20' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400 focus:border-[#2d5a47] focus:bg-white focus:ring-[#2d5a47]/20'
-                                    }`}
-                                  />
-                                </td>
-                                <td className="px-3 py-3">
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    placeholder="₹0"
-                                    value={readings.otherCharges}
-                                    onChange={e => handleBulkReadingChange(room.id, 'otherCharges', e.target.value)}
-                                    className="px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 placeholder:text-slate-400 w-full focus:outline-none focus:border-[#2d5a47] focus:bg-white focus:ring-1 focus:ring-[#2d5a47]/20 transition-all"
-                                  />
-                                </td>
-                                <td className="px-3 py-3 text-right">
-                                  <span className="font-black text-xs text-[#2d5a47]">{formatINR(total)}</span>
-                                </td>
-                              </tr>
+                                  </td>
+                                </tr>
+
+                                {/* Sub-row for each roommate */}
+                                {roomTenants.map((t, tIdx) => {
+                                  const tKey = `${room.id}__${t.id}`;
+                                  const tReadings = bulkReadings[tKey] || {};
+                                  const autoArrears = bills
+                                    .filter(b => b.room_id === room.id && b.tenant_id === t.id && (b.payment_status === 'Unpaid' || b.payment_status === 'Partially Paid'))
+                                    .reduce((sum, b) => sum + (parseFloat(b.total_payable || 0) - parseFloat(b.amount_paid || 0)), 0);
+
+                                  const tArrears = tReadings.arrears !== undefined && tReadings.arrears !== ''
+                                    ? parseFloat(tReadings.arrears || 0)
+                                    : autoArrears;
+                                  const tOther = parseFloat(tReadings.otherCharges || 0);
+                                  const tTotal = rent + tenantElecShare + tArrears + tOther;
+
+                                  return (
+                                    <tr key={t.id} className="bg-white hover:bg-slate-50/70 transition-colors text-xs">
+                                      <td className="px-3 py-2 pl-6">
+                                        <div className="flex items-center gap-1.5 text-slate-400">
+                                          <span className="font-mono text-[11px]">↳</span>
+                                          <span className="w-4 h-4 rounded-full bg-amber-100 text-amber-800 text-[9px] font-black flex items-center justify-center flex-shrink-0">
+                                            {tIdx + 1}
+                                          </span>
+                                        </div>
+                                      </td>
+                                      <td className="px-3 py-2">
+                                        <span className="font-extrabold text-slate-900">{t.name}</span>
+                                      </td>
+                                      <td className="px-3 py-2 font-semibold text-slate-700">{formatINR(rent)}</td>
+                                      <td className="px-3 py-2 text-slate-300 text-[10px]">—</td>
+                                      <td className="px-3 py-2 text-slate-400 text-[10px] italic">Shared meter</td>
+                                      <td className="px-3 py-2">
+                                        <span className="font-bold text-[#2d5a47]">{formatINR(tenantElecShare)}</span>
+                                        <span className="text-[9px] text-slate-400 ml-1">(1/{roomTenants.length})</span>
+                                      </td>
+                                      <td className="px-3 py-2">
+                                        <input
+                                          type="number"
+                                          min="0"
+                                          placeholder={formatINR(autoArrears)}
+                                          value={tReadings.arrears !== undefined ? tReadings.arrears : (autoArrears > 0 ? autoArrears : '')}
+                                          onChange={e => handleTenantReadingChange(room.id, t.id, 'arrears', e.target.value)}
+                                          className={`px-2 py-1 border rounded-lg text-xs font-semibold w-full focus:outline-none focus:ring-1 transition-all ${
+                                            tArrears > 0 ? 'bg-amber-50/80 border-amber-300 text-amber-900 focus:border-amber-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400 focus:border-[#2d5a47] focus:bg-white'
+                                          }`}
+                                        />
+                                      </td>
+                                      <td className="px-3 py-2">
+                                        <input
+                                          type="number"
+                                          min="0"
+                                          placeholder="₹0"
+                                          value={tReadings.otherCharges || ''}
+                                          onChange={e => handleTenantReadingChange(room.id, t.id, 'otherCharges', e.target.value)}
+                                          className="px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 placeholder:text-slate-400 w-full focus:outline-none focus:border-[#2d5a47] focus:bg-white focus:ring-1 focus:ring-[#2d5a47]/20 transition-all"
+                                        />
+                                      </td>
+                                      <td className="px-3 py-2 text-right">
+                                        <span className="font-black text-xs text-[#2d5a47]">{formatINR(tTotal)}</span>
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </React.Fragment>
                             );
                           })}
                         </tbody>
@@ -1059,83 +1197,130 @@ export default function Properties() {
                     {/* Mobile Cards */}
                     <div className="md:hidden divide-y divide-slate-100">
                       {occupiedRoomsForBulk.map(room => {
-                        const tenant = getRoomTenant(room.id);
+                        const roomTenants = getRoomTenants(room.id);
+                        const isShared = roomTenants.length > 1;
+                        const tenantCount = Math.max(1, roomTenants.length);
                         const readings = bulkReadings[room.id] || {};
                         const prevReading = parseFloat(room.current_meter_reading || 0);
                         const currReading = parseFloat(readings.currentReading || prevReading);
                         const units = Math.max(0, currReading - prevReading);
                         const rate = parseFloat(room.rate_per_unit ?? room.elec_rate ?? 17);
                         const rent = parseFloat(room.base_rent || 0);
-                        const other = parseFloat(readings.otherCharges || 0);
 
-                        const autoArrears = tenant ? bills
-                          .filter(b => b.room_id === room.id && b.tenant_id === tenant.id && (b.payment_status === 'Unpaid' || b.payment_status === 'Partially Paid'))
-                          .reduce((sum, b) => sum + (parseFloat(b.total_payable || 0) - parseFloat(b.amount_paid || 0)), 0) : 0;
-
-                        const arrears = readings.arrears !== undefined && readings.arrears !== '' ? parseFloat(readings.arrears || 0) : autoArrears;
-
-                        let elec = 0;
-                        if (room.elec_mode === 'submeter') {
-                          elec = units * rate;
+                        let totalRoomElec = 0;
+                        if (room.elec_mode === 'submeter' || room.has_submeter !== false) {
+                          totalRoomElec = units * rate;
                         } else {
                           const customDirect = readings.directElec;
                           if (customDirect !== undefined && customDirect !== '' && !isNaN(customDirect)) {
-                            elec = parseFloat(customDirect);
+                            totalRoomElec = parseFloat(customDirect);
                           } else if (room.elec_mode === 'direct') {
-                            elec = parseFloat(room.direct_elec_amount || 0);
+                            totalRoomElec = parseFloat(room.direct_elec_amount || 0);
                           } else if (room.elec_mode === 'fixed') {
-                            elec = parseFloat(room.fixed_elec_amount || 0);
+                            totalRoomElec = parseFloat(room.fixed_elec_amount || 0);
                           }
                         }
 
-                        const total = rent + elec + arrears + other;
+                        const tenantElecShare = isShared ? Math.round(totalRoomElec / tenantCount) : totalRoomElec;
 
                         return (
                           <div key={room.id} className="p-4 space-y-3 bg-white">
                             <div className="flex justify-between items-start">
                               <div>
-                                <div className="font-bold text-slate-900 text-sm">Room {room.room_number}</div>
-                                <div className="text-xs text-slate-500">{tenant?.name || 'No Tenant'}</div>
+                                <div className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                                  <span>Room {room.room_number}</span>
+                                  {isShared && (
+                                    <span className="bg-amber-100 text-amber-800 text-[9px] font-bold px-1.5 py-0.5 rounded">
+                                      Shared ({roomTenants.length})
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-xs text-slate-500">
+                                  {isShared ? `${roomTenants.map(t => t.name).join(', ')}` : (roomTenants[0]?.name || 'No Tenant')}
+                                </div>
                               </div>
-                              <span className="font-extrabold text-sm text-[#2d5a47]">{formatINR(total)}</span>
+                              <span className="font-extrabold text-sm text-[#2d5a47]">
+                                Rent: {formatINR(rent)}
+                              </span>
                             </div>
-                            <div className="grid grid-cols-2 gap-2 text-xs">
-                              <div>
-                                <label className="text-[10px] text-slate-500 font-bold uppercase">
-                                  {room.elec_mode === 'submeter' ? 'Curr Reading' : 'Direct Elec (₹)'}
-                                </label>
-                                {room.elec_mode === 'submeter' ? (
-                                  <input
-                                    type="number"
-                                    min={prevReading}
-                                    placeholder={`Prev: ${prevReading}`}
-                                    value={readings.currentReading}
-                                    onChange={e => handleBulkReadingChange(room.id, 'currentReading', e.target.value)}
-                                    className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 w-full mt-0.5"
-                                  />
-                                ) : (
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    placeholder={formatINR(room.direct_elec_amount || room.fixed_elec_amount || 0)}
-                                    value={readings.directElec !== undefined ? readings.directElec : (room.direct_elec_amount || room.fixed_elec_amount || '')}
-                                    onChange={e => handleBulkReadingChange(room.id, 'directElec', e.target.value)}
-                                    className="px-2.5 py-1.5 bg-emerald-50/60 border border-emerald-200 rounded-lg text-xs font-bold text-[#2d5a47] w-full mt-0.5"
-                                  />
-                                )}
-                              </div>
-                              <div>
-                                <label className="text-[10px] text-slate-500 font-bold uppercase">Prev Balance</label>
+
+                            {/* Meter reading input */}
+                            <div>
+                              <label className="text-[10px] text-slate-500 font-bold uppercase block">
+                                {room.elec_mode === 'submeter' || room.has_submeter !== false ? `Meter Reading (Prev: ${prevReading}u)` : 'Direct Elec (₹)'}
+                              </label>
+                              {room.elec_mode === 'submeter' || room.has_submeter !== false ? (
+                                <input
+                                  type="number"
+                                  min={prevReading}
+                                  placeholder={`Prev: ${prevReading}`}
+                                  value={readings.currentReading}
+                                  onChange={e => handleBulkReadingChange(room.id, 'currentReading', e.target.value)}
+                                  className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 w-full mt-0.5"
+                                />
+                              ) : (
                                 <input
                                   type="number"
                                   min="0"
-                                  placeholder={formatINR(autoArrears)}
-                                  value={readings.arrears !== undefined ? readings.arrears : (autoArrears > 0 ? autoArrears : '')}
-                                  onChange={e => handleBulkReadingChange(room.id, 'arrears', e.target.value)}
-                                  className="px-2.5 py-1.5 bg-amber-50 border border-amber-200 rounded-lg text-xs font-semibold text-amber-900 w-full mt-0.5"
+                                  placeholder={formatINR(room.direct_elec_amount || room.fixed_elec_amount || 0)}
+                                  value={readings.directElec !== undefined ? readings.directElec : (room.direct_elec_amount || room.fixed_elec_amount || '')}
+                                  onChange={e => handleBulkReadingChange(room.id, 'directElec', e.target.value)}
+                                  className="px-2.5 py-1.5 bg-emerald-50/60 border border-emerald-200 rounded-lg text-xs font-bold text-[#2d5a47] w-full mt-0.5"
                                 />
-                              </div>
+                              )}
+                              {totalRoomElec > 0 && (
+                                <div className="text-[11px] text-[#2d5a47] font-bold mt-1">
+                                  Total Elec: {formatINR(totalRoomElec)} {isShared ? `→ ${formatINR(tenantElecShare)}/roommate` : ''}
+                                </div>
+                              )}
                             </div>
+
+                            {/* Roommate details */}
+                            {isShared && (
+                              <div className="space-y-2 pt-2 border-t border-slate-100">
+                                {roomTenants.map((t, tIdx) => {
+                                  const tKey = `${room.id}__${t.id}`;
+                                  const tReadings = bulkReadings[tKey] || {};
+                                  const autoArrears = bills
+                                    .filter(b => b.room_id === room.id && b.tenant_id === t.id && (b.payment_status === 'Unpaid' || b.payment_status === 'Partially Paid'))
+                                    .reduce((sum, b) => sum + (parseFloat(b.total_payable || 0) - parseFloat(b.amount_paid || 0)), 0);
+                                  const tArrears = tReadings.arrears !== undefined && tReadings.arrears !== '' ? parseFloat(tReadings.arrears || 0) : autoArrears;
+                                  const tOther = parseFloat(tReadings.otherCharges || 0);
+                                  const tTotal = rent + tenantElecShare + tArrears + tOther;
+
+                                  return (
+                                    <div key={t.id} className="p-2.5 bg-slate-50 rounded-xl space-y-1.5 text-xs">
+                                      <div className="flex justify-between items-center font-extrabold text-slate-900">
+                                        <span>{tIdx + 1}. {t.name}</span>
+                                        <span className="text-[#2d5a47] font-black">{formatINR(tTotal)}</span>
+                                      </div>
+                                      <div className="grid grid-cols-2 gap-2 text-[11px]">
+                                        <div>
+                                          <span className="text-slate-400 text-[10px] block">Prev Bal</span>
+                                          <input
+                                            type="number"
+                                            placeholder={formatINR(autoArrears)}
+                                            value={tReadings.arrears !== undefined ? tReadings.arrears : (autoArrears > 0 ? autoArrears : '')}
+                                            onChange={e => handleTenantReadingChange(room.id, t.id, 'arrears', e.target.value)}
+                                            className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                                          />
+                                        </div>
+                                        <div>
+                                          <span className="text-slate-400 text-[10px] block">Other Charges</span>
+                                          <input
+                                            type="number"
+                                            placeholder="₹0"
+                                            value={tReadings.otherCharges || ''}
+                                            onChange={e => handleTenantReadingChange(room.id, t.id, 'otherCharges', e.target.value)}
+                                            className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                                          />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
                           </div>
                         );
                       })}
@@ -1147,12 +1332,12 @@ export default function Properties() {
                     <button
                       onClick={handleBulkGenerate}
                       disabled={bulkRunning}
-                      className="btn flex items-center gap-2 bg-[#2d5a47] hover:bg-[#234738] disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-xl px-6 py-3 text-sm font-semibold shadow-sm transition-all"
+                      className="btn flex items-center gap-2 bg-[#2d5a47] hover:bg-[#234738] disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-xl px-6 py-3 text-sm font-semibold shadow-sm transition-all cursor-pointer"
                     >
                       {bulkRunning ? (
                         <><div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" /> Generating Bills...</>
                       ) : (
-                        <><PlayCircle size={16} /> Generate {occupiedRoomsForBulk.length} Bills for {bulkMonth} {bulkYear}</>
+                        <><PlayCircle size={16} /> Generate {totalBillsCount} Bills for {bulkMonth} {bulkYear}</>
                       )}
                     </button>
                   </div>
@@ -1171,12 +1356,12 @@ export default function Properties() {
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                         {bulkResults.map((item, idx) => {
                           const itemRoom = item.room || {};
-                          const tenant = getRoomTenant(itemRoom.id);
+                          const tenant = item.tenant || getRoomTenant(itemRoom.id);
                           const isSuccess = item.success;
 
                           return (
                             <div
-                              key={itemRoom.id || idx}
+                              key={item.billId || idx}
                               className={`rounded-2xl border p-4 text-xs space-y-2.5 shadow-sm transition-all ${
                                 isSuccess
                                   ? 'bg-white border-slate-200/80'
@@ -1192,7 +1377,10 @@ export default function Properties() {
                                 )}
                               </div>
 
-                              <div className="text-slate-500 font-medium">{tenant?.name || 'No Tenant'}</div>
+                              <div className="font-extrabold text-slate-800 text-sm flex items-center gap-1.5">
+                                <User size={13} className="text-[#2d5a47]" />
+                                <span>{tenant?.name || 'Tenant'}</span>
+                              </div>
 
                               {isSuccess ? (
                                 <div className="flex items-center justify-between pt-2 border-t border-slate-100">
@@ -1202,7 +1390,7 @@ export default function Properties() {
                                     if (!isNaN(val) && val > 0) return formatINR(val);
                                     const b = item.createdBill || {};
                                     const r = parseFloat(b.rent_amount || 0);
-                                    const e = parseFloat(b.units_consumed || 0) * parseFloat(b.rate_per_unit || 0);
+                                    const e = parseFloat(b.elec_amount || b.electricity_amount || 0);
                                     const o = parseFloat(b.other_charges || 0) || 0;
                                     return formatINR(r + e + o);
                                   })()}</div>
@@ -1305,8 +1493,9 @@ export default function Properties() {
                         </thead>
                         <tbody className="divide-y divide-slate-100 font-medium text-xs">
                           {filteredRooms.map((room, roomIdx) => {
-                            const tenant = getRoomTenant(room.id);
-                            const isOccupied = room.status === 'Occupied' || !!tenant;
+                            const roomTenants = getRoomTenants(room.id);
+                            const tenant = roomTenants[0] || null; // keep for compat
+                            const isOccupied = room.status === 'Occupied' || roomTenants.length > 0;
                             const elecMode = room.elec_mode || (room.has_submeter !== false ? 'submeter' : 'direct');
                             const isNearBottom = roomIdx >= filteredRooms.length - 2 || filteredRooms.length <= 3;
 
@@ -1326,10 +1515,19 @@ export default function Properties() {
                                 </td>
 
                                 <td className="px-6 py-4">
-                                  {tenant ? (
-                                    <span className="text-slate-800 font-bold">{tenant.name}</span>
-                                  ) : (
+                                  {roomTenants.length === 0 ? (
                                     <span className="text-slate-400 italic">— Vacant —</span>
+                                  ) : roomTenants.length === 1 ? (
+                                    <span className="text-slate-800 font-bold">{roomTenants[0].name}</span>
+                                  ) : (
+                                    <div className="flex flex-col gap-1">
+                                      {roomTenants.map((t, i) => (
+                                        <span key={t.id} className="inline-flex items-center gap-1">
+                                          <span className="w-4 h-4 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-[9px] font-extrabold flex-shrink-0">{i + 1}</span>
+                                          <span className="text-slate-800 font-bold">{t.name}</span>
+                                        </span>
+                                      ))}
+                                    </div>
                                   )}
                                 </td>
 
@@ -1367,13 +1565,15 @@ export default function Properties() {
 
                                 <td className="px-6 py-4">
                                   <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                                    isOccupied 
+                                    roomTenants.length > 1
+                                      ? 'bg-amber-50 text-amber-800 border border-amber-200/80'
+                                      : isOccupied 
                                       ? 'bg-emerald-50 text-emerald-700' 
                                       : room.status === 'Maintenance' 
                                       ? 'bg-purple-50 text-purple-700' 
                                       : 'bg-amber-50 text-amber-700'
                                   }`}>
-                                    {isOccupied ? 'Occupied' : room.status || 'Vacant'}
+                                    {roomTenants.length > 1 ? `Shared (${roomTenants.length})` : isOccupied ? 'Occupied' : room.status || 'Vacant'}
                                   </span>
                                 </td>
 
@@ -1419,32 +1619,32 @@ export default function Properties() {
                                           <span>Edit room details</span>
                                         </button>
 
-                                        {/* Add Tenant / Allocate Room (if Vacant) OR View Tenant */}
-                                        {!isOccupied ? (
+                                        {/* Add Tenant / Allocate Room */}
+                                        <button
+                                          onClick={() => {
+                                            setActiveMenuRoomId(null);
+                                            navigate(`/tenants?action=add&roomId=${room.id}`);
+                                          }}
+                                          className="w-full px-3.5 py-2.5 text-left hover:bg-emerald-50 text-[#2d5a47] flex items-center gap-2.5 font-semibold transition-colors text-xs"
+                                        >
+                                          <UserPlus size={14} className="text-[#2d5a47]" />
+                                          <span>{isOccupied ? 'Add roommate / co-tenant' : 'Allocate tenant'}</span>
+                                        </button>
+
+                                        {isOccupied && (
                                           <button
                                             onClick={() => {
                                               setActiveMenuRoomId(null);
-                                              navigate(`/tenants?action=add&roomId=${room.id}`);
-                                            }}
-                                            className="w-full px-3.5 py-2.5 text-left hover:bg-emerald-50 text-[#2d5a47] flex items-center gap-2.5 font-bold transition-colors"
-                                          >
-                                            <UserPlus size={14} className="text-[#2d5a47]" />
-                                            <span>Add tenant / Allocate</span>
-                                          </button>
-                                        ) : (
-                                          <button
-                                            onClick={() => {
-                                              setActiveMenuRoomId(null);
-                                              const t = getRoomTenant(room.id);
+                                              const t = roomTenants[0];
                                               navigate(t?.name
                                                 ? `/tenants?highlight=${encodeURIComponent(t.name)}`
                                                 : '/tenants'
                                               );
                                             }}
-                                            className="w-full px-3.5 py-2.5 text-left hover:bg-slate-50 flex items-center gap-2.5 font-semibold text-slate-700 transition-colors"
+                                            className="w-full px-3.5 py-2.5 text-left hover:bg-slate-50 flex items-center gap-2.5 font-semibold text-slate-700 transition-colors text-xs"
                                           >
                                             <User size={14} className="text-emerald-600" />
-                                            <span>View tenant info</span>
+                                            <span>View {roomTenants.length > 1 ? `all ${roomTenants.length} tenants` : 'tenant info'}</span>
                                           </button>
                                         )}
 
@@ -1488,8 +1688,9 @@ export default function Properties() {
                   {/* MOBILE ROOMS CARDS */}
                   <div className="md:hidden space-y-3">
                     {filteredRooms.map(room => {
-                      const tenant = getRoomTenant(room.id);
-                      const isOccupied = room.status === 'Occupied' || !!tenant;
+                      const roomTenants = getRoomTenants(room.id);
+                      const tenant = roomTenants[0] || null;
+                      const isOccupied = room.status === 'Occupied' || roomTenants.length > 0;
                       const elecMode = room.elec_mode || (room.has_submeter !== false ? 'submeter' : 'direct');
 
                       return (
@@ -1508,14 +1709,27 @@ export default function Properties() {
                             <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                               isOccupied ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
                             }`}>
-                              {isOccupied ? 'Occupied' : room.status || 'Vacant'}
+                              {roomTenants.length > 1 ? `Shared (${roomTenants.length})` : isOccupied ? 'Occupied' : room.status || 'Vacant'}
                             </span>
                           </div>
 
                           <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-100">
                             <div>
-                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Tenant</span>
-                              <p className="font-semibold text-slate-800 truncate">{tenant ? tenant.name : '— Vacant —'}</p>
+                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Tenant{roomTenants.length > 1 ? 's' : ''}</span>
+                              {roomTenants.length === 0 ? (
+                                <p className="font-semibold text-slate-400 italic">— Vacant —</p>
+                              ) : roomTenants.length === 1 ? (
+                                <p className="font-semibold text-slate-800 truncate">{roomTenants[0].name}</p>
+                              ) : (
+                                <div className="flex flex-col gap-0.5">
+                                  {roomTenants.map((t, i) => (
+                                    <span key={t.id} className="inline-flex items-center gap-1">
+                                      <span className="w-3.5 h-3.5 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-[8px] font-extrabold">{i + 1}</span>
+                                      <span className="font-semibold text-slate-800">{t.name}</span>
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                             <div>
                               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Monthly Rent</span>
@@ -1760,6 +1974,7 @@ export default function Properties() {
           onClose={() => setInspectRoom(null)}
           room={inspectRoom}
           tenant={inspectRoom ? getRoomTenant(inspectRoom.id) : null}
+          tenants={inspectRoom ? getRoomTenants(inspectRoom.id) : []}
           onEdit={(roomToEdit) => {
             setEditingRoom(roomToEdit);
             setShowRoomDrawer(true);

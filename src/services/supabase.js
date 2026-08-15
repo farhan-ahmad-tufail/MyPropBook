@@ -162,11 +162,12 @@ export const supabaseDb = {
     return data;
   },
   createLease: async (tenantId, roomId, leaseData = {}) => {
-    // Deactivate previous active leases for this room
+    // Only deactivate previous active leases for THIS SAME tenant in this room
     await supabase
       .from('leases')
       .update({ is_active: false })
-      .eq('room_id', roomId);
+      .eq('room_id', roomId)
+      .eq('tenant_id', tenantId);
 
     const { data, error } = await supabase
       .from('leases')

@@ -147,9 +147,12 @@ export default function BillReceiptModal({ isOpen, onClose, bill, room, tenant, 
     } catch (e) { console.error(e); toast('Failed to generate PDF', 'error'); }
   };
 
+  const shareNote = bill.split_count > 1 ? ` (1/${bill.split_count} share)` : '';
+  const elecText = elec > 0 ? ` | Electricity: ₹${elec.toFixed(2)}${shareNote}` : '';
+
   const shareWhatsApp = () => {
     const phone = tenant?.phone ? tenant.phone.replace(/[^0-9]/g, '') : '';
-    const msg = `*${lbl.waTitle}*\nMonth: ${month} ${year}\nTenant: ${tenant?.name || 'Tenant'} • Room: ${room?.room_number || ''}\nRent: ₹${rent.toFixed(2)} | Electricity: ₹${elec.toFixed(2)}` +
+    const msg = `*${lbl.waTitle}*\nMonth: ${month} ${year}\nTenant: ${tenant?.name || 'Tenant'} • Room: ${room?.room_number || ''}\nRent: ₹${rent.toFixed(2)}${elecText}` +
       (other > 0 ? `\nOther: ₹${other.toFixed(2)}` : '') +
       (arrears > 0 ? `\nPrev Balance: ₹${arrears.toFixed(2)}` : '') +
       `\n*Total: ₹${total.toFixed(2)}*` +

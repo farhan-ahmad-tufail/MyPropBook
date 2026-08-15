@@ -6,15 +6,16 @@ import {
   Check,
   Tag,
   ArrowRight,
-  ChevronDown
+  ChevronDown,
+  Building2
 } from 'lucide-react';
 
 // Electricity billing modes — user-facing labels mapped to internal values
 const ELEC_MODES = [
   {
     id: 'submeter',
-    label: 'Meter-based',
-    desc: 'Calculate from meter readings',
+    label: 'Room Submeter (Meter-based)',
+    desc: 'Units × Rate per unit (automatically splits for roommates)',
     icon: <Zap size={16} />,
   },
   {
@@ -31,8 +32,8 @@ const ELEC_MODES = [
   },
   {
     id: 'shared',
-    label: 'Shared / split bill',
-    desc: 'Proportional split of property utility bill',
+    label: 'Building Main Bill Split',
+    desc: 'Proportional split of whole property power board bill (₹)',
     icon: <span className="text-sm">🤝</span>,
   },
   {
@@ -336,178 +337,282 @@ export default function RoomDrawer({
             <div className="border-t border-slate-200/80" />
 
             {/* ═══ SECTION 3: Electricity Billing ═══ */}
-            <div className="pt-6 pb-4">
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="text-[15px] font-bold text-slate-900">Electricity billing</h3>
-                <span className="text-xs text-slate-400 font-medium">3 of 3</span>
-              </div>
-              <p className="text-[13px] text-slate-500 mb-5">
-                Choose how electricity is charged for this room.
-              </p>
-
-              {/* Billing mode selectable cards */}
-              <div className="space-y-2.5">
-                {ELEC_MODES.map((mode) => {
-                  const isSelected = elecMode === mode.id;
-                  return (
-                    <button
-                      key={mode.id}
-                      type="button"
-                      onClick={() => setElecMode(mode.id)}
-                      className={`w-full p-3.5 rounded-xl border text-left transition-all duration-200 flex items-center gap-3.5 group ${
-                        isSelected
-                          ? 'bg-[#edf5f1] border-[#2d5a47]/50 ring-1 ring-[#2d5a47]/15'
-                          : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
-                      }`}
-                      aria-pressed={isSelected}
-                    >
-                      {/* Icon */}
-                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${
-                        isSelected
-                          ? 'bg-[#2d5a47] text-white'
-                          : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200/80'
-                      }`}>
-                        {mode.icon}
-                      </div>
-
-                      {/* Label + description */}
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-semibold leading-tight ${
-                          isSelected ? 'text-[#1c4032]' : 'text-slate-700'
-                        }`}>{mode.label}</p>
-                        <p className={`text-xs mt-0.5 leading-snug ${
-                          isSelected ? 'text-[#2d5a47]/70' : 'text-slate-400'
-                        }`}>{mode.desc}</p>
-                      </div>
-
-                      {/* Checkmark */}
-                      <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
-                        isSelected
-                          ? 'bg-[#2d5a47] text-white scale-100'
-                          : 'border-2 border-slate-200 scale-90 group-hover:border-slate-300'
-                      }`}>
-                        {isSelected && <Check size={12} strokeWidth={3} />}
-                      </div>
-                    </button>
-                  );
-                })}
+            <div className="pt-6 pb-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-[15px] font-bold text-slate-900">Electricity billing</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Choose how electricity is metered or charged for this room.
+                  </p>
+                </div>
+                <span className="text-[11px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+                  Step 3 of 3
+                </span>
               </div>
 
-              {/* ─── Progressive Disclosure: Fields for selected mode ─── */}
-
-              {/* SUBMETER MODE */}
-              {elecMode === 'submeter' && (
-                <div className="mt-5 p-4 bg-white border border-slate-200 rounded-xl space-y-4 animate-fade-in-up active">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className={labelClass}>Starting meter reading</label>
-                      <input
-                        type="number"
-                        required
-                        placeholder="0"
-                        className={inputClass}
-                        value={meterReading}
-                        onChange={(e) => setMeterReading(e.target.value)}
-                        onWheel={blockScroll}
-                        min="0"
-                      />
-                    </div>
-                    <div>
-                      <label className={labelClass}>Rate per unit</label>
-                      <div className="relative">
-                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium select-none pointer-events-none">₹</span>
-                        <input
-                          type="number"
-                          required
-                          placeholder="17"
-                          className={`${inputClass} pl-8`}
-                          value={ratePerUnit}
-                          onChange={(e) => setRatePerUnit(e.target.value)}
-                          onWheel={blockScroll}
-                          min="0"
-                        />
+              {/* 3 Clear SaaS Category Cards */}
+              <div className="space-y-3">
+                {/* 1. ROOM SUBMETER CARD */}
+                <div
+                  onClick={() => setElecMode('submeter')}
+                  className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+                    elecMode === 'submeter'
+                      ? 'bg-[#edf5f1]/90 border-[#2d5a47] ring-1 ring-[#2d5a47]/20 shadow-xs'
+                      : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
+                        elecMode === 'submeter' ? 'bg-[#2d5a47] text-white shadow-xs' : 'bg-slate-100 text-slate-600'
+                      }`}>
+                        <Zap size={18} />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-sm font-bold ${elecMode === 'submeter' ? 'text-[#1c4032]' : 'text-slate-900'}`}>
+                            Room Submeter (Meter-based)
+                          </span>
+                          <span className="bg-emerald-100 text-[#2d5a47] text-[10px] font-extrabold px-2 py-0.5 rounded-full">
+                            Popular for PGs
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          Physical electric meter in this room. Calculates: (Current − Previous) × Rate.
+                        </p>
                       </div>
                     </div>
-                  </div>
-                  <p className="text-xs text-slate-500 flex items-start gap-1.5">
-                    <Zap size={12} className="text-[#2d5a47] mt-0.5 flex-shrink-0" />
-                    Electricity is calculated from the difference between previous and current readings.
-                  </p>
-                </div>
-              )}
-
-              {/* DIRECT BILL MODE */}
-              {elecMode === 'direct' && (
-                <div className="mt-5 p-4 bg-white border border-slate-200 rounded-xl space-y-3 animate-fade-in-up active">
-                  <div>
-                    <label className={labelClass}>Electricity bill amount</label>
-                    <div className="relative">
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium select-none pointer-events-none">₹</span>
-                      <input
-                        type="number"
-                        placeholder="1,850"
-                        className={`${inputClass} pl-8`}
-                        value={directAmount}
-                        onChange={(e) => setDirectAmount(e.target.value)}
-                        onWheel={blockScroll}
-                        min="0"
-                      />
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
+                      elecMode === 'submeter'
+                        ? 'bg-[#2d5a47] text-white'
+                        : 'border-2 border-slate-200'
+                    }`}>
+                      {elecMode === 'submeter' && <Check size={12} strokeWidth={3} />}
                     </div>
                   </div>
-                  <p className="text-xs text-slate-500">
-                    This amount will be added to the tenant's monthly bill.
-                  </p>
-                </div>
-              )}
 
-              {/* FIXED CHARGE MODE */}
-              {elecMode === 'fixed' && (
-                <div className="mt-5 p-4 bg-white border border-slate-200 rounded-xl space-y-3 animate-fade-in-up active">
-                  <div>
-                    <label className={labelClass}>Monthly electricity charge</label>
-                    <div className="relative">
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium select-none pointer-events-none">₹</span>
-                      <input
-                        type="number"
-                        required
-                        placeholder="500"
-                        className={`${inputClass} pl-8`}
-                        value={fixedAmount}
-                        onChange={(e) => setFixedAmount(e.target.value)}
-                        onWheel={blockScroll}
-                        min="0"
-                      />
+                  {/* Expanded Submeter Inputs */}
+                  {elecMode === 'submeter' && (
+                    <div className="mt-4 pt-3.5 border-t border-[#2d5a47]/15 space-y-3" onClick={e => e.stopPropagation()}>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Starting meter reading</label>
+                          <input
+                            type="number"
+                            required
+                            placeholder="0"
+                            className={inputClass}
+                            value={meterReading}
+                            onChange={(e) => setMeterReading(e.target.value)}
+                            onWheel={blockScroll}
+                            min="0"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Rate per unit</label>
+                          <div className="relative">
+                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold select-none pointer-events-none">₹</span>
+                            <input
+                              type="number"
+                              required
+                              placeholder="17"
+                              className={`${inputClass} pl-8`}
+                              value={ratePerUnit}
+                              onChange={(e) => setRatePerUnit(e.target.value)}
+                              onWheel={blockScroll}
+                              min="0"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-3 bg-white/80 rounded-xl border border-emerald-200/80 text-xs space-y-1 text-slate-700">
+                        <div className="flex items-center gap-1.5 font-bold text-[#2d5a47]">
+                          <Zap size={13} />
+                          <span>Formula: (Current Reading − Previous) × ₹{ratePerUnit || 17}/unit</span>
+                        </div>
+                        <p className="text-[11px] text-slate-600 leading-snug">
+                          💡 <strong>Automatic Roommate Split:</strong> If 2, 3, or more tenants share this room, total meter usage is divided equally on each tenant's bill automatically.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 2. BUILDING / SHARED UTILITY CARD */}
+                <div
+                  onClick={() => {
+                    if (elecMode !== 'shared' && elecMode !== 'fixed' && elecMode !== 'direct') {
+                      setElecMode('shared');
+                    }
+                  }}
+                  className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+                    elecMode === 'shared' || elecMode === 'fixed' || elecMode === 'direct'
+                      ? 'bg-[#edf5f1]/90 border-[#2d5a47] ring-1 ring-[#2d5a47]/20 shadow-xs'
+                      : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
+                        elecMode === 'shared' || elecMode === 'fixed' || elecMode === 'direct'
+                          ? 'bg-[#2d5a47] text-white shadow-xs'
+                          : 'bg-slate-100 text-slate-600'
+                      }`}>
+                        <Building2 size={18} />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-sm font-bold ${
+                            elecMode === 'shared' || elecMode === 'fixed' || elecMode === 'direct' ? 'text-[#1c4032]' : 'text-slate-900'
+                          }`}>
+                            Building Main Bill / Flat Fee (No Room Submeter)
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          For properties where the whole building or floor shares a main DISCOM electricity bill.
+                        </p>
+                      </div>
+                    </div>
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
+                      elecMode === 'shared' || elecMode === 'fixed' || elecMode === 'direct'
+                        ? 'bg-[#2d5a47] text-white'
+                        : 'border-2 border-slate-200'
+                    }`}>
+                      {(elecMode === 'shared' || elecMode === 'fixed' || elecMode === 'direct') && <Check size={12} strokeWidth={3} />}
                     </div>
                   </div>
-                  <p className="text-xs text-slate-500">
-                    This fixed amount is added to rent every month.
-                  </p>
-                </div>
-              )}
 
-              {/* SHARED BILL MODE */}
-              {elecMode === 'shared' && (
-                <div className="mt-5 p-4 bg-emerald-50/80 border border-emerald-200/80 rounded-xl space-y-2 animate-fade-in-up active">
-                  <div className="flex items-center gap-2 text-[#2d5a47] font-bold text-xs">
-                    <span className="text-sm">🤝</span>
-                    <span>Shared property/floor utility billing</span>
+                  {/* Expanded Building Options */}
+                  {(elecMode === 'shared' || elecMode === 'fixed' || elecMode === 'direct') && (
+                    <div className="mt-4 pt-3.5 border-t border-[#2d5a47]/15 space-y-3" onClick={e => e.stopPropagation()}>
+                      <label className="block text-xs font-bold text-slate-700">Choose charge method:</label>
+                      
+                      {/* Segmented Sub-Option Toggle */}
+                      <div className="grid grid-cols-3 gap-1.5 p-1 bg-white rounded-xl border border-slate-200">
+                        <button
+                          type="button"
+                          onClick={() => setElecMode('shared')}
+                          className={`py-2 px-2 rounded-lg text-xs font-bold transition-all text-center ${
+                            elecMode === 'shared'
+                              ? 'bg-[#2d5a47] text-white shadow-xs'
+                              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                          }`}
+                        >
+                          🤝 Split Main Bill
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setElecMode('fixed')}
+                          className={`py-2 px-2 rounded-lg text-xs font-bold transition-all text-center ${
+                            elecMode === 'fixed'
+                              ? 'bg-[#2d5a47] text-white shadow-xs'
+                              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                          }`}
+                        >
+                          🏷️ Fixed ₹ / Mo
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setElecMode('direct')}
+                          className={`py-2 px-2 rounded-lg text-xs font-bold transition-all text-center ${
+                            elecMode === 'direct'
+                              ? 'bg-[#2d5a47] text-white shadow-xs'
+                              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                          }`}
+                        >
+                          🧾 Direct Entry
+                        </button>
+                      </div>
+
+                      {/* Sub-Option Details */}
+                      {elecMode === 'shared' && (
+                        <div className="p-3 bg-white/80 rounded-xl border border-slate-200 text-xs space-y-1 text-slate-700">
+                          <p className="font-bold text-[#2d5a47]">🏢 Proportional Main Bill Split</p>
+                          <p className="text-[11px] text-slate-600 leading-snug">
+                            Enter the total building electricity bill (e.g. ₹5,600) when generating bills. It will be divided proportionally among rooms or total tenant headcount.
+                          </p>
+                        </div>
+                      )}
+
+                      {elecMode === 'fixed' && (
+                        <div className="space-y-1.5">
+                          <label className="block text-xs font-bold text-slate-700">Monthly fixed charge</label>
+                          <div className="relative">
+                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold select-none pointer-events-none">₹</span>
+                            <input
+                              type="number"
+                              required
+                              placeholder="500"
+                              className={`${inputClass} pl-8`}
+                              value={fixedAmount}
+                              onChange={(e) => setFixedAmount(e.target.value)}
+                              onWheel={blockScroll}
+                              min="0"
+                            />
+                          </div>
+                          <p className="text-[11px] text-slate-500">This fixed amount is added to rent every month.</p>
+                        </div>
+                      )}
+
+                      {elecMode === 'direct' && (
+                        <div className="space-y-1.5">
+                          <label className="block text-xs font-bold text-slate-700">Default direct amount (optional)</label>
+                          <div className="relative">
+                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold select-none pointer-events-none">₹</span>
+                            <input
+                              type="number"
+                              placeholder="0"
+                              className={`${inputClass} pl-8`}
+                              value={directAmount}
+                              onChange={(e) => setDirectAmount(e.target.value)}
+                              onWheel={blockScroll}
+                              min="0"
+                            />
+                          </div>
+                          <p className="text-[11px] text-slate-500">You can adjust this amount every month on bill creation.</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* 3. INCLUDED / NOT CHARGED CARD */}
+                <div
+                  onClick={() => setElecMode('none')}
+                  className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+                    elecMode === 'none'
+                      ? 'bg-[#edf5f1]/90 border-[#2d5a47] ring-1 ring-[#2d5a47]/20 shadow-xs'
+                      : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
+                        elecMode === 'none' ? 'bg-[#2d5a47] text-white shadow-xs' : 'bg-slate-100 text-slate-600'
+                      }`}>
+                        <span className="text-sm font-extrabold">—</span>
+                      </div>
+                      <div>
+                        <span className={`text-sm font-bold ${elecMode === 'none' ? 'text-[#1c4032]' : 'text-slate-900'}`}>
+                          Included in Rent / Not Charged
+                        </span>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          Electricity is free or already factored into the monthly base rent (₹0 separate charge).
+                        </p>
+                      </div>
+                    </div>
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
+                      elecMode === 'none'
+                        ? 'bg-[#2d5a47] text-white'
+                        : 'border-2 border-slate-200'
+                    }`}>
+                      {elecMode === 'none' && <Check size={12} strokeWidth={3} />}
+                    </div>
                   </div>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    When you enter the main electricity bill during billing, this room automatically receives its fair share (split equally among occupied rooms or active tenant headcount).
-                  </p>
                 </div>
-              )}
-
-              {/* NOT APPLICABLE */}
-              {elecMode === 'none' && (
-                <div className="mt-5 p-3.5 bg-slate-50 border border-slate-200 rounded-xl animate-fade-in-up active">
-                  <p className="text-xs text-slate-500">
-                    No separate electricity charge. This room's bill will only include rent and any other charges.
-                  </p>
-                </div>
-              )}
+              </div>
             </div>
-
           </div>
         </form>
 

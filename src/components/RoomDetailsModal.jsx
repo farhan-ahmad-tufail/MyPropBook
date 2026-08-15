@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { formatINR } from '../utils/formatters';
 
-export default function RoomDetailsModal({ isOpen, onClose, room, tenant, onEdit }) {
+export default function RoomDetailsModal({ isOpen, onClose, room, tenant, tenants: propTenants, onEdit }) {
   const navigate = useNavigate();
 
   // Escape key handler
@@ -20,14 +20,18 @@ export default function RoomDetailsModal({ isOpen, onClose, room, tenant, onEdit
         onClose();
       }
     };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
   if (!isOpen || !room) return null;
 
+  const activeTenantsList = Array.isArray(propTenants) && propTenants.length > 0 
+    ? propTenants 
+    : (tenant ? [tenant] : []);
+
   const elecMode = room.elec_mode || (room.has_submeter !== false ? 'submeter' : 'direct');
-  const isOccupied = room.status === 'Occupied' || !!tenant;
+  const isOccupied = room.status === 'Occupied' || activeTenantsList.length > 0;
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
@@ -64,10 +68,10 @@ export default function RoomDetailsModal({ isOpen, onClose, room, tenant, onEdit
               <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400">Status</span>
               <div className="mt-1 flex items-center gap-1.5">
                 <span className={`w-2.5 h-2.5 rounded-full ${
-                  isOccupied ? 'bg-emerald-500' : room.status === 'Maintenance' ? 'bg-purple-500' : 'bg-amber-500'
+                  activeTenantsList.length > 1 ? 'bg-amber-500' : isOccupied ? 'bg-emerald-500' : room.status === 'Maintenance' ? 'bg-purple-500' : 'bg-amber-500'
                 }`} />
                 <span className="font-extrabold text-sm text-slate-900">
-                  {isOccupied ? 'Occupied' : room.status || 'Vacant'}
+                  {activeTenantsList.length > 1 ? `Shared (${activeTenantsList.length} Tenants)` : isOccupied ? 'Occupied' : room.status || 'Vacant'}
                 </span>
               </div>
             </div>
@@ -81,27 +85,51 @@ export default function RoomDetailsModal({ isOpen, onClose, room, tenant, onEdit
           </div>
 
           {/* Tenant Info Section */}
-          <div className="p-4 bg-white border border-slate-200/80 rounded-2xl space-y-2 shadow-xs">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-              <User size={13} className="text-[#2d5a47]" />
-              Active Tenant
-            </span>
-
-            {tenant ? (
-              <div className="flex items-center justify-between pt-1">
-                <div>
-                  <p className="font-extrabold text-sm text-slate-900">{tenant.name}</p>
-                  {tenant.phone && <p className="text-xs text-slate-400 font-medium">{tenant.phone}</p>}
-                </div>
+          <div className="p-4 bg-white border border-slate-200/80 rounded-2xl space-y-2.5 shadow-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                <User size={13} className="text-[#2d5a47]" />
+                {activeTenantsList.length > 1 ? `Active Tenants (${activeTenantsList.length})` : 'Active Tenant'}
+              </span>
+              {activeTenantsList.length > 0 && (
                 <button
                   onClick={() => {
                     onClose();
-                    navigate('/tenants');
+                    navigate(`/tenants?action=add&roomId=${room.id}`);
                   }}
-                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer"
+                  className="text-[11px] text-[#2d5a47] hover:underline font-bold flex items-center gap-1 cursor-pointer"
                 >
-                  Manage lease
+                  <UserPlus size={12} /> Add Roommate
                 </button>
+              )}
+            </div>
+
+            {activeTenantsList.length > 0 ? (
+              <div className="divide-y divide-slate-100">
+                {activeTenantsList.map((t, idx) => (
+                  <div key={t.id || idx} className="flex items-center justify-between py-2 first:pt-1 last:pb-0">
+                    <div className="flex items-center gap-2">
+                      {activeTenantsList.length > 1 && (
+                        <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-black text-[10px]">
+                          {idx + 1}
+                        </span>
+                      )}
+                      <div>
+                        <p className="font-extrabold text-sm text-slate-900">{t.name}</p>
+                        {t.phone && <p className="text-xs text-slate-400 font-medium">{t.phone}</p>}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        onClose();
+                        navigate(`/tenants?highlight=${encodeURIComponent(t.name)}`);
+                      }}
+                      className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer"
+                    >
+                      View
+                    </button>
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="flex items-center justify-between pt-1">

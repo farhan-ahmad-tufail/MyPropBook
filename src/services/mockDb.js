@@ -225,11 +225,12 @@ export const mockDb = {
   createLease: async (tenantId, roomId, data = {}) => {
     const list = getStore('mock_leases');
     
-    // Deactivate existing active leases for this room
-    const updated = list.map(l => l.room_id === roomId ? { ...l, is_active: false } : l);
+    // Only deactivate previous active lease for THIS SAME TENANT in this room (avoid duplicate lease for identical tenant)
+    // Do NOT deactivate other co-tenants/roommates sharing this room!
+    const updated = list.map(l => (l.room_id === roomId && l.tenant_id === tenantId) ? { ...l, is_active: false } : l);
 
     const newLease = {
-      id: 'lease_' + Date.now(),
+      id: 'lease_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
       tenant_id: tenantId,
       room_id: roomId,
       start_date: data.start_date || new Date().toISOString().split('T')[0],
