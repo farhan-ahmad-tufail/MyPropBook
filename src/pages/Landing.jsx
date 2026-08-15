@@ -693,7 +693,7 @@ export default function Landing() {
               {/* Quote */}
               <div className="relative pl-3 border-l-2 border-[#2d5a47]/30">
                 <p className="text-xs text-slate-600 leading-relaxed italic">
-                  "I built BillRoom to make property management simpler — bringing rent, tenants, utility billing, and receipts into one reliable workspace. No more juggling notebooks, WhatsApp messages, and spreadsheets just to send a monthly bill."
+                  "I built BillRoom because managing a property shouldn't mean juggling spreadsheets, notebooks, and WhatsApp every month."
                 </p>
               </div>
 
