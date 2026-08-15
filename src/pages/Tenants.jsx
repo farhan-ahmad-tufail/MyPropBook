@@ -288,20 +288,20 @@ export default function Tenants() {
       const ownerId = user?.id || 'mock_owner_id';
 
       const [tenantsList, propsList, roomsList, leasesList, depositsList] = await Promise.all([
-        api.getTenants(ownerId),
-        api.getProperties(ownerId),
-        api.getAllRooms(ownerId),
-        api.getLeases(ownerId),
-        api.getDeposits(ownerId)
+        api.getTenants(ownerId).catch(err => { console.error('Error fetching tenants:', err); return []; }),
+        api.getProperties(ownerId).catch(err => { console.error('Error fetching properties:', err); return []; }),
+        api.getAllRooms(ownerId).catch(err => { console.error('Error fetching rooms:', err); return []; }),
+        api.getLeases(ownerId).catch(err => { console.error('Error fetching leases:', err); return []; }),
+        api.getDeposits(ownerId).catch(err => { console.error('Error fetching deposits:', err); return []; })
       ]);
 
-      setTenants(tenantsList);
-      setProperties(propsList);
-      setRooms(roomsList);
-      setLeases(leasesList);
+      setTenants(tenantsList || []);
+      setProperties(propsList || []);
+      setRooms(roomsList || []);
+      setLeases(leasesList || []);
       setDeposits(depositsList || []);
     } catch (err) {
-      console.error(err);
+      console.error('loadAllData exception:', err);
       setError('Failed to fetch tenant and lease details');
     } finally {
       setLoading(false);

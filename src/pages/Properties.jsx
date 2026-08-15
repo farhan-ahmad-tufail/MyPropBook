@@ -3,22 +3,22 @@ import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
-import { 
-  Building, 
-  Home, 
-  Plus, 
-  Trash2, 
-  Edit2, 
-  MapPin, 
-  ShieldAlert, 
-  Zap, 
-  Search, 
-  Filter, 
-  MoreVertical, 
-  Eye, 
-  User, 
+import {
+  Building,
+  Home,
+  Plus,
+  Trash2,
+  Edit2,
+  MapPin,
+  ShieldAlert,
+  Zap,
+  Search,
+  Filter,
+  MoreVertical,
+  Eye,
+  User,
   UserPlus,
-  Calculator, 
+  Calculator,
   Tag,
   CheckCircle2,
   AlertCircle,
@@ -48,7 +48,7 @@ export default function Properties() {
   const confirm = useConfirm();
   const toast = useToast();
   const navigate = useNavigate();
-  
+
   // Data State
   const [properties, setProperties] = useState([]);
   const [allRooms, setAllRooms] = useState([]);
@@ -157,11 +157,11 @@ export default function Properties() {
       const ownerId = user?.id || 'mock_owner_id';
 
       const [propsList, tenantsList, leasesList, roomsList, billsList] = await Promise.all([
-        api.getProperties(ownerId),
-        api.getTenants(ownerId),
-        api.getLeases(ownerId),
-        api.getAllRooms(ownerId),
-        api.getBills(ownerId)
+        api.getProperties(ownerId).catch(() => []),
+        api.getTenants(ownerId).catch(() => []),
+        api.getLeases(ownerId).catch(() => []),
+        api.getAllRooms(ownerId).catch(() => []),
+        api.getBills(ownerId).catch(() => [])
       ]);
 
       setProperties(propsList);
@@ -169,7 +169,7 @@ export default function Properties() {
       setLeases(leasesList);
       setAllRooms(roomsList || []);
       setBills(billsList || []);
-      
+
       setSelectedPropertyId(prevId => {
         if (!prevId && propsList.length > 0) return propsList[0].id;
         if (prevId && !propsList.some(p => p.id === prevId)) return propsList.length > 0 ? propsList[0].id : null;
@@ -218,8 +218,8 @@ export default function Properties() {
   const filteredProperties = useMemo(() => {
     if (!propertySearchQuery.trim()) return properties;
     const q = propertySearchQuery.toLowerCase();
-    return properties.filter(p => 
-      p.name.toLowerCase().includes(q) || 
+    return properties.filter(p =>
+      p.name.toLowerCase().includes(q) ||
       (p.address && p.address.toLowerCase().includes(q))
     );
   }, [properties, propertySearchQuery]);
@@ -320,11 +320,11 @@ export default function Properties() {
 
   const handlePropDelete = async (id, e) => {
     e.stopPropagation();
-    const yes = await confirm({ 
-      title: 'Delete Property', 
-      message: 'Are you sure you want to delete this property? All associated rooms will also be deleted.', 
-      confirmText: 'Delete Property', 
-      type: 'error' 
+    const yes = await confirm({
+      title: 'Delete Property',
+      message: 'Are you sure you want to delete this property? All associated rooms will also be deleted.',
+      confirmText: 'Delete Property',
+      type: 'error'
     });
     if (!yes) return;
 
@@ -366,11 +366,11 @@ export default function Properties() {
 
   const handleRoomDelete = async (room, e) => {
     if (e) e.stopPropagation();
-    const yes = await confirm({ 
-      title: 'Archive Room', 
-      message: `Are you sure you want to archive Room ${room.room_number}? This room will be removed from active lists.`, 
-      confirmText: 'Archive Room', 
-      type: 'error' 
+    const yes = await confirm({
+      title: 'Archive Room',
+      message: `Are you sure you want to archive Room ${room.room_number}? This room will be removed from active lists.`,
+      confirmText: 'Archive Room',
+      type: 'error'
     });
     if (!yes) return;
 
@@ -445,7 +445,7 @@ export default function Properties() {
     }, 0);
   }, [occupiedRoomsForBulk, leases, tenants]);
 
-  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
   const handleBulkGenerate = async () => {
     if (!selectedPropertyId) return;
@@ -487,21 +487,21 @@ export default function Properties() {
 
   return (
     <div className="space-y-8 fade-in-up active">
-      
+
       {/* ── TOP HEADER BAR ── */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-2">
         <div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Properties &amp; Rooms</h1>
           <p className="text-slate-500 mt-1 text-sm">Manage your properties, rooms, rent, and billing settings.</p>
         </div>
-        
-        <button 
+
+        <button
           onClick={() => {
             setEditingPropId(null);
             setPropName('');
             setPropAddress('');
             setShowPropModal(true);
-          }} 
+          }}
           className="px-5 py-2.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all flex items-center gap-2 shadow-sm cursor-pointer"
         >
           <Plus size={16} /> + New Property
@@ -568,7 +568,7 @@ export default function Properties() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredProperties.map(p => {
               const isSelected = selectedPropertyId === p.id;
-              
+
               // Calculate property statistics
               const propRooms = allRooms.filter(r => r.property_id === p.id);
               const roomCount = propRooms.length;
@@ -585,17 +585,15 @@ export default function Properties() {
                 <div
                   key={p.id}
                   onClick={() => setSelectedPropertyId(p.id)}
-                  className={`bg-white p-5 rounded-3xl border shadow-sm flex flex-col justify-between cursor-pointer transition-all duration-200 relative group ${
-                    isSelected 
-                      ? 'border-[#2d5a47] ring-2 ring-[#2d5a47]/20 bg-[#edf5f1]/40 shadow-md' 
+                  className={`bg-white p-5 rounded-3xl border shadow-sm flex flex-col justify-between cursor-pointer transition-all duration-200 relative group ${isSelected
+                      ? 'border-[#2d5a47] ring-2 ring-[#2d5a47]/20 bg-[#edf5f1]/40 shadow-md'
                       : 'border-slate-100 hover:border-slate-200 hover:shadow'
-                  }`}
+                    }`}
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-sm ${
-                        isSelected ? 'bg-[#2d5a47] text-white shadow-sm' : 'bg-slate-100 text-slate-600'
-                      }`}>
+                      <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-sm ${isSelected ? 'bg-[#2d5a47] text-white shadow-sm' : 'bg-slate-100 text-slate-600'
+                        }`}>
                         <Building size={18} />
                       </div>
                       <div className="min-w-0">
@@ -644,7 +642,7 @@ export default function Properties() {
       {/* ── SELECTED PROPERTY ROOMS SECTION ── */}
       {selectedProperty ? (
         <div className="space-y-6 pt-4 border-t border-slate-200/60">
-          
+
           {/* Selected Property Header Banner */}
           <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
@@ -668,7 +666,7 @@ export default function Properties() {
                 <span className="text-sm font-extrabold text-[#2d5a47]">{formatINR(selectedPropertyStats.expectedRent)}</span>
               </div>
 
-              <button 
+              <button
                 onClick={() => {
                   setEditingRoom(null);
                   setShowRoomDrawer(true);
@@ -684,28 +682,25 @@ export default function Properties() {
           <div className="flex items-center gap-1 bg-slate-200/60 p-1 rounded-2xl w-fit">
             <button
               onClick={() => setActiveTab('rooms')}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                activeTab === 'rooms'
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === 'rooms'
                   ? 'bg-[#2d5a47] text-white shadow-sm'
                   : 'text-slate-600 hover:text-slate-900'
-              }`}
+                }`}
             >
               <Home size={13} /> Rooms List
             </button>
             <button
               onClick={() => setActiveTab('bulkbill')}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer relative ${
-                activeTab === 'bulkbill'
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer relative ${activeTab === 'bulkbill'
                   ? 'bg-amber-600 text-white shadow-sm'
                   : 'text-amber-700 bg-amber-50 border border-amber-200/80 hover:bg-amber-100'
-              }`}
+                }`}
             >
               <Zap size={14} className={activeTab === 'bulkbill' ? 'text-white' : 'text-amber-600'} />
               <span>⚡ Bulk Billing</span>
               {occupiedRoomsForBulk.length > 0 && (
-                <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-full ${
-                  activeTab === 'bulkbill' ? 'bg-white/20 text-white' : 'bg-amber-600 text-white'
-                }`}>
+                <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-full ${activeTab === 'bulkbill' ? 'bg-white/20 text-white' : 'bg-amber-600 text-white'
+                  }`}>
                   {occupiedRoomsForBulk.length}
                 </span>
               )}
@@ -739,9 +734,8 @@ export default function Properties() {
                   <button
                     type="button"
                     onClick={() => { setMonthDropdownOpen(v => !v); setYearDropdownOpen(false); }}
-                    className={`flex items-center gap-2 bg-white border shadow-sm rounded-xl px-3.5 py-2.5 cursor-pointer transition-all duration-200 hover:shadow-md ${
-                      monthDropdownOpen ? 'border-[#2d5a47] ring-2 ring-[#2d5a47]/10' : 'border-slate-200/80 hover:border-slate-300'
-                    }`}
+                    className={`flex items-center gap-2 bg-white border shadow-sm rounded-xl px-3.5 py-2.5 cursor-pointer transition-all duration-200 hover:shadow-md ${monthDropdownOpen ? 'border-[#2d5a47] ring-2 ring-[#2d5a47]/10' : 'border-slate-200/80 hover:border-slate-300'
+                      }`}
                   >
                     <Calendar size={14} className="text-[#2d5a47]" />
                     <span className="text-[11px] font-medium text-slate-500">Month</span>
@@ -756,11 +750,10 @@ export default function Properties() {
                             key={m}
                             type="button"
                             onClick={() => { setBulkMonth(m); setMonthDropdownOpen(false); }}
-                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-100 ${
-                              bulkMonth === m
+                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-100 ${bulkMonth === m
                                 ? 'bg-[#2d5a47]/8 text-[#2d5a47] font-bold'
                                 : 'text-slate-700 hover:bg-slate-50 font-medium'
-                            }`}
+                              }`}
                           >
                             <span>{m}</span>
                             {bulkMonth === m && <Check size={14} className="text-[#2d5a47]" />}
@@ -776,9 +769,8 @@ export default function Properties() {
                   <button
                     type="button"
                     onClick={() => { setYearDropdownOpen(v => !v); setMonthDropdownOpen(false); }}
-                    className={`flex items-center gap-2 bg-white border shadow-sm rounded-xl px-3.5 py-2.5 cursor-pointer transition-all duration-200 hover:shadow-md ${
-                      yearDropdownOpen ? 'border-[#2d5a47] ring-2 ring-[#2d5a47]/10' : 'border-slate-200/80 hover:border-slate-300'
-                    }`}
+                    className={`flex items-center gap-2 bg-white border shadow-sm rounded-xl px-3.5 py-2.5 cursor-pointer transition-all duration-200 hover:shadow-md ${yearDropdownOpen ? 'border-[#2d5a47] ring-2 ring-[#2d5a47]/10' : 'border-slate-200/80 hover:border-slate-300'
+                      }`}
                   >
                     <Calendar size={14} className="text-[#2d5a47]" />
                     <span className="text-[11px] font-medium text-slate-500">Year</span>
@@ -788,16 +780,15 @@ export default function Properties() {
                   {yearDropdownOpen && (
                     <div className="absolute top-full left-0 mt-1.5 z-50 bg-white border border-slate-200/80 rounded-xl shadow-xl shadow-slate-200/50 py-1.5 w-36 animate-in fade-in slide-in-from-top-1 duration-150" style={{ animation: 'fadeSlideDown 0.15s ease-out' }}>
                       <div className="px-1">
-                        {[2023,2024,2025,2026,2027].map(y => (
+                        {[2023, 2024, 2025, 2026, 2027].map(y => (
                           <button
                             key={y}
                             type="button"
                             onClick={() => { setBulkYear(y.toString()); setYearDropdownOpen(false); }}
-                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-100 ${
-                              bulkYear === y.toString()
+                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-100 ${bulkYear === y.toString()
                                 ? 'bg-[#2d5a47]/8 text-[#2d5a47] font-bold'
                                 : 'text-slate-700 hover:bg-slate-50 font-medium'
-                            }`}
+                              }`}
                           >
                             <span>{y}</span>
                             {bulkYear === y.toString() && <Check size={14} className="text-[#2d5a47]" />}
@@ -866,22 +857,20 @@ export default function Properties() {
                         <button
                           type="button"
                           onClick={() => setBulkSplitTarget('all')}
-                          className={`flex-1 py-1 px-2 rounded-lg font-bold transition-all ${
-                            bulkSplitTarget === 'all'
+                          className={`flex-1 py-1 px-2 rounded-lg font-bold transition-all ${bulkSplitTarget === 'all'
                               ? 'bg-[#2d5a47] text-white shadow-2xs'
                               : 'text-slate-600 hover:text-slate-900'
-                          }`}
+                            }`}
                         >
                           All Occupied ({occupiedRoomsForBulk.length})
                         </button>
                         <button
                           type="button"
                           onClick={() => setBulkSplitTarget('shared_only')}
-                          className={`flex-1 py-1 px-2 rounded-lg font-bold transition-all ${
-                            bulkSplitTarget === 'shared_only'
+                          className={`flex-1 py-1 px-2 rounded-lg font-bold transition-all ${bulkSplitTarget === 'shared_only'
                               ? 'bg-[#2d5a47] text-white shadow-2xs'
                               : 'text-slate-600 hover:text-slate-900'
-                          }`}
+                            }`}
                         >
                           Shared/Direct Only
                         </button>
@@ -900,7 +889,7 @@ export default function Properties() {
                           const targetList = bulkSplitTarget === 'all'
                             ? occupiedRoomsForBulk
                             : occupiedRoomsForBulk.filter(r => r.elec_mode === 'shared' || r.elec_mode === 'direct');
-                          
+
                           if (targetList.length === 0) {
                             toast('No eligible rooms found', 'warning');
                             return;
@@ -961,6 +950,7 @@ export default function Properties() {
                             const roomTenants = getRoomTenants(room.id);
                             const tenantCount = Math.max(1, roomTenants.length);
                             const isShared = roomTenants.length > 1;
+                            const isSubmeter = room.elec_mode === 'submeter' || (!room.elec_mode && room.has_submeter !== false) || isShared;
                             const readings = bulkReadings[room.id] || {};
                             const prevReading = parseFloat(room.current_meter_reading || 0);
                             const rawCurr = readings.currentReading;
@@ -973,7 +963,7 @@ export default function Properties() {
 
                             let totalRoomElec = 0;
                             let elecLabel = '';
-                            if (room.elec_mode === 'submeter' || room.has_submeter !== false) {
+                            if (isSubmeter) {
                               totalRoomElec = units * rate;
                               elecLabel = `${units.toFixed(0)}u × ₹${rate}`;
                             } else {
@@ -987,6 +977,7 @@ export default function Properties() {
                               }
                               elecLabel = room.elec_mode === 'direct' ? 'Direct' : room.elec_mode === 'fixed' ? 'Fixed' : 'Custom';
                             }
+
 
                             const tenantElecShare = isShared ? Math.round(totalRoomElec / tenantCount) : totalRoomElec;
 
@@ -1011,14 +1002,14 @@ export default function Properties() {
                                   </td>
                                   <td className="px-3 py-3 font-semibold text-slate-800">{formatINR(rent)}</td>
                                   <td className="px-3 py-3">
-                                    {room.elec_mode === 'submeter' || room.has_submeter !== false ? (
+                                    {isSubmeter ? (
                                       <div className="font-mono font-bold text-slate-700">{prevReading} <span className="text-[9px] text-slate-400 font-normal">u</span></div>
                                     ) : (
                                       <span className="text-slate-400">—</span>
                                     )}
                                   </td>
                                   <td className="px-3 py-3">
-                                    {room.elec_mode === 'submeter' || room.has_submeter !== false ? (
+                                    {isSubmeter ? (
                                       <input
                                         type="number"
                                         min={prevReading}
@@ -1032,7 +1023,7 @@ export default function Properties() {
                                     )}
                                   </td>
                                   <td className="px-3 py-3">
-                                    {room.elec_mode === 'submeter' || room.has_submeter !== false ? (
+                                    {isSubmeter ? (
                                       <>
                                         <div className="font-bold text-[#2d5a47]">{formatINR(totalRoomElec)}</div>
                                         <div className="text-[9px] text-slate-400 font-medium truncate">{elecLabel}</div>
@@ -1058,9 +1049,8 @@ export default function Properties() {
                                       placeholder={formatINR(autoArrears)}
                                       value={readings.arrears !== undefined ? readings.arrears : (autoArrears > 0 ? autoArrears : '')}
                                       onChange={e => handleBulkReadingChange(room.id, 'arrears', e.target.value)}
-                                      className={`px-2 py-1 border rounded-lg text-xs font-semibold w-full focus:outline-none focus:ring-1 transition-all ${
-                                        arrears > 0 ? 'bg-amber-50/80 border-amber-300 text-amber-900 focus:border-amber-500 focus:ring-amber-500/20' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400 focus:border-[#2d5a47] focus:bg-white focus:ring-[#2d5a47]/20'
-                                      }`}
+                                      className={`px-2 py-1 border rounded-lg text-xs font-semibold w-full focus:outline-none focus:ring-1 transition-all ${arrears > 0 ? 'bg-amber-50/80 border-amber-300 text-amber-900 focus:border-amber-500 focus:ring-amber-500/20' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400 focus:border-[#2d5a47] focus:bg-white focus:ring-[#2d5a47]/20'
+                                        }`}
                                     />
                                   </td>
                                   <td className="px-3 py-3">
@@ -1166,9 +1156,8 @@ export default function Properties() {
                                           placeholder={formatINR(autoArrears)}
                                           value={tReadings.arrears !== undefined ? tReadings.arrears : (autoArrears > 0 ? autoArrears : '')}
                                           onChange={e => handleTenantReadingChange(room.id, t.id, 'arrears', e.target.value)}
-                                          className={`px-2 py-1 border rounded-lg text-xs font-semibold w-full focus:outline-none focus:ring-1 transition-all ${
-                                            tArrears > 0 ? 'bg-amber-50/80 border-amber-300 text-amber-900 focus:border-amber-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400 focus:border-[#2d5a47] focus:bg-white'
-                                          }`}
+                                          className={`px-2 py-1 border rounded-lg text-xs font-semibold w-full focus:outline-none focus:ring-1 transition-all ${tArrears > 0 ? 'bg-amber-50/80 border-amber-300 text-amber-900 focus:border-amber-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400 focus:border-[#2d5a47] focus:bg-white'
+                                            }`}
                                         />
                                       </td>
                                       <td className="px-3 py-2">
@@ -1200,6 +1189,7 @@ export default function Properties() {
                         const roomTenants = getRoomTenants(room.id);
                         const isShared = roomTenants.length > 1;
                         const tenantCount = Math.max(1, roomTenants.length);
+                        const isSubmeter = room.elec_mode === 'submeter' || (!room.elec_mode && room.has_submeter !== false) || isShared;
                         const readings = bulkReadings[room.id] || {};
                         const prevReading = parseFloat(room.current_meter_reading || 0);
                         const currReading = parseFloat(readings.currentReading || prevReading);
@@ -1208,7 +1198,7 @@ export default function Properties() {
                         const rent = parseFloat(room.base_rent || 0);
 
                         let totalRoomElec = 0;
-                        if (room.elec_mode === 'submeter' || room.has_submeter !== false) {
+                        if (isSubmeter) {
                           totalRoomElec = units * rate;
                         } else {
                           const customDirect = readings.directElec;
@@ -1247,9 +1237,9 @@ export default function Properties() {
                             {/* Meter reading input */}
                             <div>
                               <label className="text-[10px] text-slate-500 font-bold uppercase block">
-                                {room.elec_mode === 'submeter' || room.has_submeter !== false ? `Meter Reading (Prev: ${prevReading}u)` : 'Direct Elec (₹)'}
+                                {isSubmeter ? `Meter Reading (Prev: ${prevReading}u)` : 'Direct Elec (₹)'}
                               </label>
-                              {room.elec_mode === 'submeter' || room.has_submeter !== false ? (
+                              {isSubmeter ? (
                                 <input
                                   type="number"
                                   min={prevReading}
@@ -1362,11 +1352,10 @@ export default function Properties() {
                           return (
                             <div
                               key={item.billId || idx}
-                              className={`rounded-2xl border p-4 text-xs space-y-2.5 shadow-sm transition-all ${
-                                isSuccess
+                              className={`rounded-2xl border p-4 text-xs space-y-2.5 shadow-sm transition-all ${isSuccess
                                   ? 'bg-white border-slate-200/80'
                                   : 'bg-red-50/50 border-red-200'
-                              }`}
+                                }`}
                             >
                               <div className="flex justify-between items-center">
                                 <span className="font-bold text-slate-900 text-sm">Room {itemRoom.room_number || 'Room'}</span>
@@ -1430,11 +1419,10 @@ export default function Properties() {
                     <button
                       key={st}
                       onClick={() => setRoomStatusFilter(st)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                        roomStatusFilter === st
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${roomStatusFilter === st
                           ? 'bg-[#2d5a47] text-white shadow-sm'
                           : 'text-slate-600 hover:text-slate-900'
-                      }`}
+                        }`}
                     >
                       {st}
                     </button>
@@ -1460,8 +1448,8 @@ export default function Properties() {
                   <Home size={44} className="text-slate-400 mb-3" />
                   <p className="font-bold text-slate-800">No rooms found</p>
                   <p className="text-xs text-slate-500 mt-1 max-w-sm">
-                    {roomSearchQuery || roomStatusFilter !== 'All' 
-                      ? 'No room matches your filter or search query.' 
+                    {roomSearchQuery || roomStatusFilter !== 'All'
+                      ? 'No room matches your filter or search query.'
                       : 'Add your first room to start managing tenants, rent, and electricity billing.'}
                   </p>
                   <button
@@ -1564,15 +1552,14 @@ export default function Properties() {
                                 </td>
 
                                 <td className="px-6 py-4">
-                                  <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                                    roomTenants.length > 1
+                                  <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold ${roomTenants.length > 1
                                       ? 'bg-amber-50 text-amber-800 border border-amber-200/80'
-                                      : isOccupied 
-                                      ? 'bg-emerald-50 text-emerald-700' 
-                                      : room.status === 'Maintenance' 
-                                      ? 'bg-purple-50 text-purple-700' 
-                                      : 'bg-amber-50 text-amber-700'
-                                  }`}>
+                                      : isOccupied
+                                        ? 'bg-emerald-50 text-emerald-700'
+                                        : room.status === 'Maintenance'
+                                          ? 'bg-purple-50 text-purple-700'
+                                          : 'bg-amber-50 text-amber-700'
+                                    }`}>
                                     {roomTenants.length > 1 ? `Shared (${roomTenants.length})` : isOccupied ? 'Occupied' : room.status || 'Vacant'}
                                   </span>
                                 </td>
@@ -1581,11 +1568,10 @@ export default function Properties() {
                                   <div className="inline-block text-left room-action-menu" onClick={e => e.stopPropagation()}>
                                     <button
                                       onClick={() => setActiveMenuRoomId(activeMenuRoomId === room.id ? null : room.id)}
-                                      className={`p-1.5 rounded-xl transition-all cursor-pointer ${
-                                        activeMenuRoomId === room.id 
-                                          ? 'bg-[#2d5a47] text-white shadow-sm ring-2 ring-[#2d5a47]/20' 
+                                      className={`p-1.5 rounded-xl transition-all cursor-pointer ${activeMenuRoomId === room.id
+                                          ? 'bg-[#2d5a47] text-white shadow-sm ring-2 ring-[#2d5a47]/20'
                                           : 'text-slate-400 hover:text-slate-800 hover:bg-slate-100'
-                                      }`}
+                                        }`}
                                       title="Room Actions"
                                     >
                                       <MoreVertical size={16} />
@@ -1706,9 +1692,8 @@ export default function Properties() {
                               </div>
                             </div>
 
-                            <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                              isOccupied ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
-                            }`}>
+                            <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold ${isOccupied ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+                              }`}>
                               {roomTenants.length > 1 ? `Shared (${roomTenants.length})` : isOccupied ? 'Occupied' : room.status || 'Vacant'}
                             </span>
                           </div>

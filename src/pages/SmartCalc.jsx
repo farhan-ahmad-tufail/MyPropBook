@@ -321,11 +321,11 @@ export default function SmartCalc() {
       const ownerId = user?.id || 'mock_owner_id';
 
       const [propsList, roomsList, tenantsList, leasesList, billsList] = await Promise.all([
-        api.getProperties(ownerId),
-        api.getAllRooms(ownerId),
-        api.getTenants(ownerId),
-        api.getLeases(ownerId),
-        api.getBills(ownerId)
+        api.getProperties(ownerId).catch(() => []),
+        api.getAllRooms(ownerId).catch(() => []),
+        api.getTenants(ownerId).catch(() => []),
+        api.getLeases(ownerId).catch(() => []),
+        api.getBills(ownerId).catch(() => [])
       ]);
 
       setProperties(propsList);
@@ -392,7 +392,7 @@ export default function SmartCalc() {
 
     if (roomObj) {
       // Set default mode based on room setting if not customized
-      const defaultMode = roomObj.elec_mode || (roomObj.has_submeter !== false ? 'submeter' : 'direct');
+      const defaultMode = roomObj.elec_mode || ((!roomObj.elec_mode && roomObj.has_submeter !== false) ? 'submeter' : 'direct');
       setElecMode(defaultMode);
     }
 
@@ -493,7 +493,7 @@ export default function SmartCalc() {
       const uConsumed = Math.max(0, cRead - pRead);
       const rRate = parseFloat(r.rate_per_unit || 17);
       let rElec = 0;
-      if (r.elec_mode === 'submeter' || r.has_submeter !== false) {
+      if (r.elec_mode === 'submeter' || (!r.elec_mode && r.has_submeter !== false)) {
         rElec = uConsumed * rRate;
       } else {
         const rawDir = mRead.directElec;
@@ -937,6 +937,7 @@ export default function SmartCalc() {
                     setOtherCharges('');
                     setDirectElecAmount('');
                     setPropertyTotalElec('');
+
                     setMultiRoomReadings({});
                     setResult(null);
                     setIsSaved(false);
@@ -963,7 +964,7 @@ export default function SmartCalc() {
 
                   <div className="space-y-2.5 pt-1">
                     {tenantActiveRooms.map(roomItem => {
-                      const isSubmeter = roomItem.elec_mode === 'submeter' || roomItem.has_submeter !== false;
+                      const isSubmeter = roomItem.elec_mode === 'submeter' || (!roomItem.elec_mode && roomItem.has_submeter !== false);
                       const rPrev = parseFloat(roomItem.current_meter_reading || 0);
                       const mData = multiRoomReadings[roomItem.id] || {};
                       return (
@@ -1019,12 +1020,12 @@ export default function SmartCalc() {
 
               {/* ELECTRICITY MODE TOGGLE & COMPACT METER INPUT (Only for single room tenants) */}
               {!isMultiRoomTenant && (
-                <div className="p-4 rounded-2xl bg-[#edf5f1] border border-[#d8e7e0] space-y-3">
+                <div className="p-4.5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-3.5">
                   <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                     <span className="font-extrabold text-slate-900 flex items-center gap-1.5">
                       <Zap size={14} className="text-[#2d5a47]" /> Electricity billing mode:
                     </span>
-                    <div className="flex bg-white/80 p-0.5 rounded-xl gap-0.5 border border-slate-200/60">
+                    <div className="flex bg-slate-100/80 p-0.5 rounded-xl gap-0.5 border border-slate-200/60">
                       {[
                         { id: 'submeter', label: isSharedRoomTenants ? '⚡ Room Submeter (Shared)' : '⚡ Submeter' },
                         { id: 'direct', label: '📄 Direct' },
@@ -1036,8 +1037,8 @@ export default function SmartCalc() {
                           type="button"
                           onClick={() => setElecMode(mode.id)}
                           className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${elecMode === mode.id
-                              ? 'bg-[#2d5a47] text-white shadow-sm'
-                              : 'text-slate-600 hover:text-slate-900'
+                              ? 'bg-[#2d5a47] text-white shadow-xs'
+                              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
                             }`}
                         >
                           {mode.label}
@@ -1046,18 +1047,19 @@ export default function SmartCalc() {
                     </div>
                   </div>
 
-                  {/* PG Multi-Tenant Submeter Split Banner */}
-                  {isSharedRoomTenants && elecMode === 'submeter' && (
-                    <div className="p-3 bg-amber-50 border border-amber-200/80 rounded-xl text-xs space-y-2 text-amber-900">
-                      <div className="flex items-center gap-1.5 font-bold">
-                        <span>👥 Shared Room — {roomTenantCount} Tenants</span>
-                        <span className="bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded text-[10px]">Submeter Split</span>
+                  {/* PG Multi-Tenant Submeter Split Summary (Shown only for solo roommate selection) */}
+                  {isSharedRoomTenants && elecMode === 'submeter' && !isGroupRoomSelection && (
+                    <div className="p-3 bg-emerald-50/80 border border-emerald-200/80 rounded-xl text-xs space-y-1 text-[#2d5a47]">
+                      <div className="flex items-center justify-between font-bold">
+                        <span className="flex items-center gap-1.5">
+                          <Users size={13} /> Shared Room ({roomTenantCount} Roommates)
+                        </span>
+                        <span className="bg-[#2d5a47] text-white px-2 py-0.5 rounded-md text-[10px] font-bold">
+                          1/{roomTenantCount} Share = {formatINR(calculatedElecAmount)}
+                        </span>
                       </div>
-                      <p className="text-[11px] text-amber-800 leading-snug">
-                        Room {activeRoom?.room_number} total electricity ({formatINR(roomTotalElec)}) is split equally &rarr; <strong>1/{roomTenantCount} = {formatINR(calculatedElecAmount)} for {activeTenant?.name}</strong>.
-                      </p>
-                      <p className="text-[11px] text-amber-700 leading-snug border-t border-amber-200 pt-1.5">
-                        💡 <strong>Tip:</strong> Enter the <em>same current reading</em> when billing each tenant of this room. The meter reading won't auto-advance until you update it manually, so all {roomTenantCount} tenants get the correct split.
+                      <p className="text-[11px] text-slate-600">
+                        Room {activeRoom?.room_number} total electricity ({formatINR(roomTotalElec)}) is split equally for <strong>{activeTenant?.name}</strong>.
                       </p>
                     </div>
                   )}
@@ -1066,12 +1068,12 @@ export default function SmartCalc() {
                     <div className="space-y-2.5">
                       <div className="flex justify-between items-center text-xs">
                         <span className="text-[11px] text-slate-500 font-medium">Enter current meter reading</span>
-                        <span className="px-2.5 py-0.5 rounded-full bg-slate-200/70 text-slate-700 font-extrabold text-[11px]">
+                        <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 font-extrabold text-[11px] border border-slate-200/60">
                           Prev: {prevReading} units
                         </span>
                       </div>
 
-                      <div className="relative bg-white rounded-xl border border-slate-200/80 px-3 py-1.5 focus-within:border-[#2d5a47] focus-within:ring-1 focus-within:ring-[#2d5a47] transition-all">
+                      <div className="relative bg-slate-50/70 focus-within:bg-white rounded-xl border border-slate-200 px-3.5 py-2 focus-within:border-[#2d5a47] focus-within:ring-2 focus-within:ring-[#2d5a47]/10 transition-all">
                         <input
                           type="number"
                           required
@@ -1081,7 +1083,7 @@ export default function SmartCalc() {
                           value={currentReading}
                           onChange={e => setCurrentReading(e.target.value)}
                         />
-                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 select-none">
                           units
                         </span>
                       </div>
@@ -1090,13 +1092,13 @@ export default function SmartCalc() {
                         <span className="text-slate-500 text-[11px]">
                           {isSharedRoomTenants ? `Room usage (${unitsConsumed}u) ÷ ${roomTenantCount} tenants` : 'Usage breakdown'}
                         </span>
-                        <div className="flex items-center gap-1">
-                          <span className="px-2 py-0.5 rounded-lg bg-white border border-slate-200 text-[#2d5a47] font-black text-xs">
+                        <div className="flex items-center gap-1.5">
+                          <span className="px-2 py-0.5 rounded-lg bg-emerald-50 border border-emerald-200/80 text-[#2d5a47] font-black text-xs">
                             {unitsConsumed} units
                           </span>
                           <span className="text-slate-400 font-mono text-[11px]">× ₹{rate}/unit</span>
                           {isSharedRoomTenants && (
-                            <span className="text-amber-700 font-bold font-mono text-[11px] bg-amber-50 px-1.5 py-0.5 rounded">
+                            <span className="text-[#2d5a47] font-bold font-mono text-[11px] bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/60">
                               → {formatINR(calculatedElecAmount)}
                             </span>
                           )}
@@ -1110,12 +1112,12 @@ export default function SmartCalc() {
                       <div className="flex justify-between items-center">
                         <label className="text-[11px] font-bold text-slate-700 block">Direct Electricity Amount (₹)</label>
                         {isSharedRoomTenants && (
-                          <span className="text-[10px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded-full">
+                          <span className="text-[10px] text-[#2d5a47] font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
                             Split across {roomTenantCount} tenants (₹{calculatedElecAmount} each)
                           </span>
                         )}
                       </div>
-                      <div className="relative bg-white rounded-xl border border-slate-200/80 px-3 py-1.5">
+                      <div className="relative bg-slate-50/70 focus-within:bg-white rounded-xl border border-slate-200 px-3.5 py-2 focus-within:border-[#2d5a47] focus-within:ring-2 focus-within:ring-[#2d5a47]/10 transition-all">
                         <input
                           type="number"
                           required
@@ -1130,7 +1132,7 @@ export default function SmartCalc() {
                   )}
 
                   {elecMode === 'shared' && (
-                    <div className="p-3.5 bg-white rounded-xl border border-slate-200/80 space-y-3">
+                    <div className="p-3.5 bg-slate-50/60 rounded-xl border border-slate-200/80 space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                           <span>🤝 Total Property Bill Split</span>
@@ -1149,7 +1151,7 @@ export default function SmartCalc() {
                             placeholder="e.g. 6000"
                             value={propertyTotalElec}
                             onChange={e => setPropertyTotalElec(e.target.value)}
-                            className="w-full pl-7 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-base font-black text-slate-900 outline-none focus:border-[#2d5a47] focus:bg-white"
+                            className="w-full pl-7 pr-3 py-1.5 bg-white border border-slate-200 rounded-xl text-base font-black text-slate-900 outline-none focus:border-[#2d5a47]"
                           />
                         </div>
                       </div>
@@ -1165,7 +1167,7 @@ export default function SmartCalc() {
                             className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                               splitBasis === 'rooms'
                                 ? 'bg-emerald-50 border-[#2d5a47] text-[#2d5a47] font-bold shadow-2xs'
-                                : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 font-medium'
+                                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100 font-medium'
                             }`}
                           >
                             <div className="text-[11px] font-extrabold">By Occupied Rooms</div>
@@ -1178,7 +1180,7 @@ export default function SmartCalc() {
                             className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                               splitBasis === 'tenants'
                                 ? 'bg-emerald-50 border-[#2d5a47] text-[#2d5a47] font-bold shadow-2xs'
-                                : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 font-medium'
+                                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100 font-medium'
                             }`}
                           >
                             <div className="text-[11px] font-extrabold">By Tenant Headcount</div>
@@ -1215,26 +1217,23 @@ export default function SmartCalc() {
 
               {/* GROUP ROOMMATE BREAKDOWN CARD (When Room Group is Selected) */}
               {isGroupRoomSelection && (
-                <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200/80 space-y-3 animate-in fade-in duration-200">
-                  <div className="flex items-center justify-between">
+                <div className="p-4.5 rounded-2xl bg-white border border-slate-200/90 shadow-sm space-y-3.5 animate-in fade-in duration-200">
+                  <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
                     <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded bg-amber-200 text-amber-900 font-extrabold text-[10px] uppercase">
-                        👥 ROOMMATES ROSTER ({roomTenantCount} TENANTS)
-                      </span>
-                      <span className="text-xs font-bold text-amber-950">
-                        Room {activeRoom?.room_number} Individual Splits
-                      </span>
+                      <div className="w-7 h-7 rounded-xl bg-emerald-50 text-[#2d5a47] flex items-center justify-center font-bold text-xs">
+                        <Users size={15} />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-extrabold text-slate-900">Roommates Roster ({roomTenantCount} Tenants)</h4>
+                        <p className="text-[11px] text-slate-500">Electricity &amp; rent are auto-divided. Adjust balance or extras per roommate below.</p>
+                      </div>
                     </div>
-                    <span className="text-[11px] font-bold text-amber-800">
-                      ⚡ {formatINR(calculatedElecAmount)} elec/person
+                    <span className="text-xs font-extrabold text-[#2d5a47] bg-[#edf5f1] px-2.5 py-1 rounded-full border border-[#d8e7e0]">
+                      ⚡ {formatINR(calculatedElecAmount)}/person
                     </span>
                   </div>
 
-                  <p className="text-[11px] text-amber-900 leading-snug">
-                    Electricity &amp; rent are auto-divided. Customize previous pending balance or other charges for each roommate below before generating all bills in 1 click:
-                  </p>
-
-                  <div className="space-y-2 pt-1">
+                  <div className="space-y-2.5">
                     {roomActiveLeases.map((l, idx) => {
                       const tObj = tenants.find(t => t.id === l.tenant_id);
                       if (!tObj) return null;
@@ -1244,25 +1243,28 @@ export default function SmartCalc() {
                       const tTotal = baseRentAmount + calculatedElecAmount + tArrears + tOther;
 
                       return (
-                        <div key={tObj.id} className="bg-white rounded-xl p-3 border border-amber-200 shadow-2xs space-y-2 text-xs">
-                          <div className="flex justify-between items-center font-black text-slate-900">
-                            <div className="flex items-center gap-1.5">
-                              <span className="w-4 h-4 rounded-full bg-amber-100 text-amber-800 text-[10px] font-black flex items-center justify-center">
+                        <div key={tObj.id} className="bg-slate-50/70 hover:bg-slate-50 rounded-xl p-3 border border-slate-200/70 transition-all space-y-2.5">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="w-5 h-5 rounded-full bg-[#2d5a47] text-white text-[10px] font-extrabold flex items-center justify-center">
                                 {idx + 1}
                               </span>
-                              <span>{tObj.name}</span>
-                              <span className="text-[10px] text-slate-400 font-normal">
-                                (Rent: {formatINR(baseRentAmount)} + Elec: {formatINR(calculatedElecAmount)})
-                              </span>
+                              <div>
+                                <span className="font-bold text-slate-900 text-xs">{tObj.name}</span>
+                                <span className="text-[10.5px] text-slate-500 block font-normal">
+                                  Rent {formatINR(baseRentAmount)} + Elec {formatINR(calculatedElecAmount)}
+                                </span>
+                              </div>
                             </div>
-                            <span className="text-[#2d5a47] font-black text-sm">
-                              {formatINR(tTotal)}
-                            </span>
+                            <div className="text-right">
+                              <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block">TOTAL</span>
+                              <span className="text-[#2d5a47] font-black text-sm">{formatINR(tTotal)}</span>
+                            </div>
                           </div>
 
-                          <div className="grid grid-cols-2 gap-2 text-[11px]">
+                          <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-slate-200/50">
                             <div>
-                              <span className="text-slate-400 text-[10px] font-bold block">PREV BALANCE (₹)</span>
+                              <label className="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Prev Balance (₹)</label>
                               <input
                                 type="number"
                                 placeholder="0"
@@ -1271,11 +1273,11 @@ export default function SmartCalc() {
                                   ...prev,
                                   [tObj.id]: { ...(prev[tObj.id] || {}), arrears: e.target.value }
                                 }))}
-                                className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 outline-none focus:border-[#2d5a47] focus:bg-white"
+                                className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 outline-none focus:border-[#2d5a47] focus:ring-2 focus:ring-[#2d5a47]/10 transition-all"
                               />
                             </div>
                             <div>
-                              <span className="text-slate-400 text-[10px] font-bold block">OTHER CHARGES (₹)</span>
+                              <label className="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Other Charges (₹)</label>
                               <input
                                 type="number"
                                 placeholder="0"
@@ -1284,7 +1286,7 @@ export default function SmartCalc() {
                                   ...prev,
                                   [tObj.id]: { ...(prev[tObj.id] || {}), otherCharges: e.target.value }
                                 }))}
-                                className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 outline-none focus:border-[#2d5a47] focus:bg-white"
+                                className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 outline-none focus:border-[#2d5a47] focus:ring-2 focus:ring-[#2d5a47]/10 transition-all"
                               />
                             </div>
                           </div>

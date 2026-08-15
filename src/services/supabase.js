@@ -61,13 +61,26 @@ export const supabaseDb = {
     return data;
   },
   getAllRooms: async (userId) => {
-    // Select all rooms belonging to properties owned by user
-    const { data, error } = await supabase
-      .from('rooms')
-      .select('*, properties!inner(owner_id)')
-      .eq('properties.owner_id', userId);
-    if (error) throw error;
-    return data;
+    try {
+      const { data, error } = await supabase
+        .from('rooms')
+        .select('*, properties!inner(owner_id)')
+        .eq('properties.owner_id', userId);
+      if (error) throw error;
+      return data || [];
+    } catch (e) {
+      console.warn("getAllRooms primary query failed, using fallback:", e.message || e);
+      try {
+        const { data: userProps } = await supabase.from('properties').select('id').eq('owner_id', userId);
+        if (!userProps || userProps.length === 0) return [];
+        const propIds = userProps.map(p => p.id);
+        const { data: rooms } = await supabase.from('rooms').select('*').in('property_id', propIds);
+        return rooms || [];
+      } catch (err2) {
+        console.error("getAllRooms fallback failed:", err2);
+        return [];
+      }
+    }
   },
   createRoom: async (propertyId, roomData) => {
     const { data, error } = await supabase
@@ -154,12 +167,26 @@ export const supabaseDb = {
 
   // Leases
   getLeases: async (userId) => {
-    const { data, error } = await supabase
-      .from('leases')
-      .select('*, tenants!inner(owner_id)')
-      .eq('tenants.owner_id', userId);
-    if (error) throw error;
-    return data;
+    try {
+      const { data, error } = await supabase
+        .from('leases')
+        .select('*, tenants!inner(owner_id)')
+        .eq('tenants.owner_id', userId);
+      if (error) throw error;
+      return data || [];
+    } catch (e) {
+      console.warn("getLeases primary query failed, using fallback:", e.message || e);
+      try {
+        const { data: userTenants } = await supabase.from('tenants').select('id').eq('owner_id', userId);
+        if (!userTenants || userTenants.length === 0) return [];
+        const tenantIds = userTenants.map(t => t.id);
+        const { data: leases } = await supabase.from('leases').select('*').in('tenant_id', tenantIds);
+        return leases || [];
+      } catch (err2) {
+        console.error("getLeases fallback failed:", err2);
+        return [];
+      }
+    }
   },
   createLease: async (tenantId, roomId, leaseData = {}) => {
     // Only deactivate previous active leases for THIS SAME tenant in this room
@@ -196,14 +223,30 @@ export const supabaseDb = {
 
   // Bills
   getBills: async (userId) => {
-    // Select bills where the room belongs to a property owned by userId
-    const { data, error } = await supabase
-      .from('bills')
-      .select('*, rooms!inner(id, properties!inner(owner_id))')
-      .eq('rooms.properties.owner_id', userId)
-      .order('generated_at', { ascending: false });
-    if (error) throw error;
-    return data;
+    try {
+      const { data, error } = await supabase
+        .from('bills')
+        .select('*, rooms!inner(id, properties!inner(owner_id))')
+        .eq('rooms.properties.owner_id', userId)
+        .order('generated_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    } catch (e) {
+      console.warn("getBills primary query failed, using fallback:", e.message || e);
+      try {
+        const { data: userProps } = await supabase.from('properties').select('id').eq('owner_id', userId);
+        if (!userProps || userProps.length === 0) return [];
+        const propIds = userProps.map(p => p.id);
+        const { data: rooms } = await supabase.from('rooms').select('id').in('property_id', propIds);
+        if (!rooms || rooms.length === 0) return [];
+        const roomIds = rooms.map(r => r.id);
+        const { data: bills } = await supabase.from('bills').select('*').in('room_id', roomIds).order('generated_at', { ascending: false });
+        return bills || [];
+      } catch (err2) {
+        console.error("getBills fallback failed:", err2);
+        return [];
+      }
+    }
   },
   createBill: async (billData) => {
     // Insert new bill
@@ -326,38 +369,60 @@ export const supabaseDb = {
 
   // ── Security Deposits ──────────────────────────────────────────────
   getDeposits: async (userId) => {
-    const { data, error } = await supabase
-      .from('security_deposits')
-      .select('*')
-      .eq('owner_id', userId)
-      .order('created_at', { ascending: false });
-    if (error) throw error;
-    return data;
+    try {
+      const { data, error } = await supabase
+        .from('security_deposits')
+        .select('*')
+        .eq('owner_id', userId)
+        .order('created_at', { ascending: false });
+      if (error) {
+        console.warn("security_deposits query error (table may not exist yet):", error.message);
+        return [];
+      }
+      return data || [];
+    } catch (e) {
+      console.warn("security_deposits get error:", e);
+      return [];
+    }
   },
   createDeposit: async (userId, depositData) => {
-    const { data, error } = await supabase
-      .from('security_deposits')
-      .insert([{ owner_id: userId, ...depositData, status: 'held', deductions: [] }])
-      .select()
-      .single();
-    if (error) throw error;
-    return data;
+    try {
+      const { data, error } = await supabase
+        .from('security_deposits')
+        .insert([{ owner_id: userId, ...depositData, status: 'held', deductions: [] }])
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    } catch (e) {
+      console.warn("security_deposits create error:", e);
+      return { id: 'temp_' + Date.now(), owner_id: userId, ...depositData, status: 'held', deductions: [] };
+    }
   },
   updateDeposit: async (id, depositData) => {
-    const { data, error } = await supabase
-      .from('security_deposits')
-      .update(depositData)
-      .eq('id', id)
-      .select()
-      .single();
-    if (error) throw error;
-    return data;
+    try {
+      const { data, error } = await supabase
+        .from('security_deposits')
+        .update(depositData)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    } catch (e) {
+      console.warn("security_deposits update error:", e);
+      return { id, ...depositData };
+    }
   },
   deleteDeposit: async (id) => {
-    const { error } = await supabase
-      .from('security_deposits')
-      .delete()
-      .eq('id', id);
-    if (error) throw error;
+    try {
+      const { error } = await supabase
+        .from('security_deposits')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    } catch (e) {
+      console.warn("security_deposits delete error:", e);
+    }
   }
 };

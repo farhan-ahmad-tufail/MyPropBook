@@ -79,6 +79,21 @@ create table if not exists public.payments (
     created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
+-- 7. SECURITY DEPOSITS
+create table if not exists public.security_deposits (
+    id uuid default uuid_generate_v4() primary key,
+    owner_id uuid not null default auth.uid(),
+    tenant_id uuid references public.tenants(id) on delete cascade not null,
+    property_id uuid references public.properties(id) on delete set null,
+    room_id uuid references public.rooms(id) on delete set null,
+    amount numeric(10, 2) default 0.00 not null,
+    deposit_date date default CURRENT_DATE not null,
+    status text default 'held',
+    deductions jsonb default '[]'::jsonb,
+    notes text,
+    created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
 -- Enable Row Level Security (RLS)
 alter table public.properties enable row level security;
 alter table public.rooms enable row level security;
@@ -86,6 +101,7 @@ alter table public.tenants enable row level security;
 alter table public.leases enable row level security;
 alter table public.bills enable row level security;
 alter table public.payments enable row level security;
+alter table public.security_deposits enable row level security;
 
 -- Policies for Authenticated Users (Full CRUD access)
 drop policy if exists "Allow owners full access to properties" on public.properties;
@@ -94,6 +110,7 @@ drop policy if exists "Allow owners full access to tenants" on public.tenants;
 drop policy if exists "Allow owners full access to leases" on public.leases;
 drop policy if exists "Allow owners full access to bills" on public.bills;
 drop policy if exists "Allow owners full access to payments" on public.payments;
+drop policy if exists "Allow owners full access to security_deposits" on public.security_deposits;
 
 create policy "Allow owners full access to properties" on public.properties for all using (true) with check (true);
 create policy "Allow owners full access to rooms" on public.rooms for all using (true) with check (true);
@@ -101,3 +118,4 @@ create policy "Allow owners full access to tenants" on public.tenants for all us
 create policy "Allow owners full access to leases" on public.leases for all using (true) with check (true);
 create policy "Allow owners full access to bills" on public.bills for all using (true) with check (true);
 create policy "Allow owners full access to payments" on public.payments for all using (true) with check (true);
+create policy "Allow owners full access to security_deposits" on public.security_deposits for all using (true) with check (true);

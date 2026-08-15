@@ -58,11 +58,11 @@ export default function Dashboard() {
         const ownerId = user?.id || 'mock_owner_id';
 
         const [propsList, roomsList, tenantsList, leasesList, billsList] = await Promise.all([
-          api.getProperties(ownerId),
-          api.getAllRooms(ownerId),
-          api.getTenants(ownerId),
-          api.getLeases(ownerId),
-          api.getBills(ownerId)
+          api.getProperties(ownerId).catch(() => []),
+          api.getAllRooms(ownerId).catch(() => []),
+          api.getTenants(ownerId).catch(() => []),
+          api.getLeases(ownerId).catch(() => []),
+          api.getBills(ownerId).catch(() => [])
         ]);
 
         setProperties(propsList);

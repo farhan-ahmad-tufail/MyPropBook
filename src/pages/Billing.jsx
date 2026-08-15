@@ -95,11 +95,11 @@ export default function Billing() {
       const ownerId = user?.id || 'mock_owner_id';
 
       const [billsList, tenantsList, roomsList, leasesList, propsList] = await Promise.all([
-        api.getBills(ownerId),
-        api.getTenants(ownerId),
-        api.getAllRooms(ownerId),
-        api.getLeases ? api.getLeases(ownerId) : Promise.resolve([]),
-        api.getProperties ? api.getProperties(ownerId) : Promise.resolve([])
+        api.getBills(ownerId).catch(() => []),
+        api.getTenants(ownerId).catch(() => []),
+        api.getAllRooms(ownerId).catch(() => []),
+        api.getLeases ? api.getLeases(ownerId).catch(() => []) : Promise.resolve([]),
+        api.getProperties ? api.getProperties(ownerId).catch(() => []) : Promise.resolve([])
       ]);
 
       setBills(billsList || []);

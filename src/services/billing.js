@@ -47,9 +47,10 @@ export async function generateBulkBills(propertyId, occupiedRooms, bulkReadings,
         : prevReading;
       const totalRoomUnits = Math.max(0, currReading - prevReading);
       const rate = parseFloat(room.rate_per_unit ?? room.elec_rate ?? 17);
+      const isSubmeter = room.elec_mode === 'submeter' || (!room.elec_mode && room.has_submeter !== false) || isShared;
 
       let totalRoomElec = 0;
-      if (room.elec_mode === 'submeter' || room.has_submeter !== false) {
+      if (isSubmeter) {
         totalRoomElec = totalRoomUnits * rate;
       } else {
         const customDirect = roomReadings.directElec;
@@ -157,7 +158,7 @@ export async function generateBulkBills(propertyId, occupiedRooms, bulkReadings,
       }
 
       // Update room's meter reading if submeter
-      if (room.elec_mode === 'submeter' || room.has_submeter !== false) {
+      if (isSubmeter) {
         if (currReading > prevReading) {
           try {
             await api.updateRoom(room.id, { current_meter_reading: currReading });
