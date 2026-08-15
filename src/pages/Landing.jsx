@@ -19,7 +19,8 @@ import {
   X,
   Plus,
   CheckCircle2,
-  ArrowUpRight
+  ArrowUpRight,
+  Share2
 } from 'lucide-react';
 import Logo from '../components/Logo';
 
@@ -61,11 +62,11 @@ const features = [
     desc: 'See expected rent, collected amounts and pending balances at a glance.',
   },
   {
-    icon: Shield,
+    icon: Share2,
     accent: '#2d5a47',
     bg: '#edf5f1',
-    title: 'Offline & online',
-    desc: 'Keep working on phone, tablet or desktop, even when the internet drops.',
+    title: 'Shared room splitting',
+    desc: 'Split rent and utility bills fairly between roommates with individual roommate receipts.',
   },
 ];
 
