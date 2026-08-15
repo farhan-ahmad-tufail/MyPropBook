@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import {
   ArrowRight,
   Building2,
+  Building,
+  Home,
   Zap,
   Shield,
   BarChart3,
@@ -20,7 +22,13 @@ import {
   Plus,
   CheckCircle2,
   ArrowUpRight,
-  Share2
+  Share2,
+  Wallet,
+  UserCircle,
+  Settings,
+  LogOut,
+  MessageSquare,
+  Inbox
 } from 'lucide-react';
 import Logo from '../components/Logo';
 
@@ -122,12 +130,36 @@ const steps = [
 
 // Target Property Types
 const propertyTypes = [
-  { label: 'Apartments' },
-  { label: 'Rental properties' },
-  { label: 'PGs' },
-  { label: 'Hostels' },
-  { label: 'Residential buildings' },
-  { label: 'Small landlords' },
+  { 
+    label: 'Apartments',
+    desc: 'Keep units, leases and collections together.',
+    icon: Building2
+  },
+  { 
+    label: 'Rental properties',
+    desc: 'Run every property from one calm workspace.',
+    icon: Home
+  },
+  { 
+    label: 'PGs',
+    desc: 'Split shared rooms without the spreadsheet.',
+    icon: Users
+  },
+  { 
+    label: 'Hostels',
+    desc: 'Bills and receipts ready for every room.',
+    icon: Inbox
+  },
+  { 
+    label: 'Residential buildings',
+    desc: 'Make monthly operations predictable.',
+    icon: Building
+  },
+  { 
+    label: 'Small landlords',
+    desc: 'Less chasing. Better records.',
+    icon: FileText
+  },
 ];
 
 // Custom hook for reusable scroll animations
@@ -156,6 +188,7 @@ function useScrollReveal(threshold = 0.2, margin = '0px') {
 export default function Landing() {
   const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activePropertyIndex, setActivePropertyIndex] = useState(0);
   
   const [mockupRef, isMockupVisible] = useScrollReveal(0.3);
   const [typesRef, isTypesVisible] = useScrollReveal(0.2);
@@ -443,34 +476,56 @@ export default function Landing() {
       {/* ══════════════════════════════════════════
           4. PROPERTY TYPES SECTION
       ══════════════════════════════════════════ */}
-      <section className="py-16 px-6 bg-white border-y border-slate-200/80 text-center overflow-hidden">
+      <section className="py-20 px-6 border-y border-slate-200/80 text-center overflow-hidden" style={{ backgroundColor: '#EEF1EE' }}>
         <div 
           ref={typesRef}
-          className={`max-w-4xl mx-auto space-y-4 transition-all duration-1000 ease-out transform-gpu ${
+          className={`max-w-6xl mx-auto transition-all duration-1000 ease-out transform-gpu ${
             isTypesVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
           }`}
         >
-          <span className="text-[10px] font-black text-[#2d5a47] uppercase tracking-widest block">
-            MADE FOR YOUR KIND OF PROPERTY
-          </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-            One workspace for the way you rent.
-          </h2>
-          <p className="text-slate-500 text-sm max-w-xl mx-auto leading-relaxed">
-            Whether you manage a single building or a growing portfolio, MyPropBook keeps every room and rupee accounted for.
-          </p>
+          <div className="space-y-4 mb-14">
+            <span className="text-[10px] font-black text-[#2d5a47] uppercase tracking-widest block">
+              MADE FOR YOUR KIND OF PROPERTY
+            </span>
+            <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
+              One workspace for the way <br className="hidden sm:block" /> you rent.
+            </h2>
+            <p className="text-slate-500 text-sm max-w-xl mx-auto leading-relaxed">
+              Whether you manage a single building or a growing portfolio, MyPropBook keeps every room and rupee accounted for.
+            </p>
+          </div>
 
-          {/* Chips */}
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-4">
-            {propertyTypes.map(({ label }) => (
-              <div
-                key={label}
-                className="px-4 py-2 rounded-full bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold hover:border-[#2d5a47] hover:text-[#2d5a47] hover:bg-[#edf5f1] transition-all cursor-pointer flex items-center gap-1.5"
-              >
-                <span>{label}</span>
-                <ChevronRight size={13} className="text-slate-400" />
-              </div>
-            ))}
+          {/* SaaS Style Cards Row */}
+          <div className="flex overflow-x-auto hide-scrollbar gap-4 pb-6 snap-x snap-mandatory pt-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            {propertyTypes.map((pt, idx) => {
+              const Icon = pt.icon;
+              const isActive = activePropertyIndex === idx;
+              return (
+                <div
+                  key={pt.label}
+                  onClick={() => setActivePropertyIndex(idx)}
+                  className={`min-w-[200px] w-[200px] sm:w-[220px] shrink-0 snap-start bg-white rounded-xl p-5 text-left cursor-pointer transition-all duration-300 relative ${
+                    isActive 
+                      ? 'border-2 border-indigo-600 shadow-md transform -translate-y-1' 
+                      : 'border border-transparent shadow-sm opacity-80 hover:opacity-100 hover:shadow-md'
+                  }`}
+                >
+                  <div className="mb-4">
+                    <Icon size={20} className={isActive ? "text-indigo-600" : "text-[#2d5a47]"} />
+                  </div>
+                  <h4 className="font-bold text-sm text-slate-900 mb-2">{pt.label}</h4>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">{pt.desc}</p>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Dynamic Footer Context Line */}
+          <div className="mt-8 flex justify-center">
+            <p className="text-xs font-medium text-slate-600 flex items-center gap-2">
+              <span className="w-1 h-1 rounded-full bg-[#2d5a47]"></span>
+              {propertyTypes[activePropertyIndex].desc}
+            </p>
           </div>
         </div>
       </section>
