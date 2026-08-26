@@ -1005,10 +1005,10 @@ export default function Landing() {
               Built for landlords. Built from a real problem.
             </h2>
             <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-              I was manually splitting an electricity bill across 8 rooms in a WhatsApp calculator group at 11 pm — every single month. Someone always disputed a number, someone's reading got lost in the chat, and receipts were screenshots of calculator screens.
+              I kept hearing the same recurring frustration from PG owners and independent landlords: calculating utility bills by hand each month, splitting shared-room electricity on scratch pads, and texting screenshots of calculator apps as "receipts."
             </p>
             <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-              I built MyPropBook to handle it properly: meter readings go in, bills and receipts come out, each tenant gets their own PDF. No group-chat arithmetic, no notebooks.
+              MyPropBook replaces that manual loop: meter readings go in, clear bills and itemized receipts come out, and every tenant receives their own shareable PDF.
             </p>
 
             <div className="space-y-2 pt-2 text-xs font-semibold text-slate-700">
@@ -1034,11 +1034,11 @@ export default function Landing() {
           {/* Right — plain founder text block, no card container */}
           <div className="lg:col-span-5 text-left space-y-3">
             <p className="text-slate-600 text-sm leading-relaxed">
-              I had 3 properties and 24 rooms when I started building this. At that point the WhatsApp method stops scaling — there are just too many readings, too many partial payments, and too many people asking for old receipts you can't find anymore.
+              Property management software is usually either bloated enterprise ERPs or messy notebook habits. MyPropBook is designed as a focused, lightweight alternative specifically for the Indian rental and PG workflow.
             </p>
             <div className="pt-2">
               <p className="text-sm font-extrabold text-slate-900">Farhan Ahmad Tufail</p>
-              <p className="text-xs text-slate-400 font-medium mt-0.5">Founder · Full-Stack Software Engineer · India</p>
+              <p className="text-xs text-slate-400 font-medium mt-0.5">Creator · Full-Stack Software Engineer · India</p>
               <div className="flex items-center gap-2 mt-3">
                 <a href="https://github.com/farhan-ahmad-tufail" target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-slate-800 font-semibold transition-colors">GitHub ↗</a>
                 <span className="text-slate-300">·</span>
