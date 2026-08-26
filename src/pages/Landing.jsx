@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   ArrowRight,
@@ -188,9 +188,11 @@ function useScrollReveal(threshold = 0.2, margin = '0px') {
 }
 
 export default function Landing() {
-  const { user } = useAuth();
+  const { user, isLocal, signIn, signUp } = useAuth();
+  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activePropertyIndex, setActivePropertyIndex] = useState(0);
+  const [demoLoading, setDemoLoading] = useState(false);
   
   const [mockupRef, isMockupVisible] = useScrollReveal(0.05);
   const [typesRef, isTypesVisible] = useScrollReveal(0.2);
@@ -199,8 +201,37 @@ export default function Landing() {
   const [stepsRef, isStepsVisible] = useScrollReveal(0.2);
   const year = new Date().getFullYear();
 
+  const handleDemoClick = async () => {
+    setDemoLoading(true);
+    try {
+      if (isLocal) {
+        localStorage.setItem('mock_token', 'demo_token');
+        window.dispatchEvent(new Event('storage'));
+        navigate('/dashboard');
+      } else {
+        await signIn('demo@billroom.app', 'DemoPass123!');
+        navigate('/dashboard');
+      }
+    } catch (err) {
+      try {
+        await signUp('demo@billroom.app', 'DemoPass123!', 'Demo Landlord');
+        navigate('/dashboard');
+      } catch (e) {
+        navigate('/dashboard');
+      }
+    } finally {
+      setDemoLoading(false);
+    }
+  };
+
   return (
     <div className="relative overflow-hidden bg-[#f8faf9] text-slate-800 font-sans selection:bg-[#2d5a47] selection:text-white">
+
+      {/* ── Global Dot-Grid Background Texture (Neutral gray, ~3.5% opacity, static) ── */}
+      <div 
+        className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#0f172a_1px,transparent_1px)] [background-size:24px_24px] opacity-[0.035]" 
+        aria-hidden="true" 
+      />
 
       {/* ══════════════════════════════════════════
           1. NAVBAR
@@ -296,8 +327,14 @@ export default function Landing() {
       ══════════════════════════════════════════ */}
       <section className="relative z-10 px-4 sm:px-6 pt-20 sm:pt-24 pb-16 text-center max-w-5xl mx-auto">
         
+        {/* Soft light vignette behind hero headline */}
+        <div 
+          className="pointer-events-none absolute top-12 left-1/2 -translate-x-1/2 w-[720px] max-w-[95vw] h-[300px] bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,1)_0%,rgba(255,255,255,0.65)_45%,transparent_75%)] blur-2xl z-0" 
+          aria-hidden="true"
+        />
+
         {/* Animated Hero Header */}
-        <div className="animate-fade-in-up">
+        <div className="relative z-10 animate-fade-in-up">
           {/* Main Headline */}
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-slate-900 tracking-tight leading-[1.05] relative z-10">
             Stop tracking rent on WhatsApp and messy spreadsheets.
@@ -328,12 +365,14 @@ export default function Landing() {
                 <span>Create Free Account</span>
                 <ArrowRight size={16} />
               </Link>
-              <a
-                href="#how-it-works"
-                className="px-8 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-700 font-bold text-sm hover:bg-slate-50 hover:border-slate-300 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 shadow-sm w-full sm:w-auto text-center"
+              <button
+                type="button"
+                onClick={handleDemoClick}
+                disabled={demoLoading}
+                className="px-8 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-700 font-bold text-sm hover:bg-slate-50 hover:border-slate-300 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 shadow-sm w-full sm:w-auto text-center cursor-pointer"
               >
-                See how it works
-              </a>
+                {demoLoading ? 'Starting...' : 'View Demo'}
+              </button>
             </>
           )}
         </div>
@@ -369,7 +408,7 @@ export default function Landing() {
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                   <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                 </svg>
-                <span className="text-slate-600 font-mono text-[10.5px]">app.mypropbook.com</span>
+                <span className="text-slate-600 font-mono text-[10.5px]">app.mypropbook.in</span>
                 <span className="text-slate-400 font-mono text-[10.5px]">/overview</span>
               </div>
 
@@ -1085,11 +1124,6 @@ export default function Landing() {
               <p className="text-slate-400 text-sm leading-relaxed max-w-xs font-medium">
                 The simplest way for Indian landlords to manage properties, tenants, and billing — all in one place.
               </p>
-              {/* Status Pill */}
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-800/50 text-emerald-400 text-xs font-bold">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                All systems operational
-              </div>
 
               {/* Social links */}
               <div className="flex items-center gap-2 pt-1">
@@ -1119,7 +1153,7 @@ export default function Landing() {
             <div className="col-span-1 lg:col-span-3 space-y-4">
               <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">Built For</span>
               <ul className="space-y-3">
-                {['Rental properties', 'PGs & Hostels', 'Apartments', 'Small landlords'].map(item => (
+                {['Rental properties', 'PGs & Hostels', 'Apartments', 'Residential buildings', 'Small landlords'].map(item => (
                   <li key={item} className="text-sm text-slate-400 font-medium">{item}</li>
                 ))}
               </ul>

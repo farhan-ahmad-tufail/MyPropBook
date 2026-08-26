@@ -138,7 +138,7 @@ export default function Layout({ children }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const isPlainPage = ['/', '/login', '/signup'].includes(location.pathname);
+  const isPlainPage = ['/', '/login', '/signup', '/terms', '/privacy'].includes(location.pathname);
 
   const handleLogout = async () => {
     await signOut();

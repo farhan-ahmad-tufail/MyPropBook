@@ -13,6 +13,8 @@ import SmartCalc from './pages/SmartCalc';
 import Billing from './pages/Billing';
 import Analytics from './pages/Analytics';
 import QuickCalc from './pages/QuickCalc';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
 
 function App() {
   return (
@@ -32,6 +34,8 @@ function App() {
             <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
             <Route path="/quick-calc" element={<QuickCalc />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
           </Routes>
         </Layout>
       </BrowserRouter>
