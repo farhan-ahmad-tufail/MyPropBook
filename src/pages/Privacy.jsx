@@ -67,6 +67,17 @@ export default function Privacy() {
               We may update this Privacy Policy from time to time. We will notify you of any significant changes by posting the new Privacy Policy on this page and updating the "Last updated" date.
             </p>
           </section>
+
+          <section className="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+            <h2 className="text-base font-bold text-slate-900 mb-2">Contact Us</h2>
+            <p className="text-sm text-slate-600">
+              If you have any questions about this Privacy Policy or how your data is handled, please reach out:
+            </p>
+            <a href="mailto:mypropbook1@gmail.com" className="inline-flex items-center gap-2 mt-2 text-sm font-bold text-[#2d5a47] hover:underline">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+              mypropbook1@gmail.com
+            </a>
+          </section>
         </div>
       </div>
     </div>
