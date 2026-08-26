@@ -102,29 +102,25 @@ const steps = [
     step: '01', 
     title: 'Add your property', 
     desc: 'Add buildings, rooms and rent details.', 
-    icon: Building2,
-    gradient: 'from-emerald-50 to-transparent'
+    chip: { label: 'Property', detail: '3 Floors · 12 Rooms' }
   },
   { 
     step: '02', 
     title: 'Add tenants', 
     desc: 'Assign tenants to rooms and keep records current.', 
-    icon: Users,
-    gradient: 'from-[#f0f7f4] to-transparent'
+    chip: { label: 'Tenant', detail: 'Room 201 · Move-in set' }
   },
   { 
     step: '03', 
     title: 'Create a bill', 
     desc: 'Enter a meter reading or add a direct utility amount.', 
-    icon: FileText,
-    gradient: 'from-emerald-50/80 to-transparent'
+    chip: { label: 'Reading', detail: '142 units · ₹840 share' }
   },
   { 
     step: '04', 
     title: 'Share & collect', 
     desc: 'Generate a receipt and share it with the tenant.', 
-    icon: Share2,
-    gradient: 'from-[#edf5f1] to-transparent'
+    chip: { label: 'Receipt', detail: 'PDF ready · WhatsApp' }
   },
 ];
 
@@ -198,7 +194,7 @@ export default function Landing() {
   const [typesRef, isTypesVisible] = useScrollReveal(0.2);
   const [billingRef, isBillingVisible] = useScrollReveal(0.2);
   const [featuresRef, isFeaturesVisible] = useScrollReveal(0.15);
-  const [stepsRef, isStepsVisible] = useScrollReveal(0.2);
+  const [stepsRef, isStepsVisible] = useScrollReveal(0.05);
   const year = new Date().getFullYear();
 
   const handleDemoClick = async () => {
@@ -945,12 +941,12 @@ export default function Landing() {
       {/* ══════════════════════════════════════════
           7. HOW IT WORKS
       ══════════════════════════════════════════ */}
-      <section id="how-it-works" className="py-16 sm:py-24 px-4 sm:px-6 bg-white">
+      <section id="how-it-works" ref={stepsRef} className="py-14 sm:py-16 px-4 sm:px-6 bg-white border-y border-slate-100">
         <div className="max-w-5xl mx-auto">
 
-          {/* Heading — no eyebrow, plain and direct */}
-          <div className="mb-14 sm:mb-18">
-            <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-3">
+          {/* Heading */}
+          <div className="mb-10 sm:mb-12 text-left">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-2">
               How it works
             </h2>
             <p className="text-slate-500 text-sm leading-relaxed max-w-md">
@@ -958,30 +954,86 @@ export default function Landing() {
             </p>
           </div>
 
-          {/* Steps — desktop: plain numbered list, no connector line, no fake active state */}
-          <div className="hidden md:grid grid-cols-4 gap-8">
+          {/* Steps — Desktop: uniform cards with hover lift, line drawing transition, staggered chip entrance */}
+          <div className="hidden md:grid grid-cols-4 gap-5">
             {steps.map((s, idx) => (
-              <div key={s.step} className="flex flex-col">
-                {/* Uniform circle — no filled/outlined distinction */}
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mb-5 border border-slate-300 text-slate-500 bg-white">
-                  {idx + 1}
+              <div 
+                key={s.step} 
+                className="relative flex flex-col text-left space-y-4 p-4 rounded-2xl bg-slate-50/40 border border-slate-100/90 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:bg-slate-50 hover:border-slate-200 group"
+              >
+                {/* Header row with step circle and animated connector line */}
+                <div className="relative flex items-center">
+                  {/* Step number circle */}
+                  <div className="relative z-10 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border border-slate-300 text-slate-600 bg-white shadow-2xs transition-colors group-hover:border-slate-400">
+                    {idx + 1}
+                  </div>
+
+                  {/* Connecting line to next step (draws left-to-right once on view) */}
+                  {idx < steps.length - 1 && (
+                    <div 
+                      className="absolute left-8 right-[-1.25rem] top-1/2 -translate-y-1/2 h-px bg-slate-200/80 overflow-hidden z-0" 
+                      aria-hidden="true" 
+                    >
+                      <div 
+                        className="h-full bg-slate-400 transition-all duration-700 ease-out"
+                        style={{
+                          width: isStepsVisible ? '100%' : '0%',
+                          transitionDelay: `${idx * 150}ms`
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
-                <h4 className="font-bold text-[15px] text-slate-900 mb-2 leading-snug">{s.title}</h4>
-                <p className="text-[12px] text-slate-500 leading-relaxed">{s.desc}</p>
+
+                {/* Content */}
+                <div className="space-y-1.5 flex-1">
+                  <h4 className="font-extrabold text-[14px] text-slate-900 leading-snug">
+                    {s.title}
+                  </h4>
+                  <p className="text-[12px] text-slate-500 leading-relaxed">
+                    {s.desc}
+                  </p>
+                </div>
+
+                {/* Supporting UI chip — always visible, polished staggered fade/slide on view */}
+                <div 
+                  className={`pt-2.5 flex items-center justify-between text-[11px] border-t border-slate-200/60 transition-all duration-500 ${
+                    isStepsVisible ? 'opacity-100 translate-y-0' : 'opacity-70 translate-y-1'
+                  }`}
+                  style={{
+                    transitionDelay: `${250 + idx * 100}ms`
+                  }}
+                >
+                  <span className="text-slate-400 font-medium">{s.chip.label}</span>
+                  <span className="font-mono font-medium text-slate-700 bg-white px-2 py-0.5 rounded-md border border-slate-200/80 shadow-2xs text-[10.5px]">
+                    {s.chip.detail}
+                  </span>
+                </div>
               </div>
             ))}
           </div>
 
-          {/* Mobile - simple vertical list */}
-          <div className="md:hidden space-y-6">
+          {/* Mobile - vertical clean sequence */}
+          <div className="md:hidden space-y-4 text-left relative pl-2">
+            <div className="absolute top-4 bottom-4 left-5 w-px bg-slate-200 z-0" aria-hidden="true" />
+            
             {steps.map((s, idx) => (
-              <div key={s.step} className="flex gap-4 items-start">
-                <div className="w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-xs font-bold border border-slate-300 text-slate-500 bg-white mt-0.5">
+              <div 
+                key={s.step} 
+                className="relative z-10 flex gap-4 items-start p-3 rounded-xl bg-slate-50/50 border border-slate-100"
+              >
+                <div className="w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-xs font-bold border border-slate-300 text-slate-600 bg-white shadow-2xs mt-0.5">
                   {idx + 1}
                 </div>
-                <div>
-                  <h4 className="font-bold text-[15px] text-slate-900 mb-1 leading-snug">{s.title}</h4>
+                <div className="flex-1 space-y-1.5">
+                  <h4 className="font-bold text-[14px] text-slate-900 leading-snug">{s.title}</h4>
                   <p className="text-[12px] text-slate-500 leading-relaxed">{s.desc}</p>
+                  <div className="pt-1 flex items-center gap-2 text-[10.5px]">
+                    <span className="text-slate-400 font-medium">{s.chip.label}:</span>
+                    <span className="font-mono text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200">
+                      {s.chip.detail}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
