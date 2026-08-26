@@ -1001,17 +1001,14 @@ export default function Landing() {
           
           {/* Left Text */}
           <div className="lg:col-span-7 space-y-5 text-left">
-            <span className="text-[10px] font-black text-[#2d5a47] uppercase tracking-widest block">
-              A TOOL WITH A REASON
-            </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
               Built for landlords. Built from a real problem.
             </h2>
             <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-              MyPropBook began with a simple problem: rent, utility bills, tenant records, and collections were scattered across notebooks, spreadsheets, and WhatsApp.
+              I was manually splitting an electricity bill across 8 rooms in a WhatsApp calculator group at 11 pm — every single month. Someone always disputed a number, someone's reading got lost in the chat, and receipts were screenshots of calculator screens.
             </p>
             <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-              I built MyPropBook to bring these everyday tasks into one reliable workspace — from managing properties and tenants to calculating utility bills and generating shareable receipts.
+              I built MyPropBook to handle it properly: meter readings go in, bills and receipts come out, each tenant gets their own PDF. No group-chat arithmetic, no notebooks.
             </p>
 
             <div className="space-y-2 pt-2 text-xs font-semibold text-slate-700">
@@ -1034,52 +1031,19 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* Right Founder Card */}
-          <div className="lg:col-span-5">
-            <div className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 shadow-sm space-y-5 text-left relative overflow-hidden">
-
-              {/* Subtle background glow */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#edf5f1] rounded-full blur-3xl opacity-60 pointer-events-none" />
-
-              {/* Header Row */}
-              <div className="flex items-center gap-4 relative">
-                {/* Avatar */}
-                <div className="relative shrink-0">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#2d5a47] to-[#1a3d2f] text-white flex items-center justify-center font-black text-lg shadow-md tracking-tight">
-                    FA
-                  </div>
-                  {/* Verified dot */}
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center">
-                    <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  </div>
-                </div>
-
-                {/* Name & Role */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h4 className="font-extrabold text-slate-900 text-sm tracking-tight">Farhan Ahmad Tufail</h4>
-                  </div>
-                  <p className="text-xs text-slate-400 font-medium mt-0.5">Founder · Full-Stack Software Engineer · India</p>
-                </div>
-
-                {/* Social icon links */}
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <a href="https://github.com/farhan-ahmad-tufail" target="_blank" rel="noopener noreferrer" title="GitHub" className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 flex items-center justify-center transition-all">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="text-slate-600"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
-                  </a>
-                  <a href="https://www.linkedin.com/in/farhan-ahmad-tufail-70439621b/" target="_blank" rel="noopener noreferrer" title="LinkedIn" className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-[#e8f0fe] border border-slate-200 flex items-center justify-center transition-all">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="text-[#0077b5]"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                  </a>
-                </div>
+          {/* Right — plain founder text block, no card container */}
+          <div className="lg:col-span-5 text-left space-y-3">
+            <p className="text-slate-600 text-sm leading-relaxed">
+              I had 3 properties and 24 rooms when I started building this. At that point the WhatsApp method stops scaling — there are just too many readings, too many partial payments, and too many people asking for old receipts you can't find anymore.
+            </p>
+            <div className="pt-2">
+              <p className="text-sm font-extrabold text-slate-900">Farhan Ahmad Tufail</p>
+              <p className="text-xs text-slate-400 font-medium mt-0.5">Founder · Full-Stack Software Engineer · India</p>
+              <div className="flex items-center gap-2 mt-3">
+                <a href="https://github.com/farhan-ahmad-tufail" target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-slate-800 font-semibold transition-colors">GitHub ↗</a>
+                <span className="text-slate-300">·</span>
+                <a href="https://www.linkedin.com/in/farhan-ahmad-tufail-70439621b/" target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-slate-800 font-semibold transition-colors">LinkedIn ↗</a>
               </div>
-
-              {/* Quote */}
-              <div className="relative pl-3 border-l-2 border-[#2d5a47]/30">
-                <p className="text-xs text-slate-600 leading-relaxed italic">
-                  "I built MyPropBook because managing a property shouldn't mean juggling spreadsheets, notebooks, and WhatsApp every month."
-                </p>
-              </div>
-
             </div>
           </div>
 
@@ -1092,12 +1056,12 @@ export default function Landing() {
       <section className="py-12 px-6 max-w-5xl mx-auto text-center">
         <div className="bg-gradient-to-br from-[#edf5f1] via-[#eff6ff] to-[#e4efe9] border border-[#d8e7e0] rounded-3xl p-10 sm:p-14 space-y-5">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-            Stop managing your property on paper and WhatsApp.
+            Set up your first bill in under 5 minutes.
           </h2>
           <p className="text-slate-600 text-sm max-w-xl mx-auto leading-relaxed font-medium">
-            Bring tenants, rent, utility bills and receipts into one simple dashboard.
+            Add a property, enter a meter reading, and send your tenant a receipt — all in one sitting. No training required.
           </p>
-          <div className="pt-2">
+          <div className="pt-2 flex flex-col sm:flex-row gap-3 items-center justify-center">
             <Link
               to={user ? "/dashboard" : "/signup"}
               className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-[#2d5a47] hover:bg-[#234738] text-white font-bold text-sm shadow-md transition-all"
@@ -1105,6 +1069,14 @@ export default function Landing() {
               <span>Create free account</span>
               <ArrowRight size={16} />
             </Link>
+            <button
+              type="button"
+              onClick={handleDemoClick}
+              disabled={demoLoading}
+              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-700 font-bold text-sm hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm cursor-pointer"
+            >
+              {demoLoading ? 'Starting...' : 'View Demo'}
+            </button>
           </div>
         </div>
       </section>
