@@ -1031,18 +1031,18 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* Right — plain founder text block, no card container */}
-          <div className="lg:col-span-5 text-left space-y-3">
-            <p className="text-slate-600 text-sm leading-relaxed">
-              Property management software is usually either bloated enterprise ERPs or messy notebook habits. MyPropBook is designed as a focused, lightweight alternative specifically for the Indian rental and PG workflow.
+          {/* Right — pure identity block */}
+          <div className="lg:col-span-5 text-left space-y-4 lg:pl-6 border-l border-slate-200/60 lg:py-2">
+            <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
+              Built specifically for the Indian rental and PG workflow.
             </p>
-            <div className="pt-2">
+            <div>
               <p className="text-sm font-extrabold text-slate-900">Farhan Ahmad Tufail</p>
               <p className="text-xs text-slate-400 font-medium mt-0.5">Creator · Full-Stack Software Engineer · India</p>
-              <div className="flex items-center gap-2 mt-3">
-                <a href="https://github.com/farhan-ahmad-tufail" target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-slate-800 font-semibold transition-colors">GitHub ↗</a>
+              <div className="flex items-center gap-2.5 mt-3">
+                <a href="https://github.com/farhan-ahmad-tufail" target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-slate-900 font-semibold transition-colors">GitHub ↗</a>
                 <span className="text-slate-300">·</span>
-                <a href="https://www.linkedin.com/in/farhan-ahmad-tufail-70439621b/" target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-slate-800 font-semibold transition-colors">LinkedIn ↗</a>
+                <a href="https://www.linkedin.com/in/farhan-ahmad-tufail-70439621b/" target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-slate-900 font-semibold transition-colors">LinkedIn ↗</a>
               </div>
             </div>
           </div>
