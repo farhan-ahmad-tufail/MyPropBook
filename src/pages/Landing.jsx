@@ -716,138 +716,66 @@ export default function Landing() {
       </section>
 
       {/* ══════════════════════════════════════════
-          7. QUICK SETUP / HOW IT WORKS
+          7. HOW IT WORKS
       ══════════════════════════════════════════ */}
-      <section id="how-it-works" className="py-14 sm:py-20 lg:py-24 px-4 sm:px-6 relative overflow-hidden" style={{background: 'linear-gradient(135deg, #0d1f18 0%, #111f1a 50%, #0a1a12 100%)'}}>
-        {/* Radial emerald glow — ambient light effect */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] rounded-full opacity-30" style={{background: 'radial-gradient(ellipse at center, #2d5a47 0%, transparent 70%)'}}></div>
-          <div className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-10 blur-3xl" style={{background: '#10b981'}}></div>
-          <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full opacity-10 blur-3xl" style={{background: '#059669'}}></div>
-        </div>
+      <section id="how-it-works" className="py-16 sm:py-24 px-4 sm:px-6 bg-white">
+        <div className="max-w-5xl mx-auto">
 
-        <div className="max-w-5xl mx-auto text-center relative z-10">
-          {/* Section Header */}
-          <div className="space-y-4 mb-16">
-            <span className="inline-flex items-center gap-2 text-[10px] font-black text-emerald-400 uppercase tracking-[0.25em]">
-              <span className="w-4 h-px bg-emerald-500/60"></span>
-              QUICK SETUP
-              <span className="w-4 h-px bg-emerald-500/60"></span>
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-              Ready in under <span className="text-emerald-400">5 minutes.</span>
+          {/* Heading — no eyebrow, plain and direct */}
+          <div className="mb-14 sm:mb-18">
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-3">
+              How it works
             </h2>
-            <p className="text-slate-400 text-sm max-w-md mx-auto leading-relaxed">
-              No complex setup. Add your property, add tenants, and start billing.
+            <p className="text-slate-500 text-sm leading-relaxed max-w-md">
+              Four things to do once. After that, billing each month takes a few minutes.
             </p>
           </div>
 
-          {/* Step Cards Grid — horizontal on mobile, 2-col on tablet, 4-col on desktop */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 px-0 sm:px-4">
-            {steps.map((s, idx) => {
-              const Icon = s.icon;
-              // Per-card accent tints — subtle, each feels distinct
-              const cardAccents = [
-                { glow: 'rgba(52,211,153,0.22)', border: 'rgba(52,211,153,0.28)', topBar: 'rgba(52,211,153,0.5)' },
-                { glow: 'rgba(16,185,129,0.20)', border: 'rgba(16,185,129,0.26)', topBar: 'rgba(16,185,129,0.45)' },
-                { glow: 'rgba(5,150,105,0.22)',  border: 'rgba(5,150,105,0.28)',  topBar: 'rgba(5,150,105,0.5)'  },
-                { glow: 'rgba(52,211,153,0.18)', border: 'rgba(52,211,153,0.22)', topBar: 'rgba(52,211,153,0.4)' },
-              ];
-              const accent = cardAccents[idx];
-              return (
-                <div
-                  key={s.step}
-                  className="group relative rounded-2xl overflow-hidden text-left cursor-default flex flex-col lg:justify-between h-auto lg:h-[270px]"
-                  style={{
-                    background: 'linear-gradient(145deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.04) 100%)',
-                    border: '1px solid rgba(255,255,255,0.10)',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.07)',
-                    backdropFilter: 'blur(16px)',
-                    transition: 'all 0.35s cubic-bezier(0.4,0,0.2,1)',
-                    padding: '1rem 1.25rem',
-                  }}
-                  onMouseEnter={e => {
-                    if (window.innerWidth >= 1024) {
-                      e.currentTarget.style.background = `linear-gradient(145deg, rgba(45,90,71,0.22) 0%, rgba(45,90,71,0.12) 100%)`;
-                      e.currentTarget.style.borderColor = accent.border;
-                      e.currentTarget.style.boxShadow = `0 24px 48px rgba(0,0,0,0.5), 0 0 0 1px ${accent.border}, inset 0 1px 0 rgba(255,255,255,0.09)`;
-                      e.currentTarget.style.transform = 'translateY(-7px)';
-                    }
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.background = 'linear-gradient(145deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.04) 100%)';
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.10)';
-                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.07)';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }}
-                >
-                  {/* Top luminous accent bar */}
-                  <div className="absolute top-0 left-0 right-0 h-px" style={{background: `linear-gradient(90deg, transparent 0%, ${accent.topBar} 50%, transparent 100%)`}}></div>
+          {/* Timeline — desktop: horizontal connected. Mobile: vertical */}
+          {/* Desktop */}
+          <div className="hidden md:grid grid-cols-4 gap-0 relative">
+            {/* Connector line behind all steps */}
+            <div className="absolute top-5 left-[12.5%] right-[12.5%] h-px bg-slate-200" style={{zIndex: 0}} />
 
-                  {/* Corner glow — always slightly visible, brightens on hover */}
-                  <div
-                    className="absolute -top-6 -right-6 w-28 h-28 rounded-full pointer-events-none transition-opacity duration-500"
-                    style={{background: `radial-gradient(circle, ${accent.glow} 0%, transparent 70%)`, opacity: 0.5}}
-                  ></div>
+            {steps.map((s, idx) => (
+              <div key={s.step} className="relative flex flex-col items-start px-5 pt-0" style={{zIndex: 1}}>
+                {/* Circle dot on the line */}
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-black mb-6 border-2 ${idx === 0 ? 'bg-[#2d5a47] border-[#2d5a47] text-white' : 'bg-white border-slate-300 text-slate-500'}`}>
+                  {idx + 1}
+                </div>
+                <h4 className="font-bold text-[15px] text-slate-900 mb-2 leading-snug">{s.title}</h4>
+                <p className="text-[12px] text-slate-500 leading-relaxed">{s.desc}</p>
+              </div>
+            ))}
+          </div>
 
-                {/* MOBILE: compact horizontal layout — icon left, content right */}
-                <div className="flex lg:hidden items-center gap-4 relative z-10 w-full">
-                  {/* Icon */}
-                  <div
-                    className="shrink-0 w-11 h-11 rounded-xl flex items-center justify-center"
-                    style={{
-                      background: `rgba(52,211,153,0.12)`,
-                      border: `1px solid rgba(52,211,153,0.22)`,
-                      color: '#6ee7b7',
-                    }}
-                  >
-                    <Icon size={18} strokeWidth={2} />
+          {/* Mobile — vertical list */}
+          <div className="md:hidden space-y-0">
+            {steps.map((s, idx) => (
+              <div key={s.step} className="flex gap-5 relative">
+                {/* Left: number + vertical connector */}
+                <div className="flex flex-col items-center">
+                  <div className={`w-9 h-9 rounded-full shrink-0 flex items-center justify-center text-sm font-black border-2 ${idx === 0 ? 'bg-[#2d5a47] border-[#2d5a47] text-white' : 'bg-white border-slate-200 text-slate-500'}`}>
+                    {idx + 1}
                   </div>
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[9px] font-bold tracking-[0.18em] uppercase" style={{color: 'rgba(52,211,153,0.65)'}}>Step {idx + 1}</span>
-                    </div>
-                    <h4 className="font-bold text-sm text-white leading-snug">{s.title}</h4>
-                    <p className="text-xs mt-0.5 leading-relaxed" style={{color: 'rgba(255,255,255,0.50)'}}>{s.desc}</p>
-                  </div>
-                  {/* Step number — decorative, right aligned */}
-                  <span className="shrink-0 text-3xl font-black select-none" style={{color: 'rgba(255,255,255,0.08)', letterSpacing: '-0.04em'}}>{s.step}</span>
+                  {idx < steps.length - 1 && (
+                    <div className="w-px flex-1 bg-slate-200 my-2" />
+                  )}
                 </div>
-
-                {/* DESKTOP: original stacked layout */}
-                <div className="hidden lg:flex flex-col justify-between h-full relative z-10">
-                  {/* Top row: step number + icon */}
-                  <div className="flex justify-between items-start">
-                    <span className="text-5xl font-black leading-none select-none" style={{color: 'rgba(255,255,255,0.10)', letterSpacing: '-0.04em'}}>{s.step}</span>
-                    <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110"
-                      style={{
-                        background: `rgba(52,211,153,0.12)`,
-                        border: `1px solid rgba(52,211,153,0.22)`,
-                        color: '#6ee7b7',
-                      }}
-                    >
-                      <Icon size={18} strokeWidth={2} />
-                    </div>
-                  </div>
-                  {/* Step label + content */}
-                  <div>
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="h-px w-6" style={{background: accent.topBar}}></div>
-                      <span className="text-[9px] font-bold tracking-[0.2em] uppercase" style={{color: 'rgba(52,211,153,0.65)'}}>Step {idx + 1}</span>
-                    </div>
-                    <h4 className="font-bold text-[15px] text-white mb-1.5 leading-snug">{s.title}</h4>
-                    <p className="text-xs leading-relaxed" style={{color: 'rgba(255,255,255,0.50)'}}>{s.desc}</p>
-                  </div>
+                {/* Right: content */}
+                <div className={`pb-10 ${idx === steps.length - 1 ? 'pb-0' : ''}`}>
+                  <h4 className="font-bold text-[15px] text-slate-900 mb-1 leading-snug pt-1.5">{s.title}</h4>
+                  <p className="text-[12px] text-slate-500 leading-relaxed">{s.desc}</p>
                 </div>
-                </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
 
         </div>
       </section>
+
+
+
 
       {/* ══════════════════════════════════════════
           8. FOUNDER / STORY SECTION ("A Tool With A Reason")
