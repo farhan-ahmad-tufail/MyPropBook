@@ -273,21 +273,11 @@ export default function Landing() {
       {/* ══════════════════════════════════════════
           2. HERO SECTION
       ══════════════════════════════════════════ */}
-      <section className="relative z-10 px-6 pt-20 pb-16 text-center max-w-5xl mx-auto">
+      <section className="relative z-10 px-6 pt-24 pb-16 text-center max-w-5xl mx-auto">
         
-        {/* Ambient Glow Orb */}
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[300px] bg-gradient-to-tr from-emerald-200/50 via-[#2d5a47]/20 to-transparent blur-3xl rounded-full pointer-events-none animate-pulse-glow" />
-
-        {/* Eyebrow Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 mb-6 rounded-full bg-[#edf5f1] border border-[#c8ddd4] text-[#2d5a47] text-xs font-bold tracking-wide relative z-10 shadow-2xs">
-          <Sparkles size={13} fill="currentColor" />
-          <span>Property management, made practical</span>
-        </div>
-
         {/* Main Headline */}
-        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-[#0f172a] tracking-tight leading-[1.05] relative z-10">
-          Modern property management.<br />
-          <span className="text-[#2d5a47]">Simple utility billing.</span>
+        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-slate-900 tracking-tight leading-[1.05] relative z-10">
+          Stop tracking rent on WhatsApp and messy spreadsheets.
         </h1>
 
         {/* Supporting Copy */}
