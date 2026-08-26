@@ -352,12 +352,12 @@ export default function Layout({ children }) {
             {/* Quick Command Palette Button (Ctrl+K) */}
             <button
               onClick={() => setShowCmdPalette(true)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:border-[#2d5a47]/40 hover:text-[#2d5a47] transition-all shadow-sm cursor-pointer group"
+              className="flex items-center gap-2 p-2 sm:px-3 sm:py-1.5 rounded-full bg-white border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:border-[#2d5a47]/40 hover:text-[#2d5a47] transition-all shadow-sm cursor-pointer group"
               title="Search or jump to... (Ctrl+K)"
             >
-              <Search size={13} className="text-slate-400 group-hover:text-[#2d5a47] transition-colors" />
+              <Search size={14} className="text-slate-400 group-hover:text-[#2d5a47] transition-colors" />
               <span className="hidden sm:inline">Search...</span>
-              <kbd className="px-1.5 py-0.5 text-[9px] font-mono font-bold text-slate-400 bg-slate-100 rounded border border-slate-200">
+              <kbd className="hidden sm:inline px-1.5 py-0.5 text-[9px] font-mono font-bold text-slate-400 bg-slate-100 rounded border border-slate-200">
                 ⌘K
               </kbd>
             </button>
@@ -457,12 +457,62 @@ export default function Layout({ children }) {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 px-4 sm:px-6 lg:px-8 pb-12 overflow-x-hidden">
+        <main className="flex-1 px-4 sm:px-6 lg:px-8 pb-24 lg:pb-12 overflow-x-hidden">
           <div className="max-w-6xl mx-auto w-full">
             {children}
           </div>
         </main>
       </div>
+
+      {/* ── Fixed Mobile Bottom Navigation Bar ── */}
+      <nav 
+        aria-label="Mobile Navigation"
+        className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-2 py-1.5 flex items-center justify-around lg:hidden shadow-lg safe-area-bottom"
+      >
+        {[
+          { to: '/dashboard', label: 'Overview', icon: LayoutDashboard },
+          { to: '/properties', label: 'Properties', icon: Building2 },
+          { to: '/create-bill', label: 'New Bill', icon: Plus, isAction: true },
+          { to: '/tenants', label: 'Tenants', icon: Users },
+          { to: '/billing', label: 'Billing', icon: Receipt },
+        ].map(item => {
+          const isActive = location.pathname === item.to;
+          const Icon = item.icon;
+
+          if (item.isAction) {
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                className="flex flex-col items-center justify-center -mt-5 group"
+                title="Create Bill"
+              >
+                <div className="w-11 h-11 rounded-full bg-[#2d5a47] text-white flex items-center justify-center shadow-md border-2 border-white group-active:scale-95 transition-transform">
+                  <Icon size={20} strokeWidth={2.5} />
+                </div>
+                <span className="text-[10px] font-bold text-slate-700 mt-0.5">
+                  {item.label}
+                </span>
+              </Link>
+            );
+          }
+
+          return (
+            <Link
+              key={item.to}
+              to={item.to}
+              className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-colors ${
+                isActive ? 'text-[#2d5a47] font-bold' : 'text-slate-400 hover:text-slate-700 font-medium'
+              }`}
+            >
+              <Icon size={18} strokeWidth={isActive ? 2.5 : 1.8} />
+              <span className="text-[10px] mt-0.5 tracking-tight">
+                {item.label}
+              </span>
+            </Link>
+          );
+        })}
+      </nav>
 
       {/* ── Profile Modal ── */}
       {showProfileModal && (

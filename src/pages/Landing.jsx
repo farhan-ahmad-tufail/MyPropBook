@@ -189,6 +189,7 @@ export default function Landing() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activePropertyIndex, setActivePropertyIndex] = useState(0);
   const [demoLoading, setDemoLoading] = useState(false);
+  const [expandedTenant, setExpandedTenant] = useState(null);
   
   const [mockupRef, isMockupVisible] = useScrollReveal(0.05);
   const [typesRef, isTypesVisible] = useScrollReveal(0.2);
@@ -554,80 +555,105 @@ export default function Landing() {
 
           {/* Asymmetric Grid */}
           <div className="space-y-4">
-            {/* Top Row: Hero Card (2 cols) + Apartments Card (1 col) */}
+            {/* Top Row: Hero Card (2 cols on lg) + Apartments Card (1 col on lg), stacked full width on mobile */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
               
-              {/* Hero Card: PGs & Hostels (Spans 2 cols) */}
-              <div className="lg:col-span-2 bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+              {/* Hero Card: PGs & Hostels (Spans 2 cols on lg, full width on mobile/tablet) */}
+              <div className="lg:col-span-2 bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between">
                 <div>
-                  <div className="flex items-center gap-3 mb-4">
-                    <Users size={24} className="text-[#2d5a47]" />
-                    <span className="text-xs font-extrabold uppercase tracking-wider text-[#2d5a47] bg-[#edf5f1] px-2.5 py-1 rounded-full border border-[#c8ddd4]/60">
-                      Most Popular
+                  <div className="flex items-center gap-2.5 mb-4 text-[#2d5a47]">
+                    <Users size={22} className="shrink-0" />
+                    <span className="text-[11px] sm:text-xs font-extrabold uppercase tracking-wider bg-[#edf5f1] text-[#2d5a47] px-2.5 py-1 rounded-full border border-[#c8ddd4]/60">
+                      Multi-Tenant / Shared Rooms
                     </span>
                   </div>
                   <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 mb-2">
                     PGs & Student Hostels
                   </h3>
-                  <p className="text-slate-500 text-xs sm:text-sm leading-relaxed max-w-xl mb-6">
+                  <p className="text-slate-500 text-xs sm:text-sm leading-relaxed max-w-xl mb-5 sm:mb-6">
                     Split shared room electricity bills fairly per head, generate individual WhatsApp receipts for each roommate, and manage bed vacancies without spreadsheet chaos.
                   </p>
                 </div>
 
                 {/* Real Mini UI Mockup: Roommate Split */}
-                <div className="bg-slate-50 border border-slate-200/70 rounded-2xl p-4 space-y-3">
-                  <div className="flex justify-between items-center text-xs pb-2 border-b border-slate-200/70">
-                    <div className="flex items-center gap-2">
+                <div className="bg-slate-50 border border-slate-200/70 rounded-2xl p-3.5 sm:p-4 space-y-3">
+                  {/* Header info — wraps cleanly on narrow mobile viewports */}
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 text-xs pb-2.5 border-b border-slate-200/70">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-bold text-slate-900 font-mono">Room 204</span>
-                      <span className="text-[11px] text-slate-500">• 3-Sharing Room</span>
+                      <span className="text-[11px] text-slate-500">• 3-Sharing (₹7,500/bed)</span>
                     </div>
-                    <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60">
-                      Electricity ₹1,275 Split ÷ 3
+                    <span className="inline-block text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60 font-mono self-start sm:self-auto break-words">
+                      Electricity ₹1,275 ÷ 3 = ₹425/head
                     </span>
                   </div>
 
+                  {/* 3 Tenant Cards — Stacked on mobile, 3 cols on sm+ with progressive disclosure on tap */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     {[
-                      { name: 'Aarav Sharma', rent: '₹7,500', elec: '₹425', total: '₹7,925', status: 'Paid ✓' },
-                      { name: 'Rohan Gupta', rent: '₹7,500', elec: '₹425', total: '₹7,925', status: 'Receipt Sent' },
-                      { name: 'Sameer Khan', rent: '₹7,500', elec: '₹425', total: '₹7,925', status: 'Receipt Sent' },
-                    ].map(r => (
-                      <div key={r.name} className="bg-white border border-slate-200/80 rounded-xl p-2.5 text-xs shadow-2xs">
-                        <div className="font-bold text-slate-800 truncate mb-1">{r.name}</div>
-                        <div className="flex justify-between text-[11px] text-slate-500 mb-0.5">
-                          <span>Share</span>
-                          <span className="font-mono font-bold text-slate-700">{r.total}</span>
+                      { id: 'aarav', name: 'Aarav Sharma', rent: '₹7,500', elec: '₹425', total: '₹7,925', status: 'Paid ✓' },
+                      { id: 'rohan', name: 'Rohan Gupta', rent: '₹7,500', elec: '₹425', total: '₹7,925', status: 'Receipt Sent' },
+                      { id: 'sameer', name: 'Sameer Khan', rent: '₹7,500', elec: '₹425', total: '₹7,925', status: 'Receipt Sent' },
+                    ].map(r => {
+                      const isExpanded = expandedTenant === r.id;
+                      return (
+                        <div 
+                          key={r.id} 
+                          onClick={() => setExpandedTenant(isExpanded ? null : r.id)}
+                          className="bg-white border border-slate-200/80 rounded-xl p-3 sm:p-2.5 text-xs shadow-2xs space-y-1.5 sm:space-y-1 cursor-pointer sm:cursor-default hover:border-slate-300 transition-colors"
+                        >
+                          <div className="flex justify-between items-center">
+                            <span className="font-bold text-slate-800 truncate">{r.name}</span>
+                            <span className="text-[10px] font-semibold text-emerald-700">{r.status}</span>
+                          </div>
+
+                          {/* Breakdown: always visible on sm+, expandable on tap for mobile */}
+                          <div className={`text-[10.5px] text-slate-500 justify-between ${isExpanded ? 'flex' : 'hidden sm:flex'}`}>
+                            <span>Rent + Power</span>
+                            <span className="font-mono text-slate-600">{r.rent} + {r.elec}</span>
+                          </div>
+
+                          <div className="h-px bg-slate-100 my-0.5" />
+
+                          <div className="flex justify-between items-center text-[11px] font-bold text-slate-900">
+                            <div className="flex items-center gap-1">
+                              <span>Total</span>
+                              <span className="sm:hidden text-[9px] text-slate-400 font-normal">
+                                {isExpanded ? '▴' : '▾ tap breakdown'}
+                              </span>
+                            </div>
+                            <span className="font-mono text-[#2d5a47] font-extrabold">{r.total}</span>
+                          </div>
                         </div>
-                        <div className="text-[10px] font-semibold text-emerald-700 pt-0.5">{r.status}</div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </div>
 
-              {/* Card 2: Apartments & Flats */}
-              <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+              {/* Card 2: Apartments & Flats (Full width on mobile, 1 col on lg) */}
+              <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between">
                 <div>
                   <Building2 size={22} className="text-slate-700 mb-4" />
                   <h3 className="text-lg font-extrabold text-slate-900 mb-2">
                     Apartments & Flats
                   </h3>
-                  <p className="text-slate-500 text-xs sm:text-sm leading-relaxed mb-6">
+                  <p className="text-slate-500 text-xs sm:text-sm leading-relaxed mb-5 sm:mb-6">
                     Track long-term tenants, lease terms, security deposits, and submeter meter readings with automatic rate calculations.
                   </p>
                 </div>
 
-                <div className="bg-slate-50 border border-slate-200/70 rounded-xl p-3 space-y-2 text-xs">
-                  <div className="flex justify-between text-slate-600">
-                    <span>Current Submeter Reading</span>
+                <div className="bg-slate-50 border border-slate-200/70 rounded-xl p-3.5 sm:p-3 space-y-2 text-xs">
+                  <div className="flex justify-between items-center text-slate-600 gap-2 flex-wrap">
+                    <span>Submeter Reading</span>
                     <span className="font-mono font-bold text-slate-800">1,420 units</span>
                   </div>
-                  <div className="flex justify-between text-slate-600">
+                  <div className="flex justify-between items-center text-slate-600 gap-2 flex-wrap">
                     <span>Units Consumed</span>
-                    <span className="font-mono font-bold text-[#2d5a47]">185 units</span>
+                    <span className="font-mono font-bold text-[#2d5a47]">185 units (@ ₹8/unit)</span>
                   </div>
                   <div className="h-px bg-slate-200/80" />
-                  <div className="flex justify-between font-bold text-slate-900">
+                  <div className="flex justify-between items-center font-bold text-slate-900 gap-2">
                     <span>Total Electricity Due</span>
                     <span className="font-mono">₹1,480</span>
                   </div>
@@ -636,12 +662,12 @@ export default function Landing() {
 
             </div>
 
-            {/* Bottom Row: 3 Compact Cards */}
+            {/* Bottom Row: 3 Compact Cards — 1 col on mobile, 2 cols on sm, 3 cols on lg */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               
               {/* Card 3: Independent Floors & Houses */}
-              <div className="bg-white border border-slate-200/80 rounded-2xl p-6 hover:shadow-md transition-all duration-300">
-                <Home size={20} className="text-slate-600 mb-3.5" />
+              <div className="bg-white border border-slate-200/80 rounded-2xl p-5 sm:p-6 hover:shadow-md transition-all duration-300">
+                <Home size={20} className="text-slate-600 mb-3" />
                 <h4 className="font-bold text-[15px] text-slate-900 mb-1.5">Independent Floors & Houses</h4>
                 <p className="text-xs text-slate-500 leading-relaxed">
                   Manage multi-floor rentals and family tenants with clear rent records and direct WhatsApp receipt sharing.
@@ -649,8 +675,8 @@ export default function Landing() {
               </div>
 
               {/* Card 4: Residential Buildings */}
-              <div className="bg-white border border-slate-200/80 rounded-2xl p-6 hover:shadow-md transition-all duration-300">
-                <Building size={20} className="text-slate-600 mb-3.5" />
+              <div className="bg-white border border-slate-200/80 rounded-2xl p-5 sm:p-6 hover:shadow-md transition-all duration-300">
+                <Building size={20} className="text-slate-600 mb-3" />
                 <h4 className="font-bold text-[15px] text-slate-900 mb-1.5">Residential Buildings</h4>
                 <p className="text-xs text-slate-500 leading-relaxed">
                   Keep track of multiple units, upcoming vacancies, and rent collection health across entire buildings.
@@ -658,8 +684,8 @@ export default function Landing() {
               </div>
 
               {/* Card 5: Small & Independent Landlords */}
-              <div className="bg-white border border-slate-200/80 rounded-2xl p-6 hover:shadow-md transition-all duration-300">
-                <FileText size={20} className="text-slate-600 mb-3.5" />
+              <div className="bg-white border border-slate-200/80 rounded-2xl p-5 sm:p-6 hover:shadow-md transition-all duration-300 sm:col-span-2 lg:col-span-1">
+                <FileText size={20} className="text-slate-600 mb-3" />
                 <h4 className="font-bold text-[15px] text-slate-900 mb-1.5">Independent Landlords</h4>
                 <p className="text-xs text-slate-500 leading-relaxed">
                   No complex enterprise software. Just a clean workspace to ensure every rupee and bill is accounted for.
@@ -685,21 +711,18 @@ export default function Landing() {
             
             {/* Left Column Text */}
             <div className="lg:col-span-5 space-y-5 text-left">
-              <span className="text-[10px] font-black text-[#2d5a47] uppercase tracking-widest block">
-                SMART BILLING, WITHOUT THE GUESSWORK
-              </span>
               <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
                 Electricity billing, your way.
               </h2>
               <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-                Split shared room bills fairly, or generate individual receipts instantly — MyPropBook handles every scenario so your process fits the property, not the other way around.
+                Whether you split one main meter bill across shared roommates or calculate individual submeters, MyPropBook does the math instantly and generates individual WhatsApp receipts.
               </p>
               <div className="pt-2">
                 <Link
                   to="/quick-calc"
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-[#2d5a47] hover:bg-[#234738] text-white font-bold text-xs transition-all shadow-sm"
                 >
-                  <span>Open calculator</span>
+                  <span>Open quick calculator</span>
                   <ArrowRight size={14} />
                 </Link>
               </div>
@@ -715,16 +738,14 @@ export default function Landing() {
                   <h4 className="text-sm font-extrabold text-slate-900 mt-1 leading-snug">Split bills between roommates</h4>
                 </div>
 
-                {/* Tenant pills */}
-                <div className="flex gap-2">
-                  <div className="flex items-center gap-1.5 bg-[#edf5f1] text-[#2d5a47] px-2.5 py-1 rounded-full">
-                    <div className="w-4 h-4 rounded-full bg-[#2d5a47] text-white flex items-center justify-center text-[8px] font-black">A</div>
-                    <span className="text-[10px] font-bold">Arjun</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">
-                    <div className="w-4 h-4 rounded-full bg-slate-500 text-white flex items-center justify-center text-[8px] font-black">S</div>
-                    <span className="text-[10px] font-bold">Sara</span>
-                  </div>
+                {/* Tenant plain text pills (no avatar circles) */}
+                <div className="flex gap-2 text-[11px] font-semibold">
+                  <span className="bg-[#edf5f1] text-[#2d5a47] px-2.5 py-1 rounded-full border border-[#c8ddd4]/60">
+                    Arjun (Selected)
+                  </span>
+                  <span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full border border-slate-200/60">
+                    Sara
+                  </span>
                 </div>
 
                 <div className="space-y-1.5 text-[11px]">
@@ -827,19 +848,9 @@ export default function Landing() {
             {/* Subtle texture */}
             <div className="absolute inset-0 opacity-10 pointer-events-none" style={{backgroundImage: 'radial-gradient(circle at 80% 20%, white 1px, transparent 1px)', backgroundSize: '32px 32px'}} />
             <div className="relative z-10">
-              {/* Custom bill-split SVG illustration */}
-              <div className="mb-6">
-                <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="4" y="8" width="24" height="32" rx="3" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5"/>
-                  <line x1="9" y1="16" x2="23" y2="16" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" strokeLinecap="round"/>
-                  <line x1="9" y1="21" x2="23" y2="21" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" strokeLinecap="round"/>
-                  <line x1="9" y1="26" x2="18" y2="26" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" strokeLinecap="round"/>
-                  <line x1="9" y1="31" x2="23" y2="31" stroke="rgba(255,255,255,0.8)" strokeWidth="2" strokeLinecap="round"/>
-                  <circle cx="38" cy="22" r="8" fill="rgba(255,255,255,0.18)" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5"/>
-                  <line x1="38" y1="22" x2="38" y2="14.5" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-                  <line x1="38" y1="22" x2="44" y2="26" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-                  <line x1="38" y1="22" x2="32" y2="26" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinecap="round"/>
-                </svg>
+              {/* Clean Zap icon matching the rest of the feature cards */}
+              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center mb-5 text-emerald-300 border border-white/15">
+                <Zap size={20} />
               </div>
               <h3 className="font-extrabold text-xl sm:text-2xl text-white mb-3 leading-snug">
                 Flexible utility billing
@@ -925,12 +936,12 @@ export default function Landing() {
             </p>
           </div>
 
-          {/* ── Card 6: Shared room splitting ── */}
+          {/* ── Card 6: Expense & repair logs (No repeat of shared room) ── */}
           <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 hover:shadow-md transition-all duration-300 cursor-default">
-            <Share2 size={18} className="text-slate-400 mb-4" strokeWidth={1.5} />
-            <h3 className="font-bold text-[14px] text-slate-800 mb-1.5 leading-snug">Shared room splitting</h3>
+            <FileText size={18} className="text-slate-400 mb-4" strokeWidth={1.5} />
+            <h3 className="font-bold text-[14px] text-slate-800 mb-1.5 leading-snug">Property expenses</h3>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Multiple tenants in one room? Each gets their own receipt with their individual share.
+              Log maintenance, repairs, and utility payouts to know your exact net profit each month.
             </p>
           </div>
 
@@ -1013,24 +1024,34 @@ export default function Landing() {
             ))}
           </div>
 
-          {/* Mobile - vertical clean sequence */}
-          <div className="md:hidden space-y-4 text-left relative pl-2">
-            <div className="absolute top-4 bottom-4 left-5 w-px bg-slate-200 z-0" aria-hidden="true" />
-            
+          {/* Mobile - vertical clean sequence with centered connector lines */}
+          <div className="md:hidden space-y-3.5 text-left">
             {steps.map((s, idx) => (
               <div 
                 key={s.step} 
-                className="relative z-10 flex gap-4 items-start p-3 rounded-xl bg-slate-50/50 border border-slate-100"
+                className="relative flex gap-3.5 items-start p-3.5 rounded-2xl bg-slate-50/50 border border-slate-100/90"
               >
-                <div className="w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-xs font-bold border border-slate-300 text-slate-600 bg-white shadow-2xs mt-0.5">
-                  {idx + 1}
+                {/* Circle + connecting vertical line to next card */}
+                <div className="relative flex flex-col items-center shrink-0">
+                  <div className="relative z-10 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border border-slate-300 text-slate-600 bg-white shadow-2xs">
+                    {idx + 1}
+                  </div>
+
+                  {/* Vertical connecting line to next step (only for steps 1, 2, 3) */}
+                  {idx < steps.length - 1 && (
+                    <div 
+                      className="absolute top-7 -bottom-4 w-px bg-slate-200 z-0" 
+                      aria-hidden="true" 
+                    />
+                  )}
                 </div>
-                <div className="flex-1 space-y-1.5">
+
+                <div className="flex-1 space-y-1.5 min-w-0">
                   <h4 className="font-bold text-[14px] text-slate-900 leading-snug">{s.title}</h4>
                   <p className="text-[12px] text-slate-500 leading-relaxed">{s.desc}</p>
-                  <div className="pt-1 flex items-center gap-2 text-[10.5px]">
-                    <span className="text-slate-400 font-medium">{s.chip.label}:</span>
-                    <span className="font-mono text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200">
+                  <div className="pt-1.5 flex items-center justify-between text-[10.5px] border-t border-slate-200/50">
+                    <span className="text-slate-400 font-medium">{s.chip.label}</span>
+                    <span className="font-mono text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200 shadow-2xs">
                       {s.chip.detail}
                     </span>
                   </div>
@@ -1062,25 +1083,6 @@ export default function Landing() {
             <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
               MyPropBook replaces that manual loop: meter readings go in, clear bills and itemized receipts come out, and every tenant receives their own shareable PDF.
             </p>
-
-            <div className="space-y-2 pt-2 text-xs font-semibold text-slate-700">
-              <div className="flex items-center gap-2">
-                <Check size={14} className="text-[#2d5a47] shrink-0" />
-                <span>No spreadsheets or manual billing calculations</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check size={14} className="text-[#2d5a47] shrink-0" />
-                <span>Clear bills and receipts tenants can understand</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check size={14} className="text-[#2d5a47] shrink-0" />
-                <span>One place for properties, rooms, tenants &amp; collections</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check size={14} className="text-[#2d5a47] shrink-0" />
-                <span>Shareable PDF and WhatsApp receipts in one tap</span>
-              </div>
-            </div>
           </div>
 
           {/* Right — pure identity block */}

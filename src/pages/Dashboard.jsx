@@ -324,23 +324,23 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <button
             onClick={() => navigate('/properties?tab=bulk')}
-            className="px-4 py-3 rounded-2xl bg-amber-500/10 text-amber-900 border border-amber-500/30 font-bold text-xs hover:bg-amber-500/20 transition-all flex items-center gap-2 cursor-pointer shadow-2xs"
+            className="flex-1 sm:flex-initial px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-2xl bg-amber-500/10 text-amber-900 border border-amber-500/30 font-bold text-[11px] sm:text-xs hover:bg-amber-500/20 transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer shadow-2xs"
             title="Generate monthly bills for all rooms at once"
           >
-            <Zap size={14} className="text-amber-600" />
-            <span>⚡ Bulk Bill Property</span>
+            <Zap size={13} className="text-amber-600 shrink-0" />
+            <span className="truncate">Bulk Bill</span>
           </button>
 
           <button
             onClick={() => navigate('/create-bill')}
-            className="px-5 py-3 rounded-2xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all flex items-center gap-2 shadow-sm cursor-pointer"
+            className="flex-1 sm:flex-initial px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl bg-[#2d5a47] text-white font-bold text-[11px] sm:text-xs hover:bg-[#234738] transition-all flex items-center justify-center gap-1.5 sm:gap-2 shadow-sm cursor-pointer"
           >
-            <Zap size={14} fill="currentColor" />
-            <span>Create single bill</span>
-            <ArrowUpRight size={14} />
+            <Zap size={13} fill="currentColor" className="shrink-0" />
+            <span className="truncate">New Bill</span>
+            <ArrowUpRight size={13} className="hidden sm:inline" />
           </button>
         </div>
       </div>
@@ -352,74 +352,74 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* ── TOP KPI CARDS GRID ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* ── TOP KPI CARDS GRID (2x2 on mobile, 4-col on desktop) ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         
         {/* KPI 1: Properties */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
           <div className="flex justify-between items-start">
-            <div className="w-10 h-10 rounded-2xl bg-[#e2eee7] text-[#2d5a47] flex items-center justify-center">
-              <Building size={18} />
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[#e2eee7] text-[#2d5a47] flex items-center justify-center">
+              <Building size={16} className="sm:w-[18px] sm:h-[18px]" />
             </div>
           </div>
-          <div className="mt-6">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">PROPERTIES</span>
-            <div className="text-3xl font-black text-slate-900 mt-1 font-mono tracking-tight">
+          <div className="mt-3 sm:mt-6">
+            <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider block">PROPERTIES</span>
+            <div className="text-xl sm:text-3xl font-black text-slate-900 mt-0.5 sm:mt-1 font-mono tracking-tight">
               <AnimatedCounter value={totalProperties} />
             </div>
-            <span className="text-xs text-slate-400 font-medium block mt-1">All active</span>
+            <span className="text-[11px] sm:text-xs text-slate-400 font-medium block mt-0.5 sm:mt-1 truncate">All active</span>
           </div>
         </div>
 
         {/* KPI 2: Occupied Rooms */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between relative hover:shadow-md transition-shadow">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between relative hover:shadow-md transition-shadow">
           <div className="flex justify-between items-start">
-            <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-              <Users size={18} />
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+              <Users size={16} className="sm:w-[18px] sm:h-[18px]" />
             </div>
           </div>
-          <div className="mt-6">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">OCCUPIED ROOMS</span>
-            <div className="text-3xl font-black text-slate-900 mt-1 font-mono tracking-tight">
-              <AnimatedCounter value={activeLeaseRoomIds.length} /> <span className="text-xl text-slate-400 font-normal">/ {totalRooms}</span>
+          <div className="mt-3 sm:mt-6">
+            <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider block">OCCUPIED</span>
+            <div className="text-xl sm:text-3xl font-black text-slate-900 mt-0.5 sm:mt-1 font-mono tracking-tight">
+              <AnimatedCounter value={activeLeaseRoomIds.length} /> <span className="text-sm sm:text-xl text-slate-400 font-normal">/ {totalRooms}</span>
             </div>
-            <span className="text-xs text-slate-400 font-medium block mt-1">{totalRooms > 0 ? `${Math.round((activeLeaseRoomIds.length / totalRooms) * 100)}% occupancy rate` : 'No rooms yet'}</span>
+            <span className="text-[11px] sm:text-xs text-slate-400 font-medium block mt-0.5 sm:mt-1 truncate">{totalRooms > 0 ? `${Math.min(100, Math.round((activeLeaseRoomIds.length / totalRooms) * 100))}% occupancy` : 'No rooms yet'}</span>
           </div>
         </div>
 
         {/* KPI 3: Expected Rent */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
           <div className="flex justify-between items-start">
-            <div className="w-10 h-10 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-base">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-sm sm:text-base">
               ₹
             </div>
           </div>
-          <div className="mt-6">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">EXPECTED RENT</span>
-            <div className="text-3xl font-black text-slate-900 mt-1 font-mono tracking-tight">
+          <div className="mt-3 sm:mt-6">
+            <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider block">EXPECTED</span>
+            <div className="text-xl sm:text-3xl font-black text-slate-900 mt-0.5 sm:mt-1 font-mono tracking-tight truncate">
               <AnimatedCounter value={expectedMonthlyRevenue} formatter={v => formatINR(v)} />
             </div>
-            <span className="text-xs text-slate-400 font-medium block mt-1">{new Date().toLocaleString('en-IN', { month: 'long' })} cycle</span>
+            <span className="text-[11px] sm:text-xs text-slate-400 font-medium block mt-0.5 sm:mt-1 truncate">{new Date().toLocaleString('en-IN', { month: 'short' })} cycle</span>
           </div>
         </div>
 
         {/* KPI 4: Pending Arrears */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between relative">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between relative">
           <div className="flex justify-between items-start">
-            <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
-              <Mail size={18} />
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
+              <Mail size={16} className="sm:w-[18px] sm:h-[18px]" />
             </div>
-            <span className="w-2 h-2 rounded-full bg-amber-500 absolute top-5 right-5" />
+            <span className="w-2 h-2 rounded-full bg-amber-500 absolute top-4 sm:top-5 right-4 sm:right-5" />
           </div>
-          <div className="mt-6">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">PENDING ARREARS</span>
-            <div className="text-3xl font-black text-slate-900 mt-1 font-mono tracking-tight">
+          <div className="mt-3 sm:mt-6">
+            <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider block">ARREARS</span>
+            <div className="text-xl sm:text-3xl font-black text-slate-900 mt-0.5 sm:mt-1 font-mono tracking-tight truncate">
               {formatINR(pendingArrears)}
             </div>
             {tenantsWithArrears > 0 ? (
-              <span className="text-xs text-amber-600 font-semibold block mt-1">{tenantsWithArrears} tenant{tenantsWithArrears > 1 ? 's' : ''} with dues</span>
+              <span className="text-[11px] sm:text-xs text-amber-600 font-semibold block mt-0.5 sm:mt-1 truncate">{tenantsWithArrears} with dues</span>
             ) : (
-              <span className="text-xs text-emerald-600 font-semibold block mt-1">All clear ✓</span>
+              <span className="text-[11px] sm:text-xs text-emerald-600 font-semibold block mt-0.5 sm:mt-1 truncate">All clear ✓</span>
             )}
           </div>
         </div>
