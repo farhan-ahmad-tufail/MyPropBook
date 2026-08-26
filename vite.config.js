@@ -10,9 +10,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'BillRoom - Property & Submeter Billing',
-        short_name: 'BillRoom',
-        description: 'Instant electricity and rent bill calculator',
+        name: 'MyPropBook - Property & Submeter Billing',
+        short_name: 'MyPropBook',
+        description: 'Instant electricity and rent bill calculator for properties',
         theme_color: '#2d5a47',
         background_color: '#f1f5f3',
         display: 'standalone',

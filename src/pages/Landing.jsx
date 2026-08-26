@@ -162,7 +162,7 @@ const propertyTypes = [
   },
 ];
 
-// Custom hook for reusable scroll animations
+// Custom hook for reusable scroll animations (triggers once and stays visible)
 function useScrollReveal(threshold = 0.2, margin = '0px') {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef(null);
@@ -170,7 +170,9 @@ function useScrollReveal(threshold = 0.2, margin = '0px') {
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setIsVisible(entry.isIntersecting);
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
       },
       { threshold, rootMargin: margin }
     );
@@ -190,7 +192,7 @@ export default function Landing() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activePropertyIndex, setActivePropertyIndex] = useState(0);
   
-  const [mockupRef, isMockupVisible] = useScrollReveal(0.3);
+  const [mockupRef, isMockupVisible] = useScrollReveal(0.05);
   const [typesRef, isTypesVisible] = useScrollReveal(0.2);
   const [billingRef, isBillingVisible] = useScrollReveal(0.2);
   const [featuresRef, isFeaturesVisible] = useScrollReveal(0.15);
@@ -198,7 +200,7 @@ export default function Landing() {
   const year = new Date().getFullYear();
 
   return (
-    <div className="relative overflow-hidden bg-[#f8faf9] text-slate-800 font-sans selection:bg-[#2d5a47] selection:text-white" style={{ fontFamily: "'Inter', 'Outfit', system-ui, sans-serif" }}>
+    <div className="relative overflow-hidden bg-[#f8faf9] text-slate-800 font-sans selection:bg-[#2d5a47] selection:text-white">
 
       {/* ══════════════════════════════════════════
           1. NAVBAR
@@ -235,13 +237,21 @@ export default function Landing() {
                 <ArrowRight size={14} />
               </Link>
             ) : (
-              <Link
-                to="/signup"
-                className="px-4 py-2 rounded-xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all shadow-sm flex items-center gap-1.5"
-              >
-                <span>Get started</span>
-                <ArrowRight size={14} />
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/login"
+                  className="px-3 py-2 text-slate-600 hover:text-slate-900 font-bold text-xs transition-colors"
+                >
+                  Log in
+                </Link>
+                <Link
+                  to="/signup"
+                  className="px-4 py-2 rounded-xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all shadow-sm flex items-center gap-1.5"
+                >
+                  <span>Get started</span>
+                  <ArrowRight size={14} />
+                </Link>
+              </div>
             )}
           </div>
 
@@ -262,9 +272,20 @@ export default function Landing() {
             <a href="#who-its-for" onClick={() => setMobileMenuOpen(false)} className="block px-2 text-slate-600 hover:text-[#2d5a47]">Who it's for</a>
             <div className="pt-2 flex flex-col gap-2">
               <Link to="/quick-calc" className="w-full text-center py-2.5 rounded-xl border border-slate-200 bg-white font-bold text-slate-700">Quick Calculator</Link>
-              <Link to={user ? "/dashboard" : "/signup"} className="w-full text-center py-2.5 rounded-xl bg-[#2d5a47] font-bold text-white">
-                {user ? "Dashboard" : "Get started →"}
-              </Link>
+              {user ? (
+                <Link to="/dashboard" className="w-full text-center py-2.5 rounded-xl bg-[#2d5a47] font-bold text-white">
+                  Dashboard
+                </Link>
+              ) : (
+                <>
+                  <Link to="/login" className="w-full text-center py-2.5 rounded-xl border border-slate-200 bg-white font-bold text-slate-700">
+                    Log in
+                  </Link>
+                  <Link to="/signup" className="w-full text-center py-2.5 rounded-xl bg-[#2d5a47] font-bold text-white">
+                    Create Free Account →
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         )}
@@ -273,24 +294,27 @@ export default function Landing() {
       {/* ══════════════════════════════════════════
           2. HERO SECTION
       ══════════════════════════════════════════ */}
-      <section className="relative z-10 px-6 pt-24 pb-16 text-center max-w-5xl mx-auto">
+      <section className="relative z-10 px-4 sm:px-6 pt-20 sm:pt-24 pb-16 text-center max-w-5xl mx-auto">
         
-        {/* Main Headline */}
-        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-slate-900 tracking-tight leading-[1.05] relative z-10">
-          Stop tracking rent on WhatsApp and messy spreadsheets.
-        </h1>
+        {/* Animated Hero Header */}
+        <div className="animate-fade-in-up">
+          {/* Main Headline */}
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-slate-900 tracking-tight leading-[1.05] relative z-10">
+            Stop tracking rent on WhatsApp and messy spreadsheets.
+          </h1>
 
-        {/* Supporting Copy */}
-        <p className="mt-6 max-w-2xl mx-auto text-base sm:text-lg text-slate-500 leading-relaxed font-medium relative z-10">
-          Manage properties, tenants, rent, utility bills, and receipts from one simple workspace.
-        </p>
+          {/* Supporting Copy */}
+          <p className="mt-5 sm:mt-6 max-w-2xl mx-auto text-base sm:text-lg text-slate-500 leading-relaxed font-medium relative z-10">
+            Manage properties, tenants, rent, utility bills, and receipts from one simple workspace.
+          </p>
+        </div>
 
         {/* CTAs */}
-        <div className="mt-8 flex flex-col sm:flex-row gap-3 items-center justify-center relative z-10">
+        <div className="mt-7 sm:mt-8 flex flex-col sm:flex-row gap-3 items-center justify-center relative z-10">
           {user ? (
             <Link
               to="/dashboard"
-              className="px-8 py-3.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-sm hover:bg-[#234738] transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 flex items-center gap-2"
+              className="px-8 py-3.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-sm hover:bg-[#234738] hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98] transition-all duration-200 shadow-md flex items-center gap-2"
             >
               <span>Go to Dashboard</span>
               <ArrowRight size={16} />
@@ -299,55 +323,65 @@ export default function Landing() {
             <>
               <Link
                 to="/signup"
-                className="px-8 py-3.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-sm hover:bg-[#234738] transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 flex items-center gap-2 w-full sm:w-auto justify-center"
+                className="px-8 py-3.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-sm hover:bg-[#234738] hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98] transition-all duration-200 shadow-md flex items-center gap-2 w-full sm:w-auto justify-center"
               >
                 <span>Create Free Account</span>
                 <ArrowRight size={16} />
               </Link>
-              <Link
-                to="/quick-calc"
-                className="px-8 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-700 font-bold text-sm hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm w-full sm:w-auto text-center"
+              <a
+                href="#how-it-works"
+                className="px-8 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-700 font-bold text-sm hover:bg-slate-50 hover:border-slate-300 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 shadow-sm w-full sm:w-auto text-center"
               >
-                Try Calculator
-              </Link>
+                See how it works
+              </a>
             </>
           )}
-        </div>
-
-        {/* Trust / Value Row */}
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-500 font-medium relative z-10">
-          <div className="flex items-center gap-1.5">
-            <Check size={14} className="text-[#2d5a47]" /> Free to get started
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Check size={14} className="text-[#2d5a47]" /> Works on any device
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Check size={14} className="text-[#2d5a47]" /> WhatsApp-friendly receipts
-          </div>
         </div>
 
         {/* ══════════════════════════════════════════
             3. DASHBOARD PRODUCT PREVIEW MOCKUP
         ══════════════════════════════════════════ */}
-        <div style={{ perspective: '1000px' }}>
+        <div 
+          ref={mockupRef}
+          className={`mt-8 sm:mt-10 max-w-5xl mx-auto transition-all duration-700 ease-out transform-gpu ${
+            isMockupVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+          }`}
+        >
+          {/* Browser Chrome Container */}
           <div 
-            ref={mockupRef}
-            className={`mt-14 max-w-5xl mx-auto bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 text-left relative overflow-visible transition-all duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
-              isMockupVisible 
-                ? 'opacity-100' 
-                : 'opacity-0'
-            }`}
+            className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl shadow-2xl shadow-slate-900/10 overflow-hidden text-left relative pointer-events-none select-none"
             style={{
-              transformStyle: 'preserve-3d',
-              transform: isMockupVisible 
-                ? 'translateY(0) rotateX(0) scale(1)' 
-                : 'translateY(80px) rotateX(15deg) scale(0.95)',
-              boxShadow: isMockupVisible 
-                ? '0 25px 50px -12px rgba(45, 90, 71, 0.15), 0 0 0 1px rgba(0,0,0,0.05)'
-                : '0 0px 0px 0px rgba(0,0,0,0)'
+              boxShadow: '0 25px 60px -15px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(15, 23, 42, 0.06)'
             }}
           >
+            {/* Browser Top Bar */}
+            <div className="bg-slate-50/90 border-b border-slate-200/80 px-4 py-2.5 flex items-center justify-between gap-4">
+              {/* Traffic Light Dots */}
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-slate-300/80 inline-block" />
+                <span className="w-2.5 h-2.5 rounded-full bg-slate-300/80 inline-block" />
+                <span className="w-2.5 h-2.5 rounded-full bg-slate-300/80 inline-block" />
+              </div>
+
+              {/* URL Address Bar Mockup */}
+              <div className="flex-1 max-w-xs mx-auto bg-white border border-slate-200/70 rounded-lg px-3 py-1 text-[11px] text-slate-400 font-medium flex items-center justify-center gap-1.5 shadow-2xs">
+                <svg className="w-3 h-3 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                <span className="text-slate-600 font-mono text-[10.5px]">app.mypropbook.com</span>
+                <span className="text-slate-400 font-mono text-[10.5px]">/overview</span>
+              </div>
+
+              {/* Status Indicator */}
+              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-slate-400">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span className="hidden sm:inline">Product View</span>
+              </div>
+            </div>
+
+            {/* Inner Dashboard View */}
+            <div className="p-5 sm:p-7 space-y-6 bg-white">
           
           {/* Dashboard Header Bar */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-100">
@@ -457,65 +491,147 @@ export default function Landing() {
               </div>
             </div>
 
-          </div>
-
+            </div>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
 
       {/* ══════════════════════════════════════════
-          4. PROPERTY TYPES SECTION
+          4. WHO IT'S FOR (Property Types)
       ══════════════════════════════════════════ */}
-      <section id="who-its-for" className="py-20 px-6 border-y border-slate-200/80 text-center overflow-hidden" style={{ backgroundColor: '#EEF1EE' }}>
+      <section id="who-its-for" className="py-20 px-4 sm:px-6 bg-[#f8faf9] border-y border-slate-200/80 text-left overflow-hidden">
         <div 
           ref={typesRef}
           className={`max-w-6xl mx-auto transition-all duration-1000 ease-out transform-gpu ${
             isTypesVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
           }`}
         >
-          <div className="space-y-4 mb-14">
-            <span className="text-[10px] font-black text-[#2d5a47] uppercase tracking-widest block">
-              MADE FOR YOUR KIND OF PROPERTY
-            </span>
-            <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
-              One workspace for the way <br className="hidden sm:block" /> you rent.
+          {/* Section Header — no eyebrow label, authentic copy */}
+          <div className="mb-12 max-w-2xl">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight mb-3">
+              Whether you manage 4 rooms or 40.
             </h2>
-            <p className="text-slate-500 text-sm max-w-xl mx-auto leading-relaxed">
-              Whether you manage a single building or a growing portfolio, MyPropBook keeps every room and rupee accounted for.
+            <p className="text-slate-500 text-sm sm:text-base leading-relaxed">
+              Built specifically for PG owners, residential building managers, and independent landlords across India.
             </p>
           </div>
 
-          {/* SaaS Style Cards Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 pt-4">
-            {propertyTypes.map((pt, idx) => {
-              const Icon = pt.icon;
-              const isActive = activePropertyIndex === idx;
-              return (
-                <div
-                  key={pt.label}
-                  onClick={() => setActivePropertyIndex(idx)}
-                  className={`bg-white rounded-xl p-4 sm:p-5 text-left cursor-pointer transition-all duration-300 relative ${
-                    isActive 
-                      ? 'border-2 border-indigo-600 shadow-md transform -translate-y-1' 
-                      : 'border border-transparent shadow-sm opacity-80 hover:opacity-100 hover:shadow-md'
-                  }`}
-                >
-                  <div className="mb-3 sm:mb-4">
-                    <Icon size={20} className={isActive ? "text-indigo-600" : "text-[#2d5a47]"} />
+          {/* Asymmetric Grid */}
+          <div className="space-y-4">
+            {/* Top Row: Hero Card (2 cols) + Apartments Card (1 col) */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
+              
+              {/* Hero Card: PGs & Hostels (Spans 2 cols) */}
+              <div className="lg:col-span-2 bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-3 mb-4">
+                    <Users size={24} className="text-[#2d5a47]" />
+                    <span className="text-xs font-extrabold uppercase tracking-wider text-[#2d5a47] bg-[#edf5f1] px-2.5 py-1 rounded-full border border-[#c8ddd4]/60">
+                      Most Popular
+                    </span>
                   </div>
-                  <h4 className="font-bold text-xs sm:text-sm text-slate-900 mb-1.5 sm:mb-2">{pt.label}</h4>
-                  <p className="text-[10px] sm:text-[11px] text-slate-500 leading-relaxed hidden sm:block">{pt.desc}</p>
+                  <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 mb-2">
+                    PGs & Student Hostels
+                  </h3>
+                  <p className="text-slate-500 text-xs sm:text-sm leading-relaxed max-w-xl mb-6">
+                    Split shared room electricity bills fairly per head, generate individual WhatsApp receipts for each roommate, and manage bed vacancies without spreadsheet chaos.
+                  </p>
                 </div>
-              );
-            })}
-          </div>
 
-          {/* Dynamic Footer Context Line */}
-          <div className="mt-8 pt-2 flex justify-center">
-            <p className="text-xs font-medium text-slate-600 flex items-center gap-2">
-              <span className="w-1 h-1 rounded-full bg-[#2d5a47]"></span>
-              {propertyTypes[activePropertyIndex].desc}
-            </p>
+                {/* Real Mini UI Mockup: Roommate Split */}
+                <div className="bg-slate-50 border border-slate-200/70 rounded-2xl p-4 space-y-3">
+                  <div className="flex justify-between items-center text-xs pb-2 border-b border-slate-200/70">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-slate-900 font-mono">Room 204</span>
+                      <span className="text-[11px] text-slate-500">• 3-Sharing Room</span>
+                    </div>
+                    <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60">
+                      Electricity ₹1,275 Split ÷ 3
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    {[
+                      { name: 'Aarav Sharma', rent: '₹7,500', elec: '₹425', total: '₹7,925', status: 'Paid ✓' },
+                      { name: 'Rohan Gupta', rent: '₹7,500', elec: '₹425', total: '₹7,925', status: 'Receipt Sent' },
+                      { name: 'Sameer Khan', rent: '₹7,500', elec: '₹425', total: '₹7,925', status: 'Receipt Sent' },
+                    ].map(r => (
+                      <div key={r.name} className="bg-white border border-slate-200/80 rounded-xl p-2.5 text-xs shadow-2xs">
+                        <div className="font-bold text-slate-800 truncate mb-1">{r.name}</div>
+                        <div className="flex justify-between text-[11px] text-slate-500 mb-0.5">
+                          <span>Share</span>
+                          <span className="font-mono font-bold text-slate-700">{r.total}</span>
+                        </div>
+                        <div className="text-[10px] font-semibold text-emerald-700 pt-0.5">{r.status}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 2: Apartments & Flats */}
+              <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+                <div>
+                  <Building2 size={22} className="text-slate-700 mb-4" />
+                  <h3 className="text-lg font-extrabold text-slate-900 mb-2">
+                    Apartments & Flats
+                  </h3>
+                  <p className="text-slate-500 text-xs sm:text-sm leading-relaxed mb-6">
+                    Track long-term tenants, lease terms, security deposits, and submeter meter readings with automatic rate calculations.
+                  </p>
+                </div>
+
+                <div className="bg-slate-50 border border-slate-200/70 rounded-xl p-3 space-y-2 text-xs">
+                  <div className="flex justify-between text-slate-600">
+                    <span>Current Submeter Reading</span>
+                    <span className="font-mono font-bold text-slate-800">1,420 units</span>
+                  </div>
+                  <div className="flex justify-between text-slate-600">
+                    <span>Units Consumed</span>
+                    <span className="font-mono font-bold text-[#2d5a47]">185 units</span>
+                  </div>
+                  <div className="h-px bg-slate-200/80" />
+                  <div className="flex justify-between font-bold text-slate-900">
+                    <span>Total Electricity Due</span>
+                    <span className="font-mono">₹1,480</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Bottom Row: 3 Compact Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              
+              {/* Card 3: Independent Floors & Houses */}
+              <div className="bg-white border border-slate-200/80 rounded-2xl p-6 hover:shadow-md transition-all duration-300">
+                <Home size={20} className="text-slate-600 mb-3.5" />
+                <h4 className="font-bold text-[15px] text-slate-900 mb-1.5">Independent Floors & Houses</h4>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Manage multi-floor rentals and family tenants with clear rent records and direct WhatsApp receipt sharing.
+                </p>
+              </div>
+
+              {/* Card 4: Residential Buildings */}
+              <div className="bg-white border border-slate-200/80 rounded-2xl p-6 hover:shadow-md transition-all duration-300">
+                <Building size={20} className="text-slate-600 mb-3.5" />
+                <h4 className="font-bold text-[15px] text-slate-900 mb-1.5">Residential Buildings</h4>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Keep track of multiple units, upcoming vacancies, and rent collection health across entire buildings.
+                </p>
+              </div>
+
+              {/* Card 5: Small & Independent Landlords */}
+              <div className="bg-white border border-slate-200/80 rounded-2xl p-6 hover:shadow-md transition-all duration-300">
+                <FileText size={20} className="text-slate-600 mb-3.5" />
+                <h4 className="font-bold text-[15px] text-slate-900 mb-1.5">Independent Landlords</h4>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  No complex enterprise software. Just a clean workspace to ensure every rupee and bill is accounted for.
+                </p>
+              </div>
+
+            </div>
           </div>
         </div>
       </section>
@@ -650,70 +766,142 @@ export default function Landing() {
       </section>
 
       {/* ══════════════════════════════════════════
-          6. FEATURES ("The Everyday Essentials")
+          6. FEATURES
       ══════════════════════════════════════════ */}
-      <section id="features" className="py-14 sm:py-20 px-4 sm:px-6 max-w-6xl mx-auto text-center overflow-hidden">
-        <div 
+      <section id="features" className="py-16 sm:py-24 px-4 sm:px-6 max-w-6xl mx-auto overflow-hidden">
+        {/* Section heading — no eyebrow */}
+        <div
           ref={featuresRef}
-          className={`space-y-3 mb-14 transition-all duration-1000 ease-out transform-gpu ${
+          className={`mb-12 text-left transition-all duration-1000 ease-out transform-gpu ${
             isFeaturesVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
           }`}
         >
-          <span className="text-[10px] font-black text-[#2d5a47] uppercase tracking-widest block">
-            THE EVERYDAY ESSENTIALS
-          </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-            Everything you need to run rentals.
+          <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-3">
+            What it actually does
           </h2>
-          <p className="text-slate-500 text-sm max-w-xl mx-auto leading-relaxed">
-            Purpose-built to replace notebooks, spreadsheets and WhatsApp calculations — without adding complexity.
+          <p className="text-slate-500 text-sm leading-relaxed max-w-lg">
+            Rent tracking, utility splitting, receipts, and tenant records — handled from one place. No spreadsheets.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 text-left px-0 sm:px-4">
-          {features.map((f) => {
-            const Icon = f.icon;
-            return (
-              <div
-                key={f.title}
-                className={`bg-white border border-slate-100 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm hover:shadow-md hover:border-slate-200 transition-all duration-300 hover:-translate-y-1 ${f.hoverBorder} ${f.hoverShadow} flex sm:block items-start gap-4 sm:gap-0 group cursor-pointer`}
-              >
-                {/* Mobile: Horizontal Layout (Icon Left) */}
-                <div className="sm:hidden flex items-start gap-4 w-full">
-                  <div className={`shrink-0 w-11 h-11 rounded-xl ${f.bgClass} flex items-center justify-center transition-transform duration-300 group-hover:scale-105`}>
-                    <Icon size={18} className={`${f.accentClass}`} />
-                  </div>
-                  <div className="flex-1 min-w-0 pt-0.5">
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <span className={`text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${f.bgClass} ${f.accentClass}`}>
-                        {f.tag}
-                      </span>
-                    </div>
-                    <h3 className="font-bold text-[15px] text-slate-900 group-hover:text-[#2d5a47] transition-colors leading-snug mb-1">{f.title}</h3>
-                    <p className="text-xs text-slate-500 leading-relaxed">{f.desc}</p>
-                  </div>
-                </div>
+        {/* Row 1: Hero (2 cols) + Receipts (1 col) — use items-stretch so receipts fills height */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left mb-4">
 
-                {/* Desktop: Original Stacked Layout */}
-                <div className="hidden sm:block space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className={`w-10 h-10 rounded-2xl ${f.bgClass} flex items-center justify-center transition-all duration-300 group-hover:scale-105`}>
-                      <Icon size={20} className={`${f.accentClass}`} />
-                    </div>
-                    <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${f.bgClass} ${f.accentClass}`}>
-                      {f.tag}
-                    </span>
+          {/* ── FEATURED CARD: Flexible utility billing — spans 2 cols ── */}
+          <div className="sm:col-span-2 bg-[#2d5a47] text-white rounded-2xl p-7 sm:p-8 hover:shadow-xl transition-all duration-300 cursor-default group relative overflow-hidden">
+            {/* Subtle texture */}
+            <div className="absolute inset-0 opacity-10 pointer-events-none" style={{backgroundImage: 'radial-gradient(circle at 80% 20%, white 1px, transparent 1px)', backgroundSize: '32px 32px'}} />
+            <div className="relative z-10">
+              {/* Custom bill-split SVG illustration */}
+              <div className="mb-6">
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="4" y="8" width="24" height="32" rx="3" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5"/>
+                  <line x1="9" y1="16" x2="23" y2="16" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" strokeLinecap="round"/>
+                  <line x1="9" y1="21" x2="23" y2="21" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" strokeLinecap="round"/>
+                  <line x1="9" y1="26" x2="18" y2="26" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" strokeLinecap="round"/>
+                  <line x1="9" y1="31" x2="23" y2="31" stroke="rgba(255,255,255,0.8)" strokeWidth="2" strokeLinecap="round"/>
+                  <circle cx="38" cy="22" r="8" fill="rgba(255,255,255,0.18)" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5"/>
+                  <line x1="38" y1="22" x2="38" y2="14.5" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                  <line x1="38" y1="22" x2="44" y2="26" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                  <line x1="38" y1="22" x2="32" y2="26" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+              </div>
+              <h3 className="font-extrabold text-xl sm:text-2xl text-white mb-3 leading-snug">
+                Flexible utility billing
+              </h3>
+              <p className="text-white/70 text-sm leading-relaxed max-w-md">
+                Enter the main electricity meter reading, or type in the total bill — MyPropBook calculates each room's share automatically. Works for shared rooms too, splitting the bill per head.
+              </p>
+              {/* Mini illustrative rows */}
+              <div className="mt-6 grid grid-cols-3 gap-2">
+                {[
+                  { label: 'Room 101', val: '₹840', pct: '34%' },
+                  { label: 'Room 102', val: '₹610', pct: '25%' },
+                  { label: 'Room 103', val: '₹1,000', pct: '41%' },
+                ].map(r => (
+                  <div key={r.label} className="bg-white/10 rounded-xl px-3 py-2.5">
+                    <div className="text-[10px] text-white/50 mb-0.5">{r.label}</div>
+                    <div className="font-black text-white text-sm font-mono">{r.val}</div>
+                    <div className="text-[9px] text-white/40 mt-0.5">{r.pct} of bill</div>
                   </div>
-                  <div className="space-y-2">
-                    <h3 className="font-extrabold text-slate-900 text-base group-hover:text-[#2d5a47] transition-colors">{f.title}</h3>
-                    <p className="text-xs text-slate-500 leading-relaxed">{f.desc}</p>
-                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ── Card 2: Professional receipts — fills height of hero with mini receipt ── */}
+          <div className="bg-white border border-slate-100 rounded-2xl p-6 hover:shadow-md hover:border-slate-200 transition-all duration-300 cursor-default group flex flex-col">
+            <Receipt size={22} className="text-slate-700 mb-4 group-hover:text-slate-900 transition-colors" />
+            <h3 className="font-bold text-[15px] text-slate-900 mb-2 leading-snug">Professional receipts</h3>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              One tap generates a clean PDF receipt. Share directly to WhatsApp — no printing, no screenshots.
+            </p>
+            {/* Mini receipt mockup — fills the dead space deliberately */}
+            <div className="mt-auto pt-5">
+              <div className="border border-slate-100 rounded-xl p-3 space-y-1.5 bg-slate-50">
+                <div className="flex justify-between text-[10px] text-slate-500">
+                  <span>Tenant</span><span className="font-semibold text-slate-700">Rahul Sharma</span>
+                </div>
+                <div className="flex justify-between text-[10px] text-slate-500">
+                  <span>Room</span><span className="font-mono text-slate-700">201</span>
+                </div>
+                <div className="flex justify-between text-[10px] text-slate-500">
+                  <span>Rent</span><span className="font-mono text-slate-700">₹7,000</span>
+                </div>
+                <div className="flex justify-between text-[10px] text-slate-500">
+                  <span>Electricity</span><span className="font-mono text-slate-700">₹850</span>
+                </div>
+                <div className="h-px bg-slate-200 my-0.5" />
+                <div className="flex justify-between text-[10px] font-bold">
+                  <span className="text-slate-700">Total</span><span className="text-slate-900">₹7,850</span>
                 </div>
               </div>
-            );
-          })}
+            </div>
+          </div>
+        </div>
+
+        {/* Row 2: 4 equal cards in a 2×2 grid — no orphans */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-left">
+
+          {/* ── Card 3: Multi-property ── */}
+          <div className="bg-white border border-slate-100 rounded-2xl p-5 hover:shadow-md hover:border-slate-200 transition-all duration-300 cursor-default group">
+            <Building2 size={20} className="text-slate-500 mb-4" strokeWidth={1.5} />
+            <h3 className="font-bold text-[14px] text-slate-900 mb-1.5 leading-snug">Multi-property</h3>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Manage several buildings under one login. Switch between properties in seconds.
+            </p>
+          </div>
+
+          {/* ── Card 4: Tenant & lease records ── */}
+          <div className="bg-white border border-slate-100 rounded-2xl p-5 hover:shadow-md hover:border-slate-200 transition-all duration-300 cursor-default group">
+            <Users size={20} className="text-slate-500 mb-4" strokeWidth={1.5} />
+            <h3 className="font-bold text-[14px] text-slate-900 mb-1.5 leading-snug">Tenant & lease records</h3>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Contacts, room assignments, and move-in dates — not scattered across chats.
+            </p>
+          </div>
+
+          {/* ── Card 5: Collections overview ── */}
+          <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 hover:shadow-md transition-all duration-300 cursor-default">
+            <TrendingUp size={18} className="text-slate-400 mb-4" strokeWidth={1.5} />
+            <h3 className="font-bold text-[14px] text-slate-800 mb-1.5 leading-snug">Collections overview</h3>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              See what's collected, what's pending, and who's overdue — at a glance.
+            </p>
+          </div>
+
+          {/* ── Card 6: Shared room splitting ── */}
+          <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 hover:shadow-md transition-all duration-300 cursor-default">
+            <Share2 size={18} className="text-slate-400 mb-4" strokeWidth={1.5} />
+            <h3 className="font-bold text-[14px] text-slate-800 mb-1.5 leading-snug">Shared room splitting</h3>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Multiple tenants in one room? Each gets their own receipt with their individual share.
+            </p>
+          </div>
+
         </div>
       </section>
+
 
       {/* ══════════════════════════════════════════
           7. HOW IT WORKS
@@ -731,16 +919,12 @@ export default function Landing() {
             </p>
           </div>
 
-          {/* Timeline — desktop: horizontal connected. Mobile: vertical */}
-          {/* Desktop */}
-          <div className="hidden md:grid grid-cols-4 gap-0 relative">
-            {/* Connector line behind all steps */}
-            <div className="absolute top-5 left-[12.5%] right-[12.5%] h-px bg-slate-200" style={{zIndex: 0}} />
-
+          {/* Steps — desktop: plain numbered list, no connector line, no fake active state */}
+          <div className="hidden md:grid grid-cols-4 gap-8">
             {steps.map((s, idx) => (
-              <div key={s.step} className="relative flex flex-col items-start px-5 pt-0" style={{zIndex: 1}}>
-                {/* Circle dot on the line */}
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-black mb-6 border-2 ${idx === 0 ? 'bg-[#2d5a47] border-[#2d5a47] text-white' : 'bg-white border-slate-300 text-slate-500'}`}>
+              <div key={s.step} className="flex flex-col">
+                {/* Uniform circle — no filled/outlined distinction */}
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mb-5 border border-slate-300 text-slate-500 bg-white">
                   {idx + 1}
                 </div>
                 <h4 className="font-bold text-[15px] text-slate-900 mb-2 leading-snug">{s.title}</h4>
@@ -749,22 +933,15 @@ export default function Landing() {
             ))}
           </div>
 
-          {/* Mobile — vertical list */}
-          <div className="md:hidden space-y-0">
+          {/* Mobile - simple vertical list */}
+          <div className="md:hidden space-y-6">
             {steps.map((s, idx) => (
-              <div key={s.step} className="flex gap-5 relative">
-                {/* Left: number + vertical connector */}
-                <div className="flex flex-col items-center">
-                  <div className={`w-9 h-9 rounded-full shrink-0 flex items-center justify-center text-sm font-black border-2 ${idx === 0 ? 'bg-[#2d5a47] border-[#2d5a47] text-white' : 'bg-white border-slate-200 text-slate-500'}`}>
-                    {idx + 1}
-                  </div>
-                  {idx < steps.length - 1 && (
-                    <div className="w-px flex-1 bg-slate-200 my-2" />
-                  )}
+              <div key={s.step} className="flex gap-4 items-start">
+                <div className="w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-xs font-bold border border-slate-300 text-slate-500 bg-white mt-0.5">
+                  {idx + 1}
                 </div>
-                {/* Right: content */}
-                <div className={`pb-10 ${idx === steps.length - 1 ? 'pb-0' : ''}`}>
-                  <h4 className="font-bold text-[15px] text-slate-900 mb-1 leading-snug pt-1.5">{s.title}</h4>
+                <div>
+                  <h4 className="font-bold text-[15px] text-slate-900 mb-1 leading-snug">{s.title}</h4>
                   <p className="text-[12px] text-slate-500 leading-relaxed">{s.desc}</p>
                 </div>
               </div>

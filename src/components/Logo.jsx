@@ -1,58 +1,47 @@
 import React from 'react';
 
-export default function Logo({ size = 32, showText = true, className = '', dark = false }) {
+export default function Logo({ size = 28, showText = true, className = '', dark = false }) {
+  const iconColor = dark ? 'text-white' : 'text-[#2d5a47]';
+  const textColor = dark ? 'text-white' : 'text-slate-900';
+
   return (
     <div className={`flex items-center gap-2.5 ${className}`}>
-      {/* Sleek green building icon badge from modern SaaS design */}
-      <div 
-        className="relative flex items-center justify-center flex-shrink-0 rounded-xl transition-all duration-300 group-hover:scale-105"
-        style={{
-          width: size,
-          height: size,
-          backgroundColor: '#2d5a47',
-          boxShadow: '0 2px 10px rgba(45, 90, 71, 0.25)',
-        }}
-      >
+      {/* Minimal Book / Ledger Mark — sits directly on whitespace without badge container */}
+      <div className="flex-shrink-0 flex items-center justify-center">
         <svg 
-          width={size * 0.55} 
-          height={size * 0.55} 
+          width={size} 
+          height={size} 
           viewBox="0 0 24 24" 
           fill="none" 
           stroke="currentColor" 
           strokeWidth="2.2" 
           strokeLinecap="round" 
           strokeLinejoin="round" 
-          className="text-white"
+          className={iconColor}
         >
-          <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
-          <path d="M9 22v-4h6v4" />
-          <path d="M8 6h.01" />
-          <path d="M16 6h.01" />
-          <path d="M8 10h.01" />
-          <path d="M16 10h.01" />
-          <path d="M8 14h.01" />
-          <path d="M16 14h.01" />
+          {/* Ledger cover & spine */}
+          <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a2.5 2.5 0 0 1-2.5-2.5z" />
+          {/* Bottom ledger fold */}
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+          {/* Subtle ledger rule entries */}
+          <line x1="8.5" y1="7" x2="14.5" y2="7" strokeWidth="2" />
+          <line x1="8.5" y1="11" x2="13" y2="11" strokeWidth="2" />
         </svg>
       </div>
 
-      {/* Typographic brand title */}
+      {/* Solid single-color typographic wordmark — no two-tone split, no tagline */}
       {showText && (
-        <div className="flex flex-col leading-tight">
-          <span 
-            className={`font-extrabold tracking-tight select-none ${dark ? 'text-white' : 'text-slate-800'}`}
-            style={{
-              fontSize: `${size * 0.58}px`,
-              letterSpacing: '-0.03em',
-              fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
-            }}
-          >
-            MyProp<span className="text-[#4a9978]">Book</span>
-          </span>
-          <span className={`text-[8px] font-bold tracking-widest uppercase -mt-0.5 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
-            PROPERTY OPERATIONS
-          </span>
-        </div>
+        <span 
+          className={`font-black tracking-tight select-none ${textColor}`}
+          style={{
+            fontSize: `${Math.max(16, size * 0.72)}px`,
+            letterSpacing: '-0.035em',
+          }}
+        >
+          MyPropBook
+        </span>
       )}
     </div>
   );
 }
+

@@ -364,7 +364,7 @@ export default function Dashboard() {
           </div>
           <div className="mt-6">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">PROPERTIES</span>
-            <div className="text-3xl font-black text-slate-900 mt-1">
+            <div className="text-3xl font-black text-slate-900 mt-1 font-mono tracking-tight">
               <AnimatedCounter value={totalProperties} />
             </div>
             <span className="text-xs text-slate-400 font-medium block mt-1">All active</span>
@@ -380,7 +380,7 @@ export default function Dashboard() {
           </div>
           <div className="mt-6">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">OCCUPIED ROOMS</span>
-            <div className="text-3xl font-black text-slate-900 mt-1">
+            <div className="text-3xl font-black text-slate-900 mt-1 font-mono tracking-tight">
               <AnimatedCounter value={activeLeaseRoomIds.length} /> <span className="text-xl text-slate-400 font-normal">/ {totalRooms}</span>
             </div>
             <span className="text-xs text-slate-400 font-medium block mt-1">{totalRooms > 0 ? `${Math.round((activeLeaseRoomIds.length / totalRooms) * 100)}% occupancy rate` : 'No rooms yet'}</span>
@@ -396,7 +396,7 @@ export default function Dashboard() {
           </div>
           <div className="mt-6">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">EXPECTED RENT</span>
-            <div className="text-3xl font-black text-slate-900 mt-1">
+            <div className="text-3xl font-black text-slate-900 mt-1 font-mono tracking-tight">
               <AnimatedCounter value={expectedMonthlyRevenue} formatter={v => formatINR(v)} />
             </div>
             <span className="text-xs text-slate-400 font-medium block mt-1">{new Date().toLocaleString('en-IN', { month: 'long' })} cycle</span>
@@ -413,7 +413,7 @@ export default function Dashboard() {
           </div>
           <div className="mt-6">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">PENDING ARREARS</span>
-            <div className="text-3xl font-black text-slate-900 mt-1">
+            <div className="text-3xl font-black text-slate-900 mt-1 font-mono tracking-tight">
               {formatINR(pendingArrears)}
             </div>
             {tenantsWithArrears > 0 ? (
@@ -488,7 +488,7 @@ export default function Dashboard() {
 
           <div>
             <div className="flex items-baseline gap-3">
-              <span className="text-3xl font-black text-slate-900">{formatINR(totalCollected)}</span>
+              <span className="text-3xl font-black text-slate-900 font-mono tracking-tight">{formatINR(totalCollected)}</span>
               {totalCollected > 0 && (
                 <span className="text-xs font-bold text-emerald-600 flex items-center gap-0.5">
                   <TrendingUp size={12} /> collected
@@ -499,11 +499,11 @@ export default function Dashboard() {
             <div className="flex items-center gap-6 text-xs font-medium text-slate-500 mt-2 mb-4">
               <span className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#2d5a47]" /> 
-                <span className="font-semibold text-slate-700">Collected:</span> {formatINR(totalCollected)}
+                <span className="font-semibold text-slate-700">Collected:</span> <span className="font-mono">{formatINR(totalCollected)}</span>
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-slate-300 border border-slate-400" /> 
-                <span className="font-semibold text-slate-700">Expected:</span> {formatINR(expectedMonthlyRevenue)}
+                <span className="font-semibold text-slate-700">Expected:</span> <span className="font-mono">{formatINR(expectedMonthlyRevenue)}</span>
               </span>
             </div>
 
@@ -707,7 +707,7 @@ export default function Dashboard() {
             </div>
 
             <div className="mt-4">
-              <div className="text-4xl font-black text-slate-900">{collectionHealthPct}%</div>
+              <div className="text-4xl font-black text-slate-900 font-mono tracking-tight">{collectionHealthPct}%</div>
               <p className="text-xs text-slate-500 mt-1 font-medium">of {new Date().toLocaleString('en-IN', { month: 'long' })} rent collected</p>
             </div>
 
@@ -722,11 +722,11 @@ export default function Dashboard() {
             <div className="space-y-3 mt-6 text-xs font-semibold">
               <div className="flex justify-between items-center text-slate-600">
                 <span>Collected</span>
-                <span className="text-slate-900 font-bold">{formatINR(totalCollected)}</span>
+                <span className="text-slate-900 font-bold font-mono">{formatINR(totalCollected)}</span>
               </div>
               <div className="flex justify-between items-center text-slate-600">
                 <span>Still to collect</span>
-                <span className="text-amber-700 font-bold">{formatINR(pendingArrears)}</span>
+                <span className="text-amber-700 font-bold font-mono">{formatINR(pendingArrears)}</span>
               </div>
             </div>
           </div>
@@ -777,11 +777,11 @@ export default function Dashboard() {
                 <div className="flex justify-between items-center pt-4 mt-4 border-t border-slate-200/60 text-xs">
                   <div>
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">OCCUPIED</span>
-                    <span className="font-bold text-slate-800">{occupied} / {propRooms.length} rooms</span>
+                    <span className="font-bold text-slate-800 font-mono">{occupied} / {propRooms.length} rooms</span>
                   </div>
                   <div className="text-right">
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">EXPECTED</span>
-                    <span className="font-bold text-slate-800">{formatINR(rev)}</span>
+                    <span className="font-bold text-slate-800 font-mono">{formatINR(rev)}</span>
                   </div>
                 </div>
               </div>
@@ -838,7 +838,7 @@ export default function Dashboard() {
                         </div>
                       </td>
                       <td className="py-3.5 text-slate-500">{prop?.name || '—'}</td>
-                      <td className="py-3.5 font-bold text-slate-800">{formatINR(room.base_rent)}</td>
+                      <td className="py-3.5 font-bold text-slate-800 font-mono">{formatINR(room.base_rent)}</td>
                       <td className="py-3.5 text-right">
                         <span className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] ${
                           isPaid ? 'bg-emerald-50 text-emerald-700' :
@@ -892,7 +892,7 @@ export default function Dashboard() {
                       <p className="text-[11px] text-slate-400">{b.prop?.name || '—'} • {dateStr}</p>
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <span className="font-bold text-slate-800 block">{formatINR(b.total_payable)}</span>
+                      <span className="font-bold text-slate-800 block font-mono">{formatINR(b.total_payable)}</span>
                       <span className={`text-[10px] font-semibold ${isPaid ? 'text-emerald-600' : isUnpaid ? 'text-red-500' : 'text-amber-600'}`}>
                         {b.payment_status}
                       </span>
