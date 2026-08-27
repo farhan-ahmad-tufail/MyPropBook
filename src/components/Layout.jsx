@@ -371,10 +371,10 @@ export default function Layout({ children }) {
               </kbd>
             </button>
 
-            {/* Financial Analytics Quick Access Button */}
+            {/* Financial Analytics Quick Access Button (Desktop/Tablet) */}
             <Link
               to="/analytics"
-              className={`p-2 rounded-full border text-xs font-semibold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer ${
+              className={`hidden sm:flex p-2 rounded-full border text-xs font-semibold transition-all shadow-sm items-center gap-1.5 cursor-pointer ${
                 location.pathname === '/analytics'
                   ? 'bg-[#2d5a47] text-white border-[#2d5a47]'
                   : 'bg-white border-slate-200 text-slate-600 hover:text-[#2d5a47] hover:border-[#2d5a47]/40'

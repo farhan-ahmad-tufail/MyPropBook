@@ -280,6 +280,29 @@ export default function Dashboard() {
     return { collectedPath, expectedPath, areaPath, points };
   }, [monthlyChartData]);
 
+  // Dashboard Month-by-Month Analytics Ledger computation
+  const dashboardMonthlyLedger = useMemo(() => {
+    const fullMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const currentYear = new Date().getFullYear().toString();
+    const currentYearBills = bills.filter(b => (b.bill_year?.toString() || currentYear) === currentYear);
+
+    return fullMonths.map((fullMonth) => {
+      const mBills = currentYearBills.filter(b => b.bill_month === fullMonth);
+      const billed = mBills.reduce((sum, b) => sum + parseFloat(b.total_payable || 0), 0);
+      const collected = mBills.reduce((sum, b) => sum + parseFloat(b.amount_paid || 0), 0);
+      const pending = billed - collected;
+      const units = mBills.reduce((sum, b) => sum + parseFloat(b.units_consumed || 0), 0);
+      return { 
+        fullMonth, 
+        billed, 
+        collected, 
+        pending, 
+        units, 
+        count: mBills.length 
+      };
+    });
+  }, [bills]);
+
   // Dynamic time-of-day greeting generator
   const getTimeBasedGreeting = () => {
     const hour = new Date().getHours();
@@ -309,48 +332,27 @@ export default function Dashboard() {
     <div className="space-y-5 sm:space-y-6 fade-in-up active pb-24 lg:pb-8">
       
       {/* ── HERO GREETING HEADER ── */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-2">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-1">
         <div>
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
-              {currentDate}
-            </span>
+            <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+              {greetingPrefix}, {cleanName}
+            </h1>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-1">
-            {greetingPrefix}, {cleanName}.
-          </h1>
-          <p className="text-slate-500 text-sm mt-1">
-            Here's what needs your attention across the portfolio.
+          <p className="text-slate-500 text-xs sm:text-sm mt-0.5">
+            {currentDate}
           </p>
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <button
-            onClick={() => navigate('/analytics')}
-            className="flex-1 sm:flex-initial px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-2xl bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200/80 font-bold text-xs transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer shadow-2xs"
-            title="View financial analytics & reports"
-          >
-            <BarChart3 size={14} className="text-purple-600 shrink-0" />
-            <span className="truncate">Analytics</span>
-          </button>
-
-          <button
             onClick={() => navigate('/properties?tab=bulk')}
-            className="flex-1 sm:flex-initial px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-2xl bg-amber-500/10 text-amber-900 border border-amber-500/30 font-bold text-xs hover:bg-amber-500/20 transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer shadow-2xs"
+            className="w-full sm:w-auto px-4 py-2.5 rounded-2xl bg-amber-500/10 text-amber-900 border border-amber-500/30 font-bold text-xs hover:bg-amber-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
             title="Generate monthly bills for all rooms at once"
           >
             <Zap size={14} className="text-amber-600 shrink-0" />
-            <span className="truncate">Bulk Bill</span>
-          </button>
-
-          <button
-            onClick={() => navigate('/create-bill')}
-            className="hidden sm:flex px-5 py-3 rounded-2xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all items-center justify-center gap-2 shadow-sm cursor-pointer"
-          >
-            <Zap size={14} fill="currentColor" className="shrink-0" />
-            <span className="truncate">New Bill</span>
-            <ArrowUpRight size={14} />
+            <span>⚡ Bulk Generate Bills</span>
           </button>
         </div>
       </div>
@@ -362,82 +364,46 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* ── TOP KPI CARDS GRID (2x2 on mobile, 4-col on desktop) ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        
-        {/* KPI 1: Properties */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-          <div className="flex justify-between items-start">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[#e2eee7] text-[#2d5a47] flex items-center justify-center">
-              <Building size={16} className="sm:w-[18px] sm:h-[18px]" />
+      {/* ── UNIFIED EXECUTIVE METRICS CARD ── */}
+      <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm space-y-3">
+        {/* Portfolio & Occupancy Top Bar */}
+        <div className="flex items-center justify-between text-xs border-b border-slate-100/80 pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-[#edf5f1] text-[#2d5a47] flex items-center justify-center font-bold">
+              <Building size={15} />
+            </div>
+            <div>
+              <span className="font-extrabold text-slate-900">{totalProperties} {totalProperties === 1 ? 'Property' : 'Properties'}</span>
+              <span className="text-slate-400 font-medium ml-1.5">• {activeLeaseRoomIds.length} Occupied Rooms</span>
             </div>
           </div>
-          <div className="mt-3 sm:mt-6">
-            <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider block">PROPERTIES</span>
-            <div className="text-xl sm:text-3xl font-black text-slate-900 mt-0.5 sm:mt-1 font-mono tracking-tight">
-              <AnimatedCounter value={totalProperties} />
-            </div>
-            <span className="text-[11px] sm:text-xs text-slate-400 font-medium block mt-0.5 sm:mt-1 truncate">All active</span>
-          </div>
+          <span className="bg-emerald-50 text-[#2d5a47] text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-200/60 shrink-0">
+            {totalRooms > 0 ? `${Math.min(100, Math.round((activeLeaseRoomIds.length / Math.max(1, totalRooms)) * 100))}% Occupancy` : 'Active'}
+          </span>
         </div>
 
-        {/* KPI 2: Occupied Rooms */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between relative hover:shadow-md transition-shadow">
-          <div className="flex justify-between items-start">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-              <Users size={16} className="sm:w-[18px] sm:h-[18px]" />
-            </div>
-          </div>
-          <div className="mt-3 sm:mt-6">
-            <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider block">OCCUPIED</span>
-            <div className="text-xl sm:text-3xl font-black text-slate-900 mt-0.5 sm:mt-1 font-mono tracking-tight">
-              <AnimatedCounter value={activeLeaseRoomIds.length} /> <span className="text-xs sm:text-lg text-slate-400 font-normal">rooms</span>
-            </div>
-            <span className="text-[11px] sm:text-xs text-indigo-600 font-semibold block mt-0.5 sm:mt-1 truncate">
-              {totalRooms > 0 ? `${Math.min(100, Math.round((activeLeaseRoomIds.length / Math.max(1, totalRooms)) * 100))}% occupancy` : 'All active'}
-            </span>
-          </div>
-        </div>
-
-        {/* KPI 3: Expected Rent */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-          <div className="flex justify-between items-start">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-sm sm:text-base">
-              ₹
-            </div>
-          </div>
-          <div className="mt-3 sm:mt-6">
-            <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider block">EXPECTED</span>
-            <div className="text-xl sm:text-3xl font-black text-slate-900 mt-0.5 sm:mt-1 font-mono tracking-tight truncate">
+        {/* Expected Rent vs Arrears Grid */}
+        <div className="grid grid-cols-2 gap-4 pt-1">
+          <div>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">EXPECTED RENT</span>
+            <div className="text-xl sm:text-3xl font-black text-slate-900 mt-0.5 font-mono tracking-tight">
               <AnimatedCounter value={expectedMonthlyRevenue} formatter={v => formatINR(v)} />
             </div>
-            <span className="text-[11px] sm:text-xs text-slate-400 font-medium block mt-0.5 sm:mt-1 truncate">{new Date().toLocaleString('en-IN', { month: 'short' })} cycle</span>
+            <span className="text-[11px] text-slate-400 font-medium block mt-0.5">{new Date().toLocaleString('en-IN', { month: 'short' })} billing cycle</span>
           </div>
-        </div>
 
-        {/* KPI 4: Pending Arrears */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between relative">
-          <div className="flex justify-between items-start">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
-              <Mail size={16} className="sm:w-[18px] sm:h-[18px]" />
-            </div>
-            {tenantsWithArrears > 0 && (
-              <span className="w-2 h-2 rounded-full bg-amber-500 absolute top-4 sm:top-5 right-4 sm:right-5" />
-            )}
-          </div>
-          <div className="mt-3 sm:mt-6">
-            <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider block">ARREARS</span>
-            <div className="text-xl sm:text-3xl font-black text-slate-900 mt-0.5 sm:mt-1 font-mono tracking-tight truncate">
+          <div>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">PENDING ARREARS</span>
+            <div className={`text-xl sm:text-3xl font-black mt-0.5 font-mono tracking-tight ${pendingArrears > 0 ? 'text-red-500' : 'text-slate-900'}`}>
               {formatINR(pendingArrears)}
             </div>
             {tenantsWithArrears > 0 ? (
-              <span className="text-[11px] sm:text-xs text-amber-600 font-semibold block mt-0.5 sm:mt-1 truncate">{tenantsWithArrears} with dues</span>
+              <span className="text-[11px] text-amber-600 font-semibold block mt-0.5">{tenantsWithArrears} tenant(s) with dues</span>
             ) : (
-              <span className="text-[11px] sm:text-xs text-emerald-600 font-semibold block mt-0.5 sm:mt-1 truncate">All clear ✓</span>
+              <span className="text-[11px] text-emerald-600 font-semibold block mt-0.5">All clear ✓</span>
             )}
           </div>
         </div>
-
       </div>
 
       {/* ── MOBILE NEEDS ATTENTION QUICK ACTION BAR ── */}
@@ -788,6 +754,51 @@ export default function Dashboard() {
           </button>
         </div>
 
+      </div>
+
+      {/* ── MONTHLY FINANCIAL LEDGER TABLE ON DASHBOARD ── */}
+      <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm p-4 sm:p-6 space-y-4 overflow-hidden">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-extrabold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+              <ArrowUpRight size={16} className="text-[#2d5a47] shrink-0" />
+              <span>Monthly Financial Ledger ({new Date().getFullYear()})</span>
+            </h3>
+            <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">Month-by-month billing, collections & pending dues</p>
+          </div>
+          <Link
+            to="/analytics"
+            className="text-xs font-bold text-[#2d5a47] hover:text-[#1c4032] flex items-center gap-1 shrink-0"
+          >
+            <span>Full Analytics</span>
+            <ArrowUpRight size={13} />
+          </Link>
+        </div>
+
+        <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+          <table className="w-full text-left border-collapse min-w-[480px]">
+            <thead>
+              <tr className="border-b border-slate-100 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50/50">
+                <th className="px-3 sm:px-5 py-3 sm:py-3.5">MONTH</th>
+                <th className="px-3 sm:px-5 py-3 sm:py-3.5">INVOICES</th>
+                <th className="px-3 sm:px-5 py-3 sm:py-3.5">BILLED</th>
+                <th className="px-3 sm:px-5 py-3 sm:py-3.5">COLLECTED</th>
+                <th className="px-3 sm:px-5 py-3 sm:py-3.5">PENDING</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 font-medium text-xs">
+              {dashboardMonthlyLedger.map(m => (
+                <tr key={m.fullMonth} className="hover:bg-slate-50/60 transition-colors">
+                  <td className="px-3 sm:px-5 py-3 font-bold text-slate-800">{m.fullMonth}</td>
+                  <td className="px-3 sm:px-5 py-3 text-slate-400">{m.count > 0 ? `${m.count} bill${m.count > 1 ? 's' : ''}` : '-'}</td>
+                  <td className="px-3 sm:px-5 py-3 font-semibold text-slate-700">₹{m.billed.toLocaleString()}</td>
+                  <td className="px-3 sm:px-5 py-3 font-bold text-[#2d5a47]">₹{m.collected.toLocaleString()}</td>
+                  <td className="px-3 sm:px-5 py-3 font-bold text-red-500">{m.pending > 0 ? `₹${m.pending.toLocaleString()}` : '₹0'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* ── PORTFOLIO SNAPSHOT SECTION ── */}
