@@ -192,22 +192,22 @@ export default function Analytics() {
   }
 
   return (
-    <div className="space-y-8 fade-in-up active max-w-7xl mx-auto pb-12">
+    <div className="space-y-5 sm:space-y-8 fade-in-up active max-w-7xl mx-auto pb-24 lg:pb-8">
       
       {/* ── Page Header ── */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-2">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 pb-2">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
-            <BarChart3 className="text-[#2d5a47]" size={32} />
-            <span>Financial Analytics &amp; Reports</span>
+          <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
+            <BarChart3 className="text-[#2d5a47] shrink-0" size={28} />
+            <span>Financial Analytics & Reports</span>
           </h1>
-          <p className="text-slate-500 mt-1 text-sm">Track revenue collection, electricity consumption trends &amp; export tax statements.</p>
+          <p className="text-slate-500 mt-0.5 sm:mt-1 text-xs sm:text-sm">Track revenue collection, electricity consumption trends & export tax statements.</p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+        <div className="flex items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
           {/* Year Selector */}
-          <div className="flex items-center gap-2 bg-white border border-slate-200 px-3.5 py-2 rounded-2xl shadow-sm">
-            <Calendar size={14} className="text-slate-400" />
+          <div className="flex items-center gap-2 bg-white border border-slate-200 px-3 sm:px-3.5 py-2.5 sm:py-2 rounded-2xl shadow-sm">
+            <Calendar size={14} className="text-slate-400 shrink-0" />
             <select
               value={selectedYear}
               onChange={e => setSelectedYear(e.target.value)}
@@ -224,7 +224,7 @@ export default function Analytics() {
           {/* Export CSV Button */}
           <button
             onClick={handleExportCSV}
-            className="px-5 py-2.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all flex items-center gap-2 shadow-sm cursor-pointer"
+            className="flex-1 sm:flex-initial justify-center px-4 sm:px-5 py-2.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all flex items-center gap-2 shadow-sm cursor-pointer whitespace-nowrap"
             title="Download CSV Report for Accounting/Tax"
           >
             <Download size={15} /> Export CSV Report
@@ -239,64 +239,64 @@ export default function Analytics() {
         </div>
       )}
 
-      {/* ── Financial Cards ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* ── Financial Cards (2x2 Grid on Mobile, 4 Cols on Desktop) ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         
         {/* Total Collected */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
           <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">REVENUE COLLECTED</span>
-            <div className="w-9 h-9 rounded-2xl bg-[#edf5f1] text-[#2d5a47] flex items-center justify-center font-bold">
+            <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">REVENUE COLLECTED</span>
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl bg-[#edf5f1] text-[#2d5a47] flex items-center justify-center font-bold">
               <DollarSign size={16} />
             </div>
           </div>
-          <div className="mt-5">
-            <h3 className="text-2xl sm:text-3xl font-black text-[#2d5a47]">{formatINR(totalCollectedYear)}</h3>
-            <p className="text-xs text-slate-400 font-medium mt-1">Total received in {selectedYear}</p>
+          <div className="mt-3 sm:mt-5">
+            <h3 className="text-xl sm:text-3xl font-black text-[#2d5a47]">{formatINR(totalCollectedYear)}</h3>
+            <p className="text-[10px] sm:text-xs text-slate-400 font-medium mt-0.5 sm:mt-1">Total received in {selectedYear}</p>
           </div>
         </div>
 
         {/* Total Pending */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
           <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">PENDING ARREARS</span>
-            <div className="w-9 h-9 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center font-bold">
+            <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">PENDING ARREARS</span>
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl bg-red-50 text-red-600 flex items-center justify-center font-bold">
               <TrendingUp size={16} />
             </div>
           </div>
-          <div className="mt-5">
-            <h3 className={`text-2xl sm:text-3xl font-black ${totalPendingYear > 0 ? 'text-red-500' : 'text-slate-800'}`}>
+          <div className="mt-3 sm:mt-5">
+            <h3 className={`text-xl sm:text-3xl font-black ${totalPendingYear > 0 ? 'text-red-500' : 'text-slate-800'}`}>
               {formatINR(totalPendingYear)}
             </h3>
-            <p className="text-xs text-slate-400 font-medium mt-1">Uncollected balance</p>
+            <p className="text-[10px] sm:text-xs text-slate-400 font-medium mt-0.5 sm:mt-1">Uncollected balance</p>
           </div>
         </div>
 
         {/* Collection Efficiency Rate */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
           <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">COLLECTION RATE</span>
-            <div className="w-9 h-9 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-              <PieIcon size={16} />
+            <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">COLLECTION RATE</span>
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+              <BarChart3 size={16} />
             </div>
           </div>
-          <div className="mt-5">
-            <h3 className="text-2xl sm:text-3xl font-black text-blue-600">{collectionRate}%</h3>
-            <p className="text-xs text-slate-400 font-medium mt-1">Paid vs total billed</p>
+          <div className="mt-3 sm:mt-5">
+            <h3 className="text-xl sm:text-3xl font-black text-blue-600">{collectionRate}%</h3>
+            <p className="text-[10px] sm:text-xs text-slate-400 font-medium mt-0.5 sm:mt-1">Paid vs total billed</p>
           </div>
         </div>
 
         {/* Electricity Consumption */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
           <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">ELECTRICITY CONSUMED</span>
-            <div className="w-9 h-9 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+            <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">ELECTRICITY CONSUMED</span>
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
               <Zap size={16} />
             </div>
           </div>
-          <div className="mt-5">
-            <h3 className="text-2xl sm:text-3xl font-black text-amber-600">{totalUnitsConsumedYear.toLocaleString()} Units</h3>
-            <p className="text-xs text-slate-400 font-medium mt-1">{formatINR(totalElectricityRevenueYear)} billed</p>
+          <div className="mt-3 sm:mt-5">
+            <h3 className="text-xl sm:text-3xl font-black text-amber-600">{totalUnitsConsumedYear.toLocaleString()} Units</h3>
+            <p className="text-[10px] sm:text-xs text-slate-400 font-medium mt-0.5 sm:mt-1">{formatINR(totalElectricityRevenueYear)} billed</p>
           </div>
         </div>
 
@@ -344,61 +344,59 @@ export default function Analytics() {
             </div>
           </div>
 
-          {/* 2. Revenue Distribution (Donut Pie Chart) */}
-          <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm space-y-4 flex flex-col justify-between">
+          {/* 2. Revenue Distribution (Production SaaS Multi-Segment Progress Bar Breakdown) */}
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-100 p-5 sm:p-6 shadow-sm space-y-4 flex flex-col justify-between">
             <div>
               <h3 className="font-extrabold text-slate-900 text-base flex items-center gap-2">
-                <PieIcon size={16} className="text-purple-600" /> Revenue Distribution
+                <BarChart3 size={16} className="text-purple-600" /> Revenue Distribution
               </h3>
               <p className="text-xs text-slate-400 mt-0.5">Yield share of base rent vs utilities</p>
             </div>
 
-            {pieData.length > 0 ? (
-              <div className="h-48 w-full relative flex items-center justify-center">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={55}
-                      outerRadius={75}
-                      paddingAngle={3}
-                      dataKey="value"
-                    >
-                      {pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
-                      formatter={(value) => [formatINR(value), null]}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-                {/* Center metric */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Total Billed</span>
-                  <span className="text-base font-black text-slate-900 leading-tight">{formatINRShort(totalBilledYear)}</span>
+            {/* Total Metric Header */}
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-center">
+              <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Total Billed ({selectedYear})</span>
+              <span className="text-2xl font-black text-slate-900 leading-tight">{formatINR(totalBilledYear)}</span>
+            </div>
+
+            {/* Multi-Segment Horizontal Stacked Bar */}
+            {totalBilledYear > 0 ? (
+              <div className="space-y-2">
+                <div className="h-4 w-full bg-slate-100 rounded-full overflow-hidden flex gap-0.5 p-0.5">
+                  {pieData.map((d, idx) => {
+                    const pct = totalBilledYear > 0 ? (d.value / totalBilledYear) * 100 : 0;
+                    if (pct <= 0) return null;
+                    return (
+                      <div
+                        key={idx}
+                        className="h-full first:rounded-l-full last:rounded-r-full transition-all"
+                        style={{ width: `${pct}%`, backgroundColor: d.color }}
+                        title={`${d.name}: ${formatINR(d.value)} (${pct.toFixed(1)}%)`}
+                      />
+                    );
+                  })}
                 </div>
               </div>
             ) : (
-              <div className="h-48 flex items-center justify-center text-slate-400 text-xs italic">
+              <div className="py-4 text-center text-slate-400 text-xs italic">
                 No revenue distribution data.
               </div>
             )}
 
-            {/* Custom Legend */}
-            <div className="space-y-2 pt-2 border-t border-slate-100">
-              {pieData.map((d, idx) => (
-                <div key={idx} className="flex justify-between items-center text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: d.color }} />
-                    <span className="text-slate-500 font-medium">{d.name}</span>
+            {/* SaaS Legend Item Breakdown */}
+            <div className="space-y-2.5 pt-2 border-t border-slate-100">
+              {pieData.map((d, idx) => {
+                const pct = totalBilledYear > 0 ? ((d.value / totalBilledYear) * 100).toFixed(0) : 0;
+                return (
+                  <div key={idx} className="flex justify-between items-center text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
+                      <span className="text-slate-600 font-semibold">{d.name}</span>
+                    </div>
+                    <span className="font-extrabold text-slate-900">{formatINR(d.value)} <span className="text-slate-400 font-medium">({pct}%)</span></span>
                   </div>
-                  <span className="font-bold text-slate-800">{formatINR(d.value)} ({((d.value / totalBilledYear) * 100).toFixed(0)}%)</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -435,35 +433,35 @@ export default function Analytics() {
       )}
 
       {/* ── Month-over-Month Revenue & Electricity Breakdown Table ── */}
-      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm space-y-4 p-6 overflow-hidden">
+      <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm space-y-4 p-4 sm:p-6 overflow-hidden">
         <div className="flex justify-between items-center">
-          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+          <h2 className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 sm:gap-2">
             <ArrowUpRight size={15} className="text-[#2d5a47]" />
             <span>MONTHLY FINANCIAL LEDGER ({selectedYear})</span>
           </h2>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+        <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+          <table className="w-full text-left border-collapse min-w-[500px]">
             <thead>
               <tr className="border-b border-slate-100 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50/50">
-                <th className="px-5 py-4">MONTH</th>
-                <th className="px-5 py-4">INVOICES</th>
-                <th className="px-5 py-4">BILLED (₹)</th>
-                <th className="px-5 py-4">COLLECTED (₹)</th>
-                <th className="px-5 py-4">PENDING (₹)</th>
-                <th className="px-5 py-4">ELEC UNITS</th>
+                <th className="px-3 sm:px-5 py-3 sm:py-4">MONTH</th>
+                <th className="px-3 sm:px-5 py-3 sm:py-4">INVOICES</th>
+                <th className="px-3 sm:px-5 py-3 sm:py-4">BILLED (₹)</th>
+                <th className="px-3 sm:px-5 py-3 sm:py-4">COLLECTED (₹)</th>
+                <th className="px-3 sm:px-5 py-3 sm:py-4">PENDING (₹)</th>
+                <th className="px-3 sm:px-5 py-3 sm:py-4">ELEC UNITS</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-medium text-xs">
               {monthlyData.map(m => (
                 <tr key={m.month} className="hover:bg-slate-50/60 transition-colors">
-                  <td className="px-5 py-3.5 font-bold text-slate-800">{m.fullMonth}</td>
-                  <td className="px-5 py-3.5 text-slate-400">{m.count > 0 ? `${m.count} bills` : '-'}</td>
-                  <td className="px-5 py-3.5 font-semibold text-slate-700">₹{m.billed.toLocaleString()}</td>
-                  <td className="px-5 py-3.5 font-bold text-[#2d5a47]">₹{m.collected.toLocaleString()}</td>
-                  <td className="px-5 py-3.5 font-bold text-red-500">{m.pending > 0 ? `₹${m.pending.toLocaleString()}` : '₹0'}</td>
-                  <td className="px-5 py-3.5 font-mono text-amber-600">{m.units > 0 ? `${m.units.toFixed(1)} units` : '-'}</td>
+                  <td className="px-3 sm:px-5 py-3.5 font-bold text-slate-800">{m.fullMonth}</td>
+                  <td className="px-3 sm:px-5 py-3.5 text-slate-400">{m.count > 0 ? `${m.count} bills` : '-'}</td>
+                  <td className="px-3 sm:px-5 py-3.5 font-semibold text-slate-700">₹{m.billed.toLocaleString()}</td>
+                  <td className="px-3 sm:px-5 py-3.5 font-bold text-[#2d5a47]">₹{m.collected.toLocaleString()}</td>
+                  <td className="px-3 sm:px-5 py-3.5 font-bold text-red-500">{m.pending > 0 ? `₹${m.pending.toLocaleString()}` : '₹0'}</td>
+                  <td className="px-3 sm:px-5 py-3.5 font-mono text-amber-600">{m.units > 0 ? `${m.units.toFixed(1)} units` : '-'}</td>
                 </tr>
               ))}
             </tbody>
