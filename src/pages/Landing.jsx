@@ -28,7 +28,8 @@ import {
   Settings,
   LogOut,
   MessageSquare,
-  Inbox
+  Inbox,
+  Calculator
 } from 'lucide-react';
 import Logo from '../components/Logo';
 
@@ -222,94 +223,159 @@ export default function Landing() {
   };
 
   return (
-    <div className="relative overflow-hidden bg-[#f8faf9] text-slate-800 font-manrope selection:bg-[#2d5a47] selection:text-white">
+    <div className="relative overflow-hidden bg-[#f7faf8] text-slate-800 font-manrope selection:bg-[#2d5a47] selection:text-white">
 
-      {/* ── Global Dot-Grid Background Texture (Neutral gray, ~3.5% opacity, static) ── */}
-      <div 
-        className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#0f172a_1px,transparent_1px)] [background-size:24px_24px] opacity-[0.035]" 
-        aria-hidden="true" 
+      {/* ── Background: multi-colour ambient orbs ── */}
+      {/* Top-left: soft emerald bloom */}
+      <div
+        className="pointer-events-none absolute top-[-120px] left-[-160px] w-[600px] h-[600px] rounded-full z-0"
+        style={{ background: 'radial-gradient(circle, rgba(45,90,71,0.09) 0%, transparent 70%)' }}
+        aria-hidden="true"
+      />
+      {/* Top-right: indigo/violet accent */}
+      <div
+        className="pointer-events-none absolute top-[-80px] right-[-100px] w-[520px] h-[520px] rounded-full z-0"
+        style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.07) 0%, transparent 68%)' }}
+        aria-hidden="true"
+      />
+      {/* Mid-left: amber warmth */}
+      <div
+        className="pointer-events-none absolute top-[35%] left-[-80px] w-[400px] h-[400px] rounded-full z-0"
+        style={{ background: 'radial-gradient(circle, rgba(245,158,11,0.05) 0%, transparent 70%)' }}
+        aria-hidden="true"
+      />
+      {/* Mid-right: teal/cyan */}
+      <div
+        className="pointer-events-none absolute top-[40%] right-[-60px] w-[380px] h-[380px] rounded-full z-0"
+        style={{ background: 'radial-gradient(circle, rgba(20,184,166,0.06) 0%, transparent 68%)' }}
+        aria-hidden="true"
+      />
+      {/* Bottom-center: rose blush */}
+      <div
+        className="pointer-events-none absolute bottom-[-100px] left-[30%] w-[500px] h-[500px] rounded-full z-0"
+        style={{ background: 'radial-gradient(circle, rgba(244,63,94,0.04) 0%, transparent 68%)' }}
+        aria-hidden="true"
+      />
+
+      {/* ── Dot-Grid overlay texture ── */}
+      <div
+        className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#0f172a_1px,transparent_1px)] [background-size:28px_28px] opacity-[0.028]"
+        aria-hidden="true"
       />
 
       {/* ══════════════════════════════════════════
-          1. NAVBAR
+          1. NAVBAR — Floating SaaS style
       ══════════════════════════════════════════ */}
-      <nav className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-slate-200/80 px-6 lg:px-12 py-3.5">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          
+      <nav className="sticky top-0 z-40 px-4 sm:px-6 pt-3 pb-0">
+        {/* Floating pill container */}
+        <div className="max-w-6xl mx-auto bg-white/80 backdrop-blur-xl border border-slate-200/70 rounded-2xl shadow-sm shadow-slate-900/[0.06] px-4 sm:px-6 py-2.5 flex items-center justify-between gap-4">
+
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <Logo size={34} />
+          <Link to="/" className="flex items-center gap-2 shrink-0">
+            <Logo size={30} />
           </Link>
 
-          {/* Desktop Nav Links */}
-          <div className="hidden md:flex items-center gap-8 text-xs font-semibold text-slate-600">
-            <a href="#features" className="hover:text-[#2d5a47] transition-colors">Features</a>
-            <a href="#how-it-works" className="hover:text-[#2d5a47] transition-colors">How it works</a>
-            <a href="#who-its-for" className="hover:text-[#2d5a47] transition-colors">Who it's for</a>
+          {/* Desktop Nav Links — centered */}
+          <div className="hidden md:flex items-center gap-1 text-[13px] font-medium text-slate-500">
+            <a href="#features" className="px-3 py-1.5 rounded-lg hover:bg-slate-100 hover:text-slate-900 transition-all duration-150">Features</a>
+            <a href="#how-it-works" className="px-3 py-1.5 rounded-lg hover:bg-slate-100 hover:text-slate-900 transition-all duration-150">How it works</a>
+            <a href="#who-its-for" className="px-3 py-1.5 rounded-lg hover:bg-slate-100 hover:text-slate-900 transition-all duration-150">Who it's for</a>
           </div>
 
-          {/* Right Action Buttons */}
-          <div className="hidden sm:flex items-center gap-3">
+          {/* Right Actions */}
+          <div className="hidden sm:flex items-center gap-2 shrink-0">
             <Link
               to="/quick-calc"
-              className="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-xs hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
+              className="px-3.5 py-1.5 rounded-lg text-[12px] font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all duration-150"
             >
-              Quick Calculator
+              Calculator
             </Link>
             {user ? (
               <Link
                 to="/dashboard"
-                className="px-4 py-2 rounded-xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all shadow-sm flex items-center gap-1.5"
+                className="px-4 py-1.5 rounded-xl bg-[#2d5a47] text-white font-bold text-[12px] hover:bg-[#234738] hover:shadow-md transition-all duration-150 flex items-center gap-1.5 shadow-sm"
               >
-                <span>Dashboard</span>
-                <ArrowRight size={14} />
+                Dashboard <ArrowRight size={13} />
               </Link>
             ) : (
-              <div className="flex items-center gap-2">
+              <>
                 <Link
                   to="/login"
-                  className="px-3 py-2 text-slate-600 hover:text-slate-900 font-bold text-xs transition-colors"
+                  className="px-3.5 py-1.5 rounded-lg text-[12px] font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all duration-150"
                 >
                   Log in
                 </Link>
                 <Link
                   to="/signup"
-                  className="px-4 py-2 rounded-xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all shadow-sm flex items-center gap-1.5"
+                  className="px-4 py-1.5 rounded-xl bg-[#2d5a47] text-white font-bold text-[12px] hover:bg-[#234738] hover:shadow-md transition-all duration-150 flex items-center gap-1.5 shadow-sm"
                 >
-                  <span>Get started</span>
-                  <ArrowRight size={14} />
+                  Get started <ArrowRight size={13} />
                 </Link>
-              </div>
+              </>
             )}
           </div>
 
-          {/* Mobile Hamburger Toggle */}
+          {/* Mobile Hamburger */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="sm:hidden p-2 text-slate-600 hover:text-slate-900 focus:outline-none"
+            className="sm:hidden p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-all focus:outline-none"
+            aria-label="Toggle menu"
           >
-            {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
 
         {/* Mobile Menu Drawer */}
         {mobileMenuOpen && (
-          <div className="sm:hidden pt-4 pb-3 space-y-3 border-t border-slate-100 mt-3 text-xs font-semibold">
-            <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block px-2 text-slate-600 hover:text-[#2d5a47]">Features</a>
-            <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="block px-2 text-slate-600 hover:text-[#2d5a47]">How it works</a>
-            <a href="#who-its-for" onClick={() => setMobileMenuOpen(false)} className="block px-2 text-slate-600 hover:text-[#2d5a47]">Who it's for</a>
+          <div className="sm:hidden mt-2 max-w-6xl mx-auto bg-white/95 backdrop-blur-xl border border-slate-200/70 rounded-2xl shadow-lg p-4 space-y-1">
+            {/* Nav links */}
+            <div className="space-y-0.5 pb-2 border-b border-slate-100">
+              {[
+                { href: '#features', label: 'Features' },
+                { href: '#how-it-works', label: 'How it works' },
+                { href: '#who-its-for', label: "Who it's for" },
+              ].map(({ href, label }) => (
+                <a
+                  key={href}
+                  href={href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2 rounded-lg text-[13px] font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all"
+                >
+                  {label}
+                </a>
+              ))}
+              <Link
+                to="/quick-calc"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 rounded-lg text-[13px] font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all"
+              >
+                Calculator
+              </Link>
+            </div>
+            {/* CTA buttons */}
             <div className="pt-2 flex flex-col gap-2">
-              <Link to="/quick-calc" className="w-full text-center py-2.5 rounded-xl border border-slate-200 bg-white font-bold text-slate-700">Quick Calculator</Link>
               {user ? (
-                <Link to="/dashboard" className="w-full text-center py-2.5 rounded-xl bg-[#2d5a47] font-bold text-white">
-                  Dashboard
+                <Link
+                  to="/dashboard"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full text-center py-2.5 rounded-xl bg-[#2d5a47] font-bold text-[13px] text-white"
+                >
+                  Go to Dashboard →
                 </Link>
               ) : (
                 <>
-                  <Link to="/login" className="w-full text-center py-2.5 rounded-xl border border-slate-200 bg-white font-bold text-slate-700">
+                  <Link
+                    to="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full text-center py-2.5 rounded-xl border border-slate-200 text-[13px] font-semibold text-slate-700 hover:bg-slate-50 transition-all"
+                  >
                     Log in
                   </Link>
-                  <Link to="/signup" className="w-full text-center py-2.5 rounded-xl bg-[#2d5a47] font-bold text-white">
+                  <Link
+                    to="/signup"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full text-center py-2.5 rounded-xl bg-[#2d5a47] font-bold text-[13px] text-white"
+                  >
                     Create Free Account →
                   </Link>
                 </>
@@ -319,219 +385,225 @@ export default function Landing() {
         )}
       </nav>
 
+
       {/* ══════════════════════════════════════════
           2. HERO SECTION
       ══════════════════════════════════════════ */}
-      <section className="relative z-10 px-4 sm:px-6 pt-20 sm:pt-36 pb-12 sm:pb-16 text-center max-w-5xl mx-auto">
+      <section className="relative z-10 px-5 sm:px-6 pt-14 sm:pt-24 pb-10 sm:pb-14 text-center max-w-4xl mx-auto">
         
         {/* Soft light vignette behind hero headline */}
         <div 
-          className="pointer-events-none absolute top-12 left-1/2 -translate-x-1/2 w-[720px] max-w-[95vw] h-[300px] bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,1)_0%,rgba(255,255,255,0.65)_45%,transparent_75%)] blur-2xl z-0" 
+          className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[800px] max-w-[95vw] h-[380px] bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.9)_0%,rgba(255,255,255,0.5)_50%,transparent_80%)] blur-3xl z-0" 
           aria-hidden="true"
         />
 
         {/* Animated Hero Header */}
-        <div className="relative z-10 animate-fade-in-up">
+        <div className="relative z-10">
+
           {/* Main Headline */}
-          <h1 className="text-[2rem] sm:text-6xl lg:text-7xl font-extrabold text-slate-900 tracking-tight leading-[1.1] sm:leading-[1.05] relative z-10 animate-fade-in-up">
-            Stop tracking rent on WhatsApp, <span className="text-[#2d5a47]">notebooks &amp; spreadsheets.</span>
+          <h1 className="text-[2.25rem] sm:text-[4.25rem] lg:text-[5rem] font-extrabold text-slate-900 tracking-[-0.03em] leading-[1.05] relative z-10">
+            Stop tracking rent on WhatsApp,{' '}
+            <span className="text-[#2d5a47]">notebooks &amp; spreadsheets.</span>
           </h1>
 
           {/* Supporting Copy */}
-          <p className="mt-4 sm:mt-6 max-w-2xl mx-auto text-sm sm:text-lg text-slate-500 leading-relaxed font-medium relative z-10">
+          <p className="mt-5 sm:mt-7 max-w-xl mx-auto text-[0.95rem] sm:text-lg text-slate-500 leading-[1.7] font-normal relative z-10">
             Manage properties, tenants, rent, utility bills, and receipts from one simple workspace.
           </p>
         </div>
 
         {/* CTAs */}
-        <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-center relative z-10 w-full sm:w-auto">
+        <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row gap-3 items-center justify-center relative z-10">
           {user ? (
             <Link
               to="/dashboard"
-              className="px-8 py-4 sm:py-3.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-sm hover:bg-[#234738] hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98] transition-all duration-200 shadow-md flex items-center justify-center gap-2 w-full sm:w-auto"
+              className="px-7 py-3.5 rounded-xl bg-[#2d5a47] text-white font-bold text-sm hover:bg-[#234738] hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98] transition-all duration-200 shadow-md flex items-center justify-center gap-2 w-full sm:w-auto"
             >
               <span>Go to Dashboard</span>
-              <ArrowRight size={16} />
+              <ArrowRight size={15} />
             </Link>
           ) : (
-            <>
-              <Link
-                to="/signup"
-                className="px-8 py-4 sm:py-3.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-sm hover:bg-[#234738] hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98] transition-all duration-200 shadow-md flex items-center justify-center gap-2 w-full sm:w-auto"
-              >
-                <span>Create Free Account</span>
-                <ArrowRight size={16} />
-              </Link>
-              <button
-                type="button"
-                onClick={handleDemoClick}
-                disabled={demoLoading}
-                className="px-8 py-4 sm:py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-700 font-bold text-sm hover:bg-slate-50 hover:border-slate-300 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 shadow-sm w-full sm:w-auto text-center cursor-pointer"
-              >
-                {demoLoading ? 'Starting...' : 'View Demo'}
-              </button>
-            </>
+            <Link
+              to="/signup"
+              className="px-7 py-3.5 rounded-xl bg-[#2d5a47] text-white font-bold text-sm hover:bg-[#234738] hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98] transition-all duration-200 shadow-md flex items-center justify-center gap-2 w-full sm:w-auto"
+            >
+              <span>Create Free Account</span>
+              <ArrowRight size={15} />
+            </Link>
           )}
+
+          <button
+            type="button"
+            onClick={handleDemoClick}
+            disabled={demoLoading}
+            className="px-7 py-3.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-sm hover:bg-slate-50 hover:border-slate-300 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 shadow-sm flex items-center justify-center gap-2 w-full sm:w-auto cursor-pointer"
+          >
+            {demoLoading ? 'Starting...' : 'View Demo'}
+          </button>
         </div>
+
+        {/* Trust subtext */}
+        <p className="mt-5 text-[11px] text-slate-400 font-medium tracking-wide relative z-10">
+          Built for PG owners, landlords, and property managers across India.
+        </p>
 
         {/* ══════════════════════════════════════════
             3. DASHBOARD PRODUCT PREVIEW MOCKUP
         ══════════════════════════════════════════ */}
         <div 
           ref={mockupRef}
-          className={`mt-8 sm:mt-10 max-w-5xl mx-auto transition-all duration-700 ease-out transform-gpu ${
-            isMockupVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+          className={`mt-12 sm:mt-16 -mx-4 sm:-mx-8 lg:-mx-16 xl:-mx-24 transition-all duration-700 ease-out transform-gpu ${
+            isMockupVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`}
         >
-          {/* Browser Chrome Container */}
-          <div 
-            className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl shadow-2xl shadow-slate-900/10 overflow-hidden text-left relative pointer-events-none select-none"
-            style={{
-              boxShadow: '0 25px 60px -15px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(15, 23, 42, 0.06)'
-            }}
-          >
-            {/* Browser Top Bar */}
-            <div className="bg-slate-50/90 border-b border-slate-200/80 px-4 py-2.5 flex items-center justify-between gap-4">
-              {/* Traffic Light Dots */}
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-slate-300/80 inline-block" />
-                <span className="w-2.5 h-2.5 rounded-full bg-slate-300/80 inline-block" />
-                <span className="w-2.5 h-2.5 rounded-full bg-slate-300/80 inline-block" />
+          {/* Outer glow ring */}
+          <div className="relative px-4 sm:px-8 lg:px-12">
+            {/* Ambient glow behind card */}
+            <div
+              className="absolute inset-x-8 top-4 h-full rounded-3xl pointer-events-none z-0"
+              style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(45,90,71,0.12) 0%, transparent 65%)', filter: 'blur(20px)' }}
+            />
+
+            {/* Browser Chrome Container */}
+            <div
+              className="relative z-10 bg-white rounded-2xl sm:rounded-[20px] overflow-hidden text-left pointer-events-none select-none"
+              style={{
+                boxShadow: '0 2px 0 1px rgba(15,23,42,0.05), 0 20px 60px -10px rgba(15,23,42,0.15), 0 0 0 1px rgba(15,23,42,0.06)'
+              }}
+            >
+              {/* Browser Top Bar */}
+              <div className="bg-[#f5f5f5] border-b border-slate-200/70 px-4 py-2.5 flex items-center gap-4">
+                {/* Traffic Light Dots */}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#FF5F57]" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#FEBC2E]" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#28C840]" />
+                </div>
+
+                {/* URL Address Bar */}
+                <div className="flex-1 max-w-sm mx-auto bg-white border border-slate-200/80 rounded-lg px-3 py-1 flex items-center justify-center gap-1.5 shadow-2xs">
+                  <svg className="w-2.5 h-2.5 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                  <span className="text-slate-600 font-mono text-[10px]">app.mypropbook.in</span>
+                  <span className="text-slate-400 font-mono text-[10px]">/overview</span>
+                </div>
+
+                {/* Status */}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <span className="text-[10px] font-semibold text-slate-400 hidden sm:inline">Product View</span>
+                </div>
               </div>
 
-              {/* URL Address Bar Mockup */}
-              <div className="flex-1 max-w-xs mx-auto bg-white border border-slate-200/70 rounded-lg px-3 py-1 text-[11px] text-slate-400 font-medium flex items-center justify-center gap-1.5 shadow-2xs">
-                <svg className="w-3 h-3 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                </svg>
-                <span className="text-slate-600 font-mono text-[10.5px]">app.mypropbook.in</span>
-                <span className="text-slate-400 font-mono text-[10.5px]">/overview</span>
-              </div>
+              {/* Inner Dashboard */}
+              <div className="p-5 sm:p-8 space-y-5 bg-[#f8faf9]">
 
-              {/* Status Indicator */}
-              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-slate-400">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                <span className="hidden sm:inline">Product View</span>
-              </div>
-            </div>
-
-            {/* Inner Dashboard View */}
-            <div className="p-5 sm:p-7 space-y-6 bg-white">
-          
-          {/* Dashboard Header Bar */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-100">
-            <div className="flex items-center gap-3">
-              <Logo size={28} />
-              <span className="text-xs font-bold text-slate-400">Overview</span>
-            </div>
-            
-            <div className="flex items-center gap-3 text-xs">
-              <span className="flex items-center gap-1.5 text-emerald-700 font-semibold bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200/60">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
-                All changes saved
-              </span>
-              <div className="px-3 py-1 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700">
-                August 2026 ▾
-              </div>
-              <button className="px-3.5 py-1.5 bg-[#2d5a47] text-white rounded-xl font-bold text-xs flex items-center gap-1 shadow-sm">
-                <Plus size={13} /> Create bill
-              </button>
-            </div>
-          </div>
-
-          {/* Greeting */}
-          <div>
-            <h3 className="text-xl font-black text-slate-900 tracking-tight">Good morning, Farhan</h3>
-            <p className="text-xs text-slate-400 mt-0.5">Here's what's happening across your properties.</p>
-          </div>
-
-          {/* 4 Stat Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            <div className="p-4 bg-slate-50/70 border border-slate-100 rounded-2xl">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Properties</span>
-              <div className="text-2xl font-black text-slate-900 mt-1">3</div>
-              <span className="text-[10px] text-emerald-700 font-semibold block mt-0.5">↑ 1 this month</span>
-            </div>
-
-            <div className="p-4 bg-slate-50/70 border border-slate-100 rounded-2xl">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Rooms / Units</span>
-              <div className="text-2xl font-black text-slate-900 mt-1">24</div>
-              <span className="text-[10px] text-slate-500 font-medium block mt-0.5">21 occupied</span>
-            </div>
-
-            <div className="p-4 bg-slate-50/70 border border-slate-100 rounded-2xl">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Tenants</span>
-              <div className="text-2xl font-black text-slate-900 mt-1">21</div>
-              <span className="text-[10px] text-slate-500 font-medium block mt-0.5">3 move-ins soon</span>
-            </div>
-
-            <div className="p-4 bg-slate-50/70 border border-slate-100 rounded-2xl">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Expected rent</span>
-              <div className="text-2xl font-black text-slate-900 mt-1">₹1,24,500</div>
-              <span className="text-[10px] text-emerald-700 font-semibold block mt-0.5">↑ 8.4% collected</span>
-            </div>
-          </div>
-
-          {/* Collections Chart + Needs Attention Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 pt-2">
-            
-            {/* Collections Bar Chart Preview */}
-            <div className="lg:col-span-2 p-5 bg-slate-50/50 border border-slate-100 rounded-2xl space-y-4">
-              <div className="flex justify-between items-center text-xs">
-                <span className="font-extrabold text-slate-800">Collections</span>
-                <span className="font-bold text-[#2d5a47]">₹1,16,050 received</span>
-              </div>
-              
-              {/* Simulated Bar Chart */}
-              <div className="h-32 flex items-end justify-between gap-2 pt-4 px-2">
-                {[
-                  { month: 'Jan', height: '40%' },
-                  { month: 'Feb', height: '65%' },
-                  { month: 'Mar', height: '45%' },
-                  { month: 'Apr', height: '80%' },
-                  { month: 'May', height: '70%' },
-                  { month: 'Jun', height: '95%', active: true },
-                  { month: 'Jul', height: '60%' }
-                ].map((bar, idx) => (
-                  <div key={idx} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
-                    <div
-                      className={`w-full rounded-lg transition-all ${
-                        bar.active ? 'bg-[#2d5a47]' : 'bg-[#c8ddd4]'
-                      }`}
-                      style={{ height: bar.height }}
-                    />
-                    <span className="text-[10px] text-slate-400 font-semibold">{bar.month}</span>
+                {/* App Header Bar */}
+                <div className="flex items-center justify-between pb-4 border-b border-slate-200/70">
+                  <div className="flex items-center gap-3">
+                    <Logo size={24} />
+                    <span className="text-xs font-bold text-slate-400 tracking-wide">Overview</span>
                   </div>
-                ))}
-              </div>
-            </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="flex items-center gap-1.5 text-emerald-700 font-semibold bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200/60 text-[10px]">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      All changes saved
+                    </span>
+                    <div className="hidden sm:block px-2.5 py-1 bg-white border border-slate-200 rounded-lg font-semibold text-slate-700 text-[11px]">August 2026 ▾</div>
+                    <button className="px-3 py-1.5 bg-[#2d5a47] text-white rounded-lg font-bold text-[11px] flex items-center gap-1 shadow-sm">
+                      <Plus size={11} /> Create bill
+                    </button>
+                  </div>
+                </div>
 
-            {/* Needs Attention Widget */}
-            <div className="p-5 bg-slate-50/50 border border-slate-100 rounded-2xl space-y-3">
-              <span className="text-xs font-extrabold text-slate-800 block">Needs attention</span>
-              
-              <div className="space-y-2 text-xs font-medium pt-1">
-                <div className="flex justify-between items-center py-1.5 border-b border-slate-200/60">
-                  <span className="text-slate-500">Pending bills</span>
-                  <span className="font-extrabold text-amber-700">₹8,450</span>
+                {/* Greeting */}
+                <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-sm">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">Good morning, Farhan</h3>
+                      <p className="text-[11px] text-slate-400 mt-0.5">Here's what's happening across your properties.</p>
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-400 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg hidden sm:inline">Thursday, 28 Aug</span>
+                  </div>
+
+                  {/* 4 KPI Stat Pills inside greeting card */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-slate-100">
+                    {[
+                      { label: 'Properties', value: '3', sub: '↑ 1 this month', subColor: 'text-emerald-600' },
+                      { label: 'Rooms / Units', value: '24', sub: '21 occupied', subColor: 'text-slate-400' },
+                      { label: 'Tenants', value: '21', sub: '3 move-ins soon', subColor: 'text-slate-400' },
+                      { label: 'Expected Rent', value: '₹1,24,500', sub: '↑ 8.4% collected', subColor: 'text-emerald-600' },
+                    ].map((kpi, i) => (
+                      <div key={i}>
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">{kpi.label}</span>
+                        <div className="text-base sm:text-xl font-black text-slate-900 mt-0.5 leading-tight">{kpi.value}</div>
+                        <span className={`text-[9px] font-semibold block mt-0.5 ${kpi.subColor}`}>{kpi.sub}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex justify-between items-center py-1.5 border-b border-slate-200/60">
-                  <span className="text-slate-500">Receipts to share</span>
-                  <span className="font-extrabold text-slate-800">4</span>
-                </div>
-                <div className="flex justify-between items-center py-1.5">
-                  <span className="text-slate-500">Vacant rooms</span>
-                  <span className="font-extrabold text-slate-800">3</span>
+
+                {/* Collections Chart + Needs Attention */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+                  {/* Collections Bar Chart */}
+                  <div className="sm:col-span-2 bg-white rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-sm">
+                    <div className="flex justify-between items-center mb-4 text-xs">
+                      <div>
+                        <span className="font-extrabold text-slate-800 block">Collections</span>
+                        <span className="text-[10px] text-slate-400">Monthly billing revenue</span>
+                      </div>
+                      <span className="font-bold text-[#2d5a47] bg-emerald-50 px-2 py-1 rounded-lg text-[10px] border border-emerald-100">₹1,16,050 received</span>
+                    </div>
+                    <div className="h-28 flex items-end justify-between gap-1.5 sm:gap-2">
+                      {[
+                        { month: 'Jan', height: '38%' },
+                        { month: 'Feb', height: '62%' },
+                        { month: 'Mar', height: '44%' },
+                        { month: 'Apr', height: '78%' },
+                        { month: 'May', height: '68%' },
+                        { month: 'Jun', height: '96%', active: true },
+                        { month: 'Jul', height: '55%' },
+                      ].map((bar, idx) => (
+                        <div key={idx} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                          <div
+                            className={`w-full rounded-md sm:rounded-lg transition-all ${bar.active ? 'bg-[#2d5a47]' : 'bg-slate-200/80'}`}
+                            style={{ height: bar.height }}
+                          />
+                          <span className="text-[9px] text-slate-400 font-semibold">{bar.month}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Needs Attention */}
+                  <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-sm flex flex-col justify-between">
+                    <span className="text-xs font-extrabold text-slate-800 block mb-3">Needs attention</span>
+                    <div className="space-y-2 text-xs font-medium flex-1">
+                      {[
+                        { label: 'Pending bills', value: '₹8,450', color: 'text-amber-600 font-extrabold' },
+                        { label: 'Receipts to share', value: '4', color: 'text-slate-800 font-extrabold' },
+                        { label: 'Vacant rooms', value: '3', color: 'text-slate-800 font-extrabold' },
+                      ].map((item, i, arr) => (
+                        <div key={i} className={`flex justify-between items-center py-1.5 ${i < arr.length - 1 ? 'border-b border-slate-100' : ''}`}>
+                          <span className="text-slate-500">{item.label}</span>
+                          <span className={item.color}>{item.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-3 pt-3 border-t border-slate-100">
+                      <div className="w-full py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[10px] text-center font-bold text-slate-500">View all bills →</div>
+                    </div>
+                  </div>
+
                 </div>
               </div>
-            </div>
-
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
       {/* ══════════════════════════════════════════
           4. WHO IT'S FOR (Property Types)

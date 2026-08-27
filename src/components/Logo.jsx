@@ -1,22 +1,27 @@
 import React from 'react';
 
 export default function Logo({ size = 28, showText = true, className = '', dark = false }) {
+  const borderColor = dark ? 'border-white/30' : 'border-[#2d5a47]/25';
   const iconColor = dark ? 'text-white' : 'text-[#2d5a47]';
   const textColor = dark ? 'text-white' : 'text-slate-900';
+  const boxSize = Math.round(size * 1.25);
 
   return (
     <div className={`flex items-center gap-2.5 ${className}`}>
-      {/* Minimal Book / Ledger Mark — sits directly on whitespace without badge container */}
-      <div className="flex-shrink-0 flex items-center justify-center">
-        <svg 
-          width={size} 
-          height={size} 
-          viewBox="0 0 24 24" 
-          fill="none" 
-          stroke="currentColor" 
-          strokeWidth="2.2" 
-          strokeLinecap="round" 
-          strokeLinejoin="round" 
+      {/* Icon in a rounded square border box — matches mockup */}
+      <div
+        className={`flex-shrink-0 flex items-center justify-center rounded-lg border-2 ${borderColor}`}
+        style={{ width: boxSize, height: boxSize }}
+      >
+        <svg
+          width={size * 0.65}
+          height={size * 0.65}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
           className={iconColor}
         >
           {/* Ledger cover & spine */}
@@ -29,9 +34,9 @@ export default function Logo({ size = 28, showText = true, className = '', dark 
         </svg>
       </div>
 
-      {/* Solid single-color typographic wordmark — no two-tone split, no tagline */}
+      {/* Wordmark */}
       {showText && (
-        <span 
+        <span
           className={`font-black tracking-tight select-none ${textColor}`}
           style={{
             fontSize: `${Math.max(16, size * 0.72)}px`,
@@ -44,4 +49,3 @@ export default function Logo({ size = 28, showText = true, className = '', dark 
     </div>
   );
 }
-
