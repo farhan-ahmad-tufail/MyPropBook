@@ -306,7 +306,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-6 fade-in-up active">
+    <div className="space-y-5 sm:space-y-6 fade-in-up active pb-24 lg:pb-8">
       
       {/* ── HERO GREETING HEADER ── */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-2">
@@ -328,29 +328,29 @@ export default function Dashboard() {
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <button
             onClick={() => navigate('/analytics')}
-            className="flex-1 sm:flex-initial px-3 sm:px-4 py-2.5 sm:py-3 rounded-2xl bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200/80 font-bold text-[11px] sm:text-xs transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer shadow-2xs"
+            className="flex-1 sm:flex-initial px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-2xl bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200/80 font-bold text-xs transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer shadow-2xs"
             title="View financial analytics & reports"
           >
-            <BarChart3 size={13} className="text-purple-600 shrink-0" />
+            <BarChart3 size={14} className="text-purple-600 shrink-0" />
             <span className="truncate">Analytics</span>
           </button>
 
           <button
             onClick={() => navigate('/properties?tab=bulk')}
-            className="flex-1 sm:flex-initial px-3 sm:px-4 py-2.5 sm:py-3 rounded-2xl bg-amber-500/10 text-amber-900 border border-amber-500/30 font-bold text-[11px] sm:text-xs hover:bg-amber-500/20 transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer shadow-2xs"
+            className="flex-1 sm:flex-initial px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-2xl bg-amber-500/10 text-amber-900 border border-amber-500/30 font-bold text-xs hover:bg-amber-500/20 transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer shadow-2xs"
             title="Generate monthly bills for all rooms at once"
           >
-            <Zap size={13} className="text-amber-600 shrink-0" />
+            <Zap size={14} className="text-amber-600 shrink-0" />
             <span className="truncate">Bulk Bill</span>
           </button>
 
           <button
             onClick={() => navigate('/create-bill')}
-            className="flex-1 sm:flex-initial px-3.5 sm:px-5 py-2.5 sm:py-3 rounded-2xl bg-[#2d5a47] text-white font-bold text-[11px] sm:text-xs hover:bg-[#234738] transition-all flex items-center justify-center gap-1.5 sm:gap-2 shadow-sm cursor-pointer"
+            className="hidden sm:flex px-5 py-3 rounded-2xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all items-center justify-center gap-2 shadow-sm cursor-pointer"
           >
-            <Zap size={13} fill="currentColor" className="shrink-0" />
+            <Zap size={14} fill="currentColor" className="shrink-0" />
             <span className="truncate">New Bill</span>
-            <ArrowUpRight size={13} className="hidden sm:inline" />
+            <ArrowUpRight size={14} />
           </button>
         </div>
       </div>
@@ -391,9 +391,11 @@ export default function Dashboard() {
           <div className="mt-3 sm:mt-6">
             <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider block">OCCUPIED</span>
             <div className="text-xl sm:text-3xl font-black text-slate-900 mt-0.5 sm:mt-1 font-mono tracking-tight">
-              <AnimatedCounter value={activeLeaseRoomIds.length} /> <span className="text-sm sm:text-xl text-slate-400 font-normal">/ {totalRooms}</span>
+              <AnimatedCounter value={activeLeaseRoomIds.length} /> <span className="text-xs sm:text-lg text-slate-400 font-normal">rooms</span>
             </div>
-            <span className="text-[11px] sm:text-xs text-slate-400 font-medium block mt-0.5 sm:mt-1 truncate">{totalRooms > 0 ? `${Math.min(100, Math.round((activeLeaseRoomIds.length / totalRooms) * 100))}% occupancy` : 'No rooms yet'}</span>
+            <span className="text-[11px] sm:text-xs text-indigo-600 font-semibold block mt-0.5 sm:mt-1 truncate">
+              {totalRooms > 0 ? `${Math.min(100, Math.round((activeLeaseRoomIds.length / Math.max(1, totalRooms)) * 100))}% occupancy` : 'All active'}
+            </span>
           </div>
         </div>
 
@@ -419,7 +421,9 @@ export default function Dashboard() {
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
               <Mail size={16} className="sm:w-[18px] sm:h-[18px]" />
             </div>
-            <span className="w-2 h-2 rounded-full bg-amber-500 absolute top-4 sm:top-5 right-4 sm:right-5" />
+            {tenantsWithArrears > 0 && (
+              <span className="w-2 h-2 rounded-full bg-amber-500 absolute top-4 sm:top-5 right-4 sm:right-5" />
+            )}
           </div>
           <div className="mt-3 sm:mt-6">
             <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider block">ARREARS</span>
@@ -436,11 +440,45 @@ export default function Dashboard() {
 
       </div>
 
+      {/* ── MOBILE NEEDS ATTENTION QUICK ACTION BAR ── */}
+      {(pendingArrears > 0 || (rooms.length - activeLeaseRoomIds.length) > 0) && (
+        <div className="bg-[#edf5f1] border border-[#2d5a47]/20 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-[#2d5a47] text-white flex items-center justify-center shrink-0 shadow-2xs">
+              <AlertTriangle size={17} />
+            </div>
+            <div>
+              <h4 className="text-xs font-extrabold text-slate-900 leading-tight">Portfolio Attention Needed</h4>
+              <p className="text-[11px] text-slate-600 mt-0.5">
+                {pendingArrears > 0 ? `Uncollected balance of ${formatINR(pendingArrears)} across ${tenantsWithArrears} tenant(s).` : `${rooms.length - activeLeaseRoomIds.length} room(s) available for lease.`}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            {pendingArrears > 0 && (
+              <button
+                onClick={() => navigate('/billing')}
+                className="flex-1 sm:flex-initial px-3 py-1.5 rounded-xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all flex items-center justify-center gap-1 shadow-2xs cursor-pointer"
+              >
+                <span>Collect Rent</span>
+                <ArrowRight size={12} />
+              </button>
+            )}
+            <button
+              onClick={() => navigate('/tenants')}
+              className="flex-1 sm:flex-initial px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-all flex items-center justify-center gap-1 shadow-2xs cursor-pointer"
+            >
+              <span>Manage Tenants</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ── REVENUE OVERVIEW & COLLECTIONS HEALTH SECTION ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Revenue Overview Chart Box */}
-        <div className="lg:col-span-2 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between relative overflow-hidden">
+        <div className="lg:col-span-2 bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between relative overflow-hidden">
           <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
             <div>
               <div className="flex items-center gap-2">
