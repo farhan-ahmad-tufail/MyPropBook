@@ -343,7 +343,9 @@ export default function Layout({ children }) {
         <header className="sticky top-0 z-30 flex items-center justify-between px-6 lg:px-8 py-4 bg-[#f1f5f3]/90 backdrop-blur">
           {/* Logo (Left) */}
           <div className="flex items-center gap-3">
-            <Logo size={28} showText={false} className="lg:hidden" />
+            <Link to="/" className="lg:hidden flex items-center">
+              <Logo size={26} showText={true} />
+            </Link>
           </div>
 
           {/* Dynamic Breadcrumbs */}

@@ -140,32 +140,33 @@ export default function CommandPalette({ isOpen, onClose }) {
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
-        className="flex min-h-full items-start justify-center p-4 sm:p-6 pt-16 sm:pt-24"
+        className="flex min-h-full sm:items-start justify-center p-2 sm:p-6 pt-2 sm:pt-24"
         onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       >
-        <div className="bg-white rounded-3xl w-full max-w-xl shadow-2xl border border-slate-100 overflow-hidden relative animate-fade-in my-auto">
+        <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-xl shadow-2xl border border-slate-100 overflow-hidden relative animate-fade-in my-auto sm:my-0">
 
           {/* Search Bar Input */}
-          <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50">
-            <Search size={18} className="text-[#2d5a47] flex-shrink-0" />
+          <div className="px-4 sm:px-5 py-3.5 sm:py-4 border-b border-slate-100 flex items-center gap-2.5 sm:gap-3 bg-slate-50/50">
+            <Search size={18} className="text-[#2d5a47] shrink-0" />
             <input
               ref={inputRef}
               type="text"
               value={query}
               onChange={e => { setQuery(e.target.value); setSelectedIndex(0); }}
               onKeyDown={handleKeyDown}
-              placeholder="Type to search properties, tenants, rooms, pages..."
-              className="w-full text-sm font-semibold text-slate-800 bg-transparent outline-none placeholder:text-slate-400"
+              placeholder="Search rooms, tenants, bills..."
+              className="w-full text-xs sm:text-sm font-semibold text-slate-800 bg-transparent outline-none placeholder:text-slate-400"
             />
-            <div className="flex items-center gap-1.5 flex-shrink-0">
-              <kbd className="px-2 py-0.5 text-[10px] font-bold text-slate-400 bg-white rounded-md border border-slate-200 shadow-2xs font-mono">
+            <div className="flex items-center gap-1.5 shrink-0">
+              <kbd className="hidden sm:inline-block px-2 py-0.5 text-[10px] font-bold text-slate-400 bg-white rounded-md border border-slate-200 shadow-2xs font-mono">
                 ESC
               </kbd>
               <button
                 onClick={onClose}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition-colors cursor-pointer"
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors cursor-pointer"
+                aria-label="Close search"
               >
-                <X size={16} />
+                <X size={18} />
               </button>
             </div>
           </div>
@@ -218,14 +219,15 @@ export default function CommandPalette({ isOpen, onClose }) {
           </div>
 
           {/* Footer Shortcuts */}
-          <div className="px-5 py-2.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-medium">
-            <div className="flex items-center gap-3">
+          <div className="px-4 sm:px-5 py-2.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-medium">
+            <div className="hidden sm:flex items-center gap-3">
               <span><kbd className="px-1.5 py-0.5 text-[9px] font-mono bg-white border border-slate-200 rounded">↑↓</kbd> Navigate</span>
               <span><kbd className="px-1.5 py-0.5 text-[9px] font-mono bg-white border border-slate-200 rounded">↵</kbd> Select</span>
             </div>
+            <span className="sm:hidden text-slate-500 font-bold">Tap any item to open</span>
             <div className="flex items-center gap-1 text-[#2d5a47] font-bold">
               <Command size={12} />
-              <span>MyPropBook Command Palette</span>
+              <span>MyPropBook Search</span>
             </div>
           </div>
 
