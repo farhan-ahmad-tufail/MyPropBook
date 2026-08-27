@@ -331,37 +331,52 @@ export default function Dashboard() {
   return (
     <div className="space-y-5 sm:space-y-6 fade-in-up active pb-24 lg:pb-8">
       
-      {/* ── HERO GREETING HEADER ── */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-1">
+      {/* ── GREETING HEADER ── */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 pt-1 pb-1">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
-            <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              {greetingPrefix}, {cleanName}
-            </h1>
-          </div>
-          <p className="text-slate-500 text-xs sm:text-sm mt-0.5">
+          <h1 className="text-2xl sm:text-[1.75rem] font-bold text-slate-900 tracking-[-0.025em] leading-tight">
+            {greetingPrefix}, {cleanName}
+          </h1>
+          <p className="text-slate-400 text-[12px] font-medium mt-1 tracking-wide">
             {currentDate}
           </p>
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div className="hidden sm:flex items-center gap-2">
           <button
             onClick={() => navigate('/analytics')}
-            className="flex-1 sm:flex-initial px-3.5 sm:px-4 py-2.5 rounded-2xl bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200/80 font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+            className="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 font-semibold text-[12px] hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
             title="View financial analytics & reports"
           >
-            <BarChart3 size={14} className="text-purple-600 shrink-0" />
-            <span>Analytics</span>
+            <BarChart3 size={13} className="text-slate-500" />
+            Analytics
           </button>
 
           <button
             onClick={() => navigate('/properties?tab=bulk')}
-            className="flex-1 sm:flex-initial px-3.5 sm:px-4 py-2.5 rounded-2xl bg-amber-500/10 text-amber-900 border border-amber-500/30 font-bold text-xs hover:bg-amber-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+            className="px-4 py-2 rounded-xl bg-[#2d5a47] text-white font-semibold text-[12px] hover:bg-[#234738] transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
             title="Generate monthly bills for all rooms at once"
           >
+            <Zap size={13} />
+            Bulk Bill
+          </button>
+        </div>
+
+        {/* Mobile buttons row */}
+        <div className="flex sm:hidden items-center gap-2 w-full">
+          <button
+            onClick={() => navigate('/analytics')}
+            className="flex-1 px-3.5 py-2.5 rounded-2xl bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200/80 font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+          >
+            <BarChart3 size={14} className="text-purple-600 shrink-0" />
+            <span>Analytics</span>
+          </button>
+          <button
+            onClick={() => navigate('/properties?tab=bulk')}
+            className="flex-1 px-3.5 py-2.5 rounded-2xl bg-amber-500/10 text-amber-900 border border-amber-500/30 font-bold text-xs hover:bg-amber-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+          >
             <Zap size={14} className="text-amber-600 shrink-0" />
-            <span className="truncate">⚡ Bulk Bill</span>
+            <span>⚡ Bulk Bill</span>
           </button>
         </div>
       </div>
@@ -373,45 +388,59 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* ── UNIFIED EXECUTIVE METRICS CARD ── */}
-      <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm space-y-3">
-        {/* Portfolio & Occupancy Top Bar */}
-        <div className="flex items-center justify-between text-xs border-b border-slate-100/80 pb-3">
+      {/* ── EXECUTIVE METRICS CARD ── */}
+      {/* Desktop: 4-column KPI bar | Mobile: unchanged 2-col grid */}
+      <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+        {/* Portfolio header row */}
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100/80">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#edf5f1] text-[#2d5a47] flex items-center justify-center font-bold">
-              <Building size={15} />
+            <div className="w-7 h-7 rounded-lg bg-[#edf5f1] text-[#2d5a47] flex items-center justify-center">
+              <Building size={13} />
             </div>
-            <div>
-              <span className="font-extrabold text-slate-900">{totalProperties} {totalProperties === 1 ? 'Property' : 'Properties'}</span>
-              <span className="text-slate-400 font-medium ml-1.5">• {activeLeaseRoomIds.length} Occupied Rooms</span>
-            </div>
+            <span className="text-[13px] font-semibold text-slate-900">
+              {totalProperties} {totalProperties === 1 ? 'Property' : 'Properties'}
+            </span>
+            <span className="text-slate-400 text-[12px]">· {activeLeaseRoomIds.length} rooms occupied</span>
           </div>
-          <span className="bg-emerald-50 text-[#2d5a47] text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-200/60 shrink-0">
-            {totalRooms > 0 ? `${Math.min(100, Math.round((activeLeaseRoomIds.length / Math.max(1, totalRooms)) * 100))}% Occupancy` : 'Active'}
+          <span className="text-[11px] font-semibold text-[#2d5a47] bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
+            {totalRooms > 0 ? `${Math.min(100, Math.round((activeLeaseRoomIds.length / Math.max(1, totalRooms)) * 100))}% occupancy` : 'Active'}
           </span>
         </div>
 
-        {/* Expected Rent vs Arrears Grid */}
-        <div className="grid grid-cols-2 gap-4 pt-1">
-          <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">EXPECTED RENT</span>
-            <div className="text-xl sm:text-3xl font-black text-slate-900 mt-0.5 font-mono tracking-tight">
-              <AnimatedCounter value={expectedMonthlyRevenue} formatter={v => formatINR(v)} />
+        {/* KPI grid — 4 cols on desktop, 2 on mobile */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-slate-100">
+          {[
+            {
+              label: 'Expected Rent',
+              value: <AnimatedCounter value={expectedMonthlyRevenue} formatter={v => formatINR(v)} />,
+              sub: `${new Date().toLocaleString('en-IN', { month: 'short' })} billing cycle`,
+              subColor: 'text-slate-400',
+            },
+            {
+              label: 'Total Collected',
+              value: formatINR(totalCollected),
+              sub: totalCollected > 0 ? `${collectionHealthPct}% of target` : 'No collections yet',
+              subColor: totalCollected > 0 ? 'text-emerald-600' : 'text-slate-400',
+            },
+            {
+              label: 'Pending Arrears',
+              value: <span className={pendingArrears > 0 ? 'text-red-500' : 'text-slate-900'}>{formatINR(pendingArrears)}</span>,
+              sub: pendingArrears > 0 ? `${tenantsWithArrears} tenant(s) with dues` : 'All clear',
+              subColor: pendingArrears > 0 ? 'text-amber-600' : 'text-emerald-600',
+            },
+            {
+              label: 'Active Tenants',
+              value: activeTenants,
+              sub: `${totalRooms - activeLeaseRoomIds.length} room(s) vacant`,
+              subColor: 'text-slate-400',
+            },
+          ].map(({ label, value, sub, subColor }) => (
+            <div key={label} className="px-5 py-4">
+              <span className="text-[11px] font-medium text-slate-400 block">{label}</span>
+              <div className="text-xl sm:text-2xl font-bold text-slate-900 mt-1 font-mono tracking-tight">{value}</div>
+              <span className={`text-[11px] font-medium block mt-0.5 ${subColor}`}>{sub}</span>
             </div>
-            <span className="text-[11px] text-slate-400 font-medium block mt-0.5">{new Date().toLocaleString('en-IN', { month: 'short' })} billing cycle</span>
-          </div>
-
-          <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">PENDING ARREARS</span>
-            <div className={`text-xl sm:text-3xl font-black mt-0.5 font-mono tracking-tight ${pendingArrears > 0 ? 'text-red-500' : 'text-slate-900'}`}>
-              {formatINR(pendingArrears)}
-            </div>
-            {tenantsWithArrears > 0 ? (
-              <span className="text-[11px] text-amber-600 font-semibold block mt-0.5">{tenantsWithArrears} tenant(s) with dues</span>
-            ) : (
-              <span className="text-[11px] text-emerald-600 font-semibold block mt-0.5">All clear ✓</span>
-            )}
-          </div>
+          ))}
         </div>
       </div>
 
@@ -720,22 +749,25 @@ export default function Dashboard() {
         </div>
 
         {/* Collections Health Widget */}
-        <div className="bg-[#edf5f1] p-6 rounded-3xl border border-[#d2e5dc] shadow-sm flex flex-col justify-between">
+        <div className="bg-white p-5 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
           <div>
-            <div className="flex justify-between items-start">
-              <span className="text-[10px] font-bold text-[#2d5a47] uppercase tracking-widest">COLLECTIONS HEALTH</span>
-              <div className="w-8 h-8 rounded-full bg-white text-slate-700 flex items-center justify-center shadow-sm">
-                <Gauge size={16} />
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h3 className="font-semibold text-slate-900 text-[13px]">Collections</h3>
+                <p className="text-[11px] text-slate-400 mt-0.5">{new Date().toLocaleString('en-IN', { month: 'long' })} performance</p>
+              </div>
+              <div className="w-8 h-8 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center border border-slate-100">
+                <Gauge size={15} />
               </div>
             </div>
 
-            <div className="mt-4">
-              <div className="text-4xl font-black text-slate-900 font-mono tracking-tight">{collectionHealthPct}%</div>
-              <p className="text-xs text-slate-500 mt-1 font-medium">of {new Date().toLocaleString('en-IN', { month: 'long' })} rent collected</p>
+            <div className="mt-2">
+              <div className="text-3xl font-extrabold text-slate-900 font-mono tracking-tight">{collectionHealthPct}%</div>
+              <p className="text-[11px] text-slate-400 mt-0.5 font-medium">of {new Date().toLocaleString('en-IN', { month: 'long' })} expected rent</p>
             </div>
 
             {/* Progress Bar */}
-            <div className="w-full bg-slate-200/80 h-2.5 rounded-full overflow-hidden mt-6">
+            <div className="w-full bg-slate-200/80 h-2.5 rounded-full overflow-hidden mt-4">
               <div 
                 className="bg-[#2d5a47] h-full rounded-full transition-all duration-500"
                 style={{ width: `${collectionHealthPct}%` }}
