@@ -899,7 +899,7 @@ export default function Tenants() {
             </div>
           )}
         </div>
-      ) : (
+      ) : activeTab === 'leases' ? (
         // Tab: Allocations (Leases)
         <div className="space-y-6">
           <div className="flex justify-between items-center">
@@ -1141,51 +1141,49 @@ export default function Tenants() {
               </div>
           )}
         </div>
-      )}
-
-      {/* ── DEPOSITS TAB ── */}
-      {activeTab === 'deposits' && (
+      ) : activeTab === 'deposits' ? (
+        /* ── DEPOSITS TAB ── */
         <div className="space-y-6">
 
           {/* Summary Bar */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center">
-                  <Shield size={18} className="text-emerald-600" />
+                <div className="w-9 h-9 rounded-xl bg-emerald-50 text-[#2d5a47] flex items-center justify-center flex-shrink-0">
+                  <Shield size={16} />
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">TOTAL HELD</p>
-                  <p className="text-xl font-black text-slate-900">{formatINR(totalHeld)}</p>
+                  <p className="text-[11px] font-medium text-slate-400">Total Held</p>
+                  <p className="text-xl font-bold text-slate-900 font-mono tracking-tight mt-0.5">{formatINR(totalHeld)}</p>
                 </div>
               </div>
             </div>
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5">
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center">
-                  <Minus size={18} className="text-amber-600" />
+                <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center flex-shrink-0">
+                  <Minus size={16} />
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">TOTAL DEDUCTIONS</p>
-                  <p className="text-xl font-black text-amber-700">{formatINR(totalDeductions)}</p>
+                  <p className="text-[11px] font-medium text-slate-400">Total Deductions</p>
+                  <p className="text-xl font-bold text-amber-700 font-mono tracking-tight mt-0.5">{formatINR(totalDeductions)}</p>
                 </div>
               </div>
             </div>
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5">
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center">
-                  <RotateCcw size={18} className="text-blue-600" />
+                <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center flex-shrink-0">
+                  <RotateCcw size={16} />
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">TOTAL RETURNED</p>
-                  <p className="text-xl font-black text-blue-700">{formatINR(totalReturned)}</p>
+                  <p className="text-[11px] font-medium text-slate-400">Total Returned</p>
+                  <p className="text-xl font-bold text-slate-800 font-mono tracking-tight mt-0.5">{formatINR(totalReturned)}</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Header + Add Button */}
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center pt-1">
             <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest">SECURITY DEPOSIT RECORDS</h2>
             <button
               onClick={() => {
@@ -1193,22 +1191,31 @@ export default function Tenants() {
                 setDepTenantId(''); setDepPropertyId(''); setDepRoomId('');
                 setDepAmount(''); setDepDate(new Date().toISOString().split('T')[0]); setDepNotes('');
               }}
-              className="px-4 py-2.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all flex items-center gap-2 shadow-sm cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-[#2d5a47] text-white font-semibold text-xs hover:bg-[#234738] transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
             >
-              <Plus size={15} /> Record Deposit
+              <Plus size={14} /> Record Deposit
             </button>
           </div>
 
           {/* Add Deposit Form */}
           {showDepositForm && (
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-100 shadow-sm max-w-2xl space-y-6">
-              <div className="border-b border-slate-100 pb-3">
-                <h3 className="font-extrabold text-slate-900 text-lg">Record Security Deposit</h3>
-                <p className="text-xs text-slate-400 mt-0.5">Track deposit collected from tenant at move-in</p>
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-sm max-w-xl space-y-4">
+              <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-slate-900 text-sm">Record Security Deposit</h3>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Track security deposit collected at tenant move-in</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowDepositForm(false)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                >
+                  <X size={16} />
+                </button>
               </div>
 
-              <form onSubmit={handleDepositSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <form onSubmit={handleDepositSubmit} className="space-y-3.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <SaasDropdown
                     label="Tenant"
                     required
@@ -1228,7 +1235,7 @@ export default function Tenants() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {depPropertyId && (
                     <SaasDropdown
                       label="Room"
@@ -1240,7 +1247,7 @@ export default function Tenants() {
                     />
                   )}
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">DEPOSIT AMOUNT *</label>
+                    <label className="text-[11px] font-semibold text-slate-700 block mb-1.5">Deposit Amount *</label>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">₹</span>
                       <input
@@ -1248,40 +1255,41 @@ export default function Tenants() {
                         required
                         min="1"
                         step="1"
-                        placeholder="e.g. 50000"
-                        className="w-full pl-7 pr-4 py-2.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-[#2d5a47]"
+                        placeholder="e.g. 10000"
+                        className="w-full pl-7 pr-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-[13px] font-semibold text-slate-800 outline-none focus:border-[#2d5a47] focus:ring-2 focus:ring-[#2d5a47]/10 transition-all"
                         value={depAmount}
                         onChange={e => setDepAmount(e.target.value)}
                       />
                     </div>
                   </div>
-                  <SaasDateInput
-                    label="Date Collected"
-                    required
-                    value={depDate}
-                    onChange={setDepDate}
-                  />
                 </div>
 
+                <SaasDateInput
+                  label="Date Collected"
+                  required
+                  value={depDate}
+                  onChange={setDepDate}
+                />
+
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">NOTES</label>
+                  <label className="text-[11px] font-semibold text-slate-700 block mb-1.5">Notes (optional)</label>
                   <input
                     type="text"
-                    placeholder="e.g. 2 months advance, via bank transfer"
-                    className="w-full px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-[#2d5a47]"
+                    placeholder="e.g. 1 month advance via UPI"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-[13px] text-slate-800 outline-none focus:border-[#2d5a47] focus:ring-2 focus:ring-[#2d5a47]/10 transition-all"
                     value={depNotes}
                     onChange={e => setDepNotes(e.target.value)}
                   />
                 </div>
 
-                <div className="flex gap-3 pt-2">
-                  <button type="submit" className="flex-1 py-2.5 px-4 rounded-xl bg-[#2d5a47] hover:bg-[#234738] text-white font-bold text-xs transition-all shadow-sm cursor-pointer">
+                <div className="flex gap-2.5 pt-2 border-t border-slate-100">
+                  <button type="submit" className="flex-1 py-2.5 px-4 rounded-xl bg-[#2d5a47] hover:bg-[#234738] text-white font-semibold text-xs transition-all shadow-sm cursor-pointer">
                     Save Deposit Record
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowDepositForm(false)}
-                    className="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all cursor-pointer"
+                    className="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold text-xs transition-all cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -1292,7 +1300,7 @@ export default function Tenants() {
 
           {/* Deposit Cards */}
           {deposits.length === 0 ? (
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-12 text-center text-slate-500 text-xs">
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-12 text-center text-slate-400 text-xs font-medium">
               No security deposits recorded yet. Click "Record Deposit" to start tracking.
             </div>
           ) : (
@@ -1306,26 +1314,26 @@ export default function Tenants() {
                 const netBalance = parseFloat(dep.amount) - totalDed;
 
                 const statusConfig = {
-                  held: { label: 'Held', bg: 'bg-emerald-50', text: 'text-emerald-700', ring: 'ring-emerald-200' },
-                  deducted: { label: 'Deductions Applied', bg: 'bg-amber-50', text: 'text-amber-700', ring: 'ring-amber-200' },
-                  returned: { label: 'Returned', bg: 'bg-blue-50', text: 'text-blue-700', ring: 'ring-blue-200' },
-                  forfeited: { label: 'Forfeited', bg: 'bg-red-50', text: 'text-red-700', ring: 'ring-red-200' },
+                  held: { label: 'Held', bg: 'bg-emerald-50 text-emerald-700 border border-emerald-200/60' },
+                  deducted: { label: 'Deductions Applied', bg: 'bg-amber-50 text-amber-700 border border-amber-200/60' },
+                  returned: { label: 'Returned', bg: 'bg-blue-50 text-blue-700 border border-blue-200/60' },
+                  forfeited: { label: 'Forfeited', bg: 'bg-slate-100 text-slate-600 border border-slate-200' },
                 };
                 const sc = statusConfig[dep.status] || statusConfig.held;
                 const isActive = dep.status === 'held' || dep.status === 'deducted';
 
                 return (
-                  <div key={dep.id} className={`bg-white rounded-3xl border shadow-sm overflow-hidden transition-all ${isActive ? 'border-slate-200/80' : 'border-slate-100 opacity-80'
+                  <div key={dep.id} className={`bg-white rounded-2xl sm:rounded-3xl border shadow-sm overflow-hidden transition-all ${isActive ? 'border-slate-200/80' : 'border-slate-100 opacity-80'
                     }`}>
                     {/* Card Header */}
-                    <div className="p-5 pb-4">
+                    <div className="p-4 sm:p-5 pb-3 sm:pb-4">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-2xl bg-[#edf5f1] text-[#2d5a47] flex items-center justify-center font-bold text-sm">
+                          <div className="w-9 h-9 rounded-xl bg-slate-50 text-slate-700 flex items-center justify-center font-bold text-xs border border-slate-100">
                             {tenant?.name?.charAt(0)?.toUpperCase() || '?'}
                           </div>
                           <div>
-                            <p className="font-extrabold text-slate-900 text-sm">{tenant?.name || 'Unknown Tenant'}</p>
+                            <p className="font-bold text-slate-900 text-[13px]">{tenant?.name || 'Unknown Tenant'}</p>
                             <p className="text-[11px] text-slate-400 font-medium mt-0.5">
                               {property?.name || ''}{room ? ` • Room ${room.room_number}` : ''}
                               {dep.collected_date ? ` • Collected ${dep.collected_date}` : ''}
@@ -1334,13 +1342,13 @@ export default function Tenants() {
                         </div>
 
                         <div className="flex items-center gap-2">
-                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold ${sc.bg} ${sc.text}`}>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${sc.bg}`}>
                             {sc.label}
                           </span>
                           {isActive && (
                             <button
                               onClick={() => handleDeleteDeposit(dep.id)}
-                              className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                              className="p-1 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                               title="Delete"
                             >
                               <Trash2 size={13} />
@@ -1350,36 +1358,36 @@ export default function Tenants() {
                       </div>
 
                       {/* Financial Summary Row */}
-                      <div className="mt-4 flex flex-wrap items-center gap-3">
-                        <div className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-100">
-                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Deposit</p>
-                          <p className="font-black text-slate-900 text-sm">{formatINR(dep.amount)}</p>
+                      <div className="mt-3.5 flex flex-wrap items-center gap-2.5">
+                        <div className="px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-100">
+                          <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider block">Deposit</span>
+                          <span className="font-bold text-slate-900 text-xs font-mono">{formatINR(dep.amount)}</span>
                         </div>
                         {totalDed > 0 && (
-                          <div className="px-3 py-2 rounded-xl bg-amber-50 border border-amber-100">
-                            <p className="text-[9px] font-bold text-amber-600 uppercase tracking-wider">Deducted</p>
-                            <p className="font-black text-amber-800 text-sm">-{formatINR(totalDed)}</p>
+                          <div className="px-3 py-1.5 rounded-lg bg-amber-50/60 border border-amber-100">
+                            <span className="text-[9px] font-semibold text-amber-600 uppercase tracking-wider block">Deducted</span>
+                            <span className="font-bold text-amber-800 text-xs font-mono">-{formatINR(totalDed)}</span>
                           </div>
                         )}
                         {dep.status === 'returned' ? (
-                          <div className="px-3 py-2 rounded-xl bg-blue-50 border border-blue-100">
-                            <p className="text-[9px] font-bold text-blue-600 uppercase tracking-wider">Returned</p>
-                            <p className="font-black text-blue-800 text-sm">{formatINR(dep.return_amount || 0)}</p>
+                          <div className="px-3 py-1.5 rounded-lg bg-blue-50/60 border border-blue-100">
+                            <span className="text-[9px] font-semibold text-blue-600 uppercase tracking-wider block">Returned</span>
+                            <span className="font-bold text-blue-800 text-xs font-mono">{formatINR(dep.return_amount || 0)}</span>
                           </div>
                         ) : dep.status === 'forfeited' ? (
-                          <div className="px-3 py-2 rounded-xl bg-red-50 border border-red-100">
-                            <p className="text-[9px] font-bold text-red-600 uppercase tracking-wider">Forfeited</p>
-                            <p className="font-black text-red-800 text-sm">{formatINR(dep.amount)}</p>
+                          <div className="px-3 py-1.5 rounded-lg bg-red-50/60 border border-red-100">
+                            <span className="text-[9px] font-semibold text-red-600 uppercase tracking-wider block">Forfeited</span>
+                            <span className="font-bold text-red-800 text-xs font-mono">{formatINR(dep.amount)}</span>
                           </div>
                         ) : (
-                          <div className="px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-100">
-                            <p className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider">Balance</p>
-                            <p className="font-black text-emerald-800 text-sm">{formatINR(netBalance)}</p>
+                          <div className="px-3 py-1.5 rounded-lg bg-emerald-50/60 border border-emerald-100">
+                            <span className="text-[9px] font-semibold text-emerald-600 uppercase tracking-wider block">Balance</span>
+                            <span className="font-bold text-emerald-800 text-xs font-mono">{formatINR(netBalance)}</span>
                           </div>
                         )}
                         {dep.notes && (
-                          <div className="text-[11px] text-slate-400 font-medium italic flex items-center gap-1">
-                            <FileText size={11} /> {dep.notes}
+                          <div className="text-[11px] text-slate-400 font-medium flex items-center gap-1">
+                            <FileText size={11} className="text-slate-400" /> {dep.notes}
                           </div>
                         )}
                       </div>
@@ -1387,17 +1395,17 @@ export default function Tenants() {
 
                     {/* Deductions List */}
                     {deds.length > 0 && (
-                      <div className="border-t border-slate-100 px-5 py-3 bg-slate-50/50">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">DEDUCTION HISTORY</p>
-                        <div className="space-y-1.5">
+                      <div className="border-t border-slate-100 px-4 sm:px-5 py-2.5 bg-slate-50/40">
+                        <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Deduction History</p>
+                        <div className="space-y-1">
                           {deds.map((d, i) => (
                             <div key={d.id || i} className="flex items-center justify-between text-xs">
                               <div className="flex items-center gap-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
-                                <span className="font-semibold text-slate-700">{d.reason}</span>
-                                <span className="text-slate-400">{d.date}</span>
+                                <span className="font-medium text-slate-700 text-[11px]">{d.reason}</span>
+                                <span className="text-slate-400 text-[10px]">{d.date}</span>
                               </div>
-                              <span className="font-bold text-amber-700">-{formatINR(d.amount)}</span>
+                              <span className="font-bold text-amber-700 text-[11px] font-mono">-{formatINR(d.amount)}</span>
                             </div>
                           ))}
                         </div>
@@ -1406,22 +1414,22 @@ export default function Tenants() {
 
                     {/* Return Info */}
                     {dep.status === 'returned' && dep.return_date && (
-                      <div className="border-t border-blue-100 px-5 py-3 bg-blue-50/30">
+                      <div className="border-t border-blue-100/80 px-4 sm:px-5 py-2.5 bg-blue-50/20">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="font-semibold text-blue-700">Refund processed on {dep.return_date}</span>
-                          <span className="font-bold text-blue-800">{formatINR(dep.return_amount || 0)}</span>
+                          <span className="font-medium text-blue-700 text-[11px]">Refund processed on {dep.return_date}</span>
+                          <span className="font-bold text-blue-800 text-[11px] font-mono">{formatINR(dep.return_amount || 0)}</span>
                         </div>
                       </div>
                     )}
 
                     {/* Action Buttons */}
                     {isActive && (
-                      <div className="border-t border-slate-100 px-5 py-3 flex flex-wrap gap-2">
+                      <div className="border-t border-slate-100 px-4 sm:px-5 py-2.5 flex flex-wrap gap-2">
                         <button
                           onClick={() => { setDeductionModal(dep.id); setDedReason(''); setDedAmount(''); }}
-                          className="px-3 py-1.5 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold text-[11px] transition-colors cursor-pointer flex items-center gap-1.5"
+                          className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium text-[11px] transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
                         >
-                          <Minus size={12} /> Add Deduction
+                          <Minus size={11} className="text-amber-600" /> Add Deduction
                         </button>
                         <button
                           onClick={() => {
@@ -1429,15 +1437,15 @@ export default function Tenants() {
                             setReturnModal(dep.id);
                             setReturnAmount(String(parseFloat(dep.amount) - totalD));
                           }}
-                          className="px-3 py-1.5 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-800 font-bold text-[11px] transition-colors cursor-pointer flex items-center gap-1.5"
+                          className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium text-[11px] transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
                         >
-                          <RotateCcw size={12} /> Process Return
+                          <RotateCcw size={11} className="text-blue-600" /> Process Return
                         </button>
                         <button
                           onClick={() => handleForfeitDeposit(dep.id)}
-                          className="px-3 py-1.5 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 font-bold text-[11px] transition-colors cursor-pointer flex items-center gap-1.5"
+                          className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-red-50 hover:border-red-200 hover:text-red-600 text-slate-600 font-medium text-[11px] transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
                         >
-                          <X size={12} /> Forfeit
+                          <X size={11} className="text-slate-400" /> Forfeit
                         </button>
                       </div>
                     )}
@@ -1447,7 +1455,7 @@ export default function Tenants() {
             </div>
           )}
         </div>
-      )}
+      ) : null}
 
       {/* ── DEDUCTION MODAL ── */}
       {deductionModal && (
