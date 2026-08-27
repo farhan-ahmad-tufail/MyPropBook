@@ -41,6 +41,7 @@ export default function Analytics() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+  const [chartType, setChartType] = useState('bar'); // 'bar' | 'area'
 
   useEffect(() => {
     const loadAnalyticsData = async () => {
@@ -306,40 +307,93 @@ export default function Analytics() {
       {yearBills.length > 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
-          {/* 1. Month-Over-Month Revenue Trend (Area Chart) */}
-          <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-100 p-6 shadow-sm space-y-4">
-            <div>
-              <h3 className="font-extrabold text-slate-900 text-base flex items-center gap-2">
-                <TrendingUp size={16} className="text-[#2d5a47]" /> Revenue Flow &amp; Collections
-              </h3>
-              <p className="text-xs text-slate-400 mt-0.5">Billed invoices vs payments received month-by-month</p>
+          {/* 1. Month-Over-Month Revenue Trend (Bar / Area Chart with SaaS Toggle) */}
+          <div className="lg:col-span-2 bg-white rounded-2xl sm:rounded-3xl border border-slate-100 p-4 sm:p-6 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+              <div>
+                <h3 className="font-extrabold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+                  <TrendingUp size={16} className="text-[#2d5a47] shrink-0" />
+                  <span>Revenue Flow & Collections</span>
+                </h3>
+                <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">Billed invoices vs payments received month-by-month</p>
+              </div>
+
+              {/* Chart Mode Toggle Pills */}
+              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl w-full sm:w-auto justify-end">
+                <button
+                  type="button"
+                  onClick={() => setChartType('bar')}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    chartType === 'bar' ? 'bg-[#2d5a47] text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  📊 Columns
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setChartType('area')}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    chartType === 'area' ? 'bg-[#2d5a47] text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  📈 Trend
+                </button>
+              </div>
             </div>
-            
-            <div className="h-72 w-full text-xs">
+
+            {/* Quick Summary Pill Bar */}
+            <div className="flex items-center gap-4 text-xs font-semibold pt-1 border-t border-slate-100/80">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#2d5a47]" />
+                <span className="text-slate-500">Collected:</span>
+                <span className="font-bold text-[#2d5a47]">{formatINR(totalCollectedYear)}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-slate-300" />
+                <span className="text-slate-500">Total Billed:</span>
+                <span className="font-bold text-slate-700">{formatINR(totalBilledYear)}</span>
+              </div>
+            </div>
+
+            <div className="h-64 sm:h-72 w-full text-xs pt-2">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={monthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorBilled" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#475569" stopOpacity={0.15}/>
-                      <stop offset="95%" stopColor="#475569" stopOpacity={0}/>
-                    </linearGradient>
-                    <linearGradient id="colorCollected" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#2d5a47" stopOpacity={0.25}/>
-                      <stop offset="95%" stopColor="#2d5a47" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                  <XAxis dataKey="month" stroke="#94a3b8" tickLine={false} />
-                  <YAxis stroke="#94a3b8" tickLine={false} tickFormatter={formatChartCurrency} />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
-                    labelStyle={{ color: '#0f172a', fontWeight: 'bold' }}
-                    formatter={(value) => [formatINR(value), null]}
-                  />
-                  <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '11px', color: '#64748b' }} />
-                  <Area type="monotone" name="Total Billed" dataKey="billed" stroke="#475569" strokeWidth={2} fillOpacity={1} fill="url(#colorBilled)" />
-                  <Area type="monotone" name="Collected" dataKey="collected" stroke="#2d5a47" strokeWidth={3} fillOpacity={1} fill="url(#colorCollected)" />
-                </AreaChart>
+                {chartType === 'bar' ? (
+                  <BarChart data={monthlyData} margin={{ top: 10, right: 5, left: -22, bottom: 0 }} barGap={3}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                    <XAxis dataKey="month" stroke="#94a3b8" tickLine={false} tick={{ fontSize: 11, fontWeight: 600 }} />
+                    <YAxis stroke="#94a3b8" tickLine={false} tickFormatter={formatChartCurrency} tick={{ fontSize: 10 }} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', color: '#ffffff', borderRadius: '16px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}
+                      labelStyle={{ color: '#f8fafc', fontWeight: 'bold', borderBottom: '1px solid #334155', paddingBottom: '4px', marginBottom: '6px' }}
+                      formatter={(value) => [formatINR(value), null]}
+                    />
+                    <Bar name="Total Billed" dataKey="billed" fill="#cbd5e1" radius={[6, 6, 0, 0]} maxBarSize={28} />
+                    <Bar name="Collected" dataKey="collected" fill="#2d5a47" radius={[6, 6, 0, 0]} maxBarSize={28} />
+                  </BarChart>
+                ) : (
+                  <AreaChart data={monthlyData} margin={{ top: 10, right: 5, left: -22, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorBilled" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#475569" stopOpacity={0.15}/>
+                        <stop offset="95%" stopColor="#475569" stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="colorCollected" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#2d5a47" stopOpacity={0.25}/>
+                        <stop offset="95%" stopColor="#2d5a47" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                    <XAxis dataKey="month" stroke="#94a3b8" tickLine={false} tick={{ fontSize: 11, fontWeight: 600 }} />
+                    <YAxis stroke="#94a3b8" tickLine={false} tickFormatter={formatChartCurrency} tick={{ fontSize: 10 }} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', color: '#ffffff', borderRadius: '16px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}
+                      labelStyle={{ color: '#f8fafc', fontWeight: 'bold', borderBottom: '1px solid #334155', paddingBottom: '4px', marginBottom: '6px' }}
+                      formatter={(value) => [formatINR(value), null]}
+                    />
+                    <Area type="monotone" name="Total Billed" dataKey="billed" stroke="#475569" strokeWidth={2} fillOpacity={1} fill="url(#colorBilled)" />
+                    <Area type="monotone" name="Collected" dataKey="collected" stroke="#2d5a47" strokeWidth={3} fillOpacity={1} fill="url(#colorCollected)" />
+                  </AreaChart>
+                )}
               </ResponsiveContainer>
             </div>
           </div>
@@ -401,22 +455,23 @@ export default function Analytics() {
           </div>
 
           {/* 3. Utility consumption trends (Line Chart) */}
-          <div className="lg:col-span-3 bg-white rounded-3xl border border-slate-100 p-6 shadow-sm space-y-4">
+          <div className="lg:col-span-3 bg-white rounded-2xl sm:rounded-3xl border border-slate-100 p-4 sm:p-6 shadow-sm space-y-4">
             <div>
-              <h3 className="font-extrabold text-slate-900 text-base flex items-center gap-2">
-                <LineIcon size={16} className="text-amber-500" /> Utility Consumption Cycle
+              <h3 className="font-extrabold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+                <LineIcon size={16} className="text-amber-500 shrink-0" /> Utility Consumption Cycle
               </h3>
-              <p className="text-xs text-slate-400 mt-0.5">Electricity submeter consumption (units) trends over the seasons</p>
+              <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">Electricity submeter consumption (units) trends over the seasons</p>
             </div>
             
-            <div className="h-64 w-full text-xs">
+            <div className="h-60 sm:h-64 w-full text-xs">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={monthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                  <XAxis dataKey="month" stroke="#94a3b8" tickLine={false} />
-                  <YAxis stroke="#94a3b8" tickLine={false} />
+                <LineChart data={monthlyData} margin={{ top: 10, right: 5, left: -22, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                  <XAxis dataKey="month" stroke="#94a3b8" tickLine={false} tick={{ fontSize: 11, fontWeight: 600 }} />
+                  <YAxis stroke="#94a3b8" tickLine={false} tick={{ fontSize: 10 }} />
                   <Tooltip 
-                    contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
+                    contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', color: '#ffffff', borderRadius: '16px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}
+                    labelStyle={{ color: '#f8fafc', fontWeight: 'bold', borderBottom: '1px solid #334155', paddingBottom: '4px', marginBottom: '6px' }}
                     formatter={(value) => [`${parseFloat(value).toFixed(1)} Units`, 'Electricity consumed']}
                   />
                   <Line type="monotone" name="Electricity Consumed" dataKey="units" stroke="#d97706" strokeWidth={3} dot={{ r: 4, stroke: '#d97706', strokeWidth: 2 }} activeDot={{ r: 6 }} />
