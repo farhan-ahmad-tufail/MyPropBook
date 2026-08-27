@@ -355,6 +355,20 @@ export default function Layout({ children }) {
               </kbd>
             </button>
 
+            {/* Financial Analytics Quick Access Button */}
+            <Link
+              to="/analytics"
+              className={`p-2 rounded-full border text-xs font-semibold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer ${
+                location.pathname === '/analytics'
+                  ? 'bg-[#2d5a47] text-white border-[#2d5a47]'
+                  : 'bg-white border-slate-200 text-slate-600 hover:text-[#2d5a47] hover:border-[#2d5a47]/40'
+              }`}
+              title="Financial Analytics & Reports"
+            >
+              <BarChart3 size={15} className={location.pathname === '/analytics' ? 'text-white' : 'text-[#2d5a47]'} />
+              <span className="hidden md:inline font-bold text-[11px]">Analytics</span>
+            </Link>
+
             {/* Help Centre Button */}
             <button
               onClick={() => setShowHelp(true)}

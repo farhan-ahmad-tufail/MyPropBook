@@ -8,6 +8,7 @@ import {
   Home, 
   AlertTriangle,
   Receipt,
+  BarChart3,
   ArrowRight,
   TrendingUp,
   CircleAlert,
@@ -326,8 +327,17 @@ export default function Dashboard() {
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <button
+            onClick={() => navigate('/analytics')}
+            className="flex-1 sm:flex-initial px-3 sm:px-4 py-2.5 sm:py-3 rounded-2xl bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200/80 font-bold text-[11px] sm:text-xs transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer shadow-2xs"
+            title="View financial analytics & reports"
+          >
+            <BarChart3 size={13} className="text-purple-600 shrink-0" />
+            <span className="truncate">Analytics</span>
+          </button>
+
+          <button
             onClick={() => navigate('/properties?tab=bulk')}
-            className="flex-1 sm:flex-initial px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-2xl bg-amber-500/10 text-amber-900 border border-amber-500/30 font-bold text-[11px] sm:text-xs hover:bg-amber-500/20 transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer shadow-2xs"
+            className="flex-1 sm:flex-initial px-3 sm:px-4 py-2.5 sm:py-3 rounded-2xl bg-amber-500/10 text-amber-900 border border-amber-500/30 font-bold text-[11px] sm:text-xs hover:bg-amber-500/20 transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer shadow-2xs"
             title="Generate monthly bills for all rooms at once"
           >
             <Zap size={13} className="text-amber-600 shrink-0" />
@@ -336,7 +346,7 @@ export default function Dashboard() {
 
           <button
             onClick={() => navigate('/create-bill')}
-            className="flex-1 sm:flex-initial px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl bg-[#2d5a47] text-white font-bold text-[11px] sm:text-xs hover:bg-[#234738] transition-all flex items-center justify-center gap-1.5 sm:gap-2 shadow-sm cursor-pointer"
+            className="flex-1 sm:flex-initial px-3.5 sm:px-5 py-2.5 sm:py-3 rounded-2xl bg-[#2d5a47] text-white font-bold text-[11px] sm:text-xs hover:bg-[#234738] transition-all flex items-center justify-center gap-1.5 sm:gap-2 shadow-sm cursor-pointer"
           >
             <Zap size={13} fill="currentColor" className="shrink-0" />
             <span className="truncate">New Bill</span>

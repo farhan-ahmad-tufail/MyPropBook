@@ -205,15 +205,21 @@ export default function ProfileModal({ isOpen, onClose }) {
               <button
                 type="button"
                 onClick={() => { onClose(); navigate('/analytics'); }}
-                className="w-full flex items-center justify-between px-3 py-3 rounded-xl hover:bg-slate-50 transition-colors"
+                className="w-full flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-purple-50 to-indigo-50/60 border border-purple-200/80 hover:border-purple-300 transition-all cursor-pointer shadow-2xs"
               >
-                <div className="flex items-center gap-3 text-slate-700">
-                  <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
-                    <BarChart3 size={15} />
+                <div className="flex items-center gap-3 text-slate-900">
+                  <div className="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center shadow-xs">
+                    <BarChart3 size={16} />
                   </div>
-                  <span className="font-bold text-xs">Financial analytics</span>
+                  <div className="text-left">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-extrabold text-xs text-slate-900">Financial analytics</span>
+                      <span className="text-[9px] font-black text-purple-700 bg-purple-100 px-1.5 py-0.2 rounded-full uppercase tracking-wider">Reports</span>
+                    </div>
+                    <span className="text-[10px] text-slate-500 font-medium">Revenue, arrears & tax CSV exports</span>
+                  </div>
                 </div>
-                <ArrowRight size={14} className="text-slate-300" />
+                <ArrowRight size={14} className="text-purple-600 shrink-0" />
               </button>
 
               <button
