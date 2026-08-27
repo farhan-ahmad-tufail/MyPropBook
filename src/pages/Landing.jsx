@@ -222,7 +222,7 @@ export default function Landing() {
   };
 
   return (
-    <div className="relative overflow-hidden bg-[#f8faf9] text-slate-800 font-sans selection:bg-[#2d5a47] selection:text-white">
+    <div className="relative overflow-hidden bg-[#f8faf9] text-slate-800 font-manrope selection:bg-[#2d5a47] selection:text-white">
 
       {/* ── Global Dot-Grid Background Texture (Neutral gray, ~3.5% opacity, static) ── */}
       <div 
@@ -322,7 +322,7 @@ export default function Landing() {
       {/* ══════════════════════════════════════════
           2. HERO SECTION
       ══════════════════════════════════════════ */}
-      <section className="relative z-10 px-4 sm:px-6 pt-14 sm:pt-24 pb-12 sm:pb-16 text-center max-w-5xl mx-auto">
+      <section className="relative z-10 px-4 sm:px-6 pt-20 sm:pt-36 pb-12 sm:pb-16 text-center max-w-5xl mx-auto">
         
         {/* Soft light vignette behind hero headline */}
         <div 
@@ -333,8 +333,8 @@ export default function Landing() {
         {/* Animated Hero Header */}
         <div className="relative z-10 animate-fade-in-up">
           {/* Main Headline */}
-          <h1 className="text-[2rem] sm:text-6xl lg:text-7xl font-extrabold text-slate-900 tracking-tight leading-[1.1] sm:leading-[1.05] relative z-10">
-            Stop tracking rent on WhatsApp and messy spreadsheets.
+          <h1 className="text-[2rem] sm:text-6xl lg:text-7xl font-extrabold text-slate-900 tracking-tight leading-[1.1] sm:leading-[1.05] relative z-10 animate-fade-in-up">
+            Stop tracking rent on WhatsApp, <span className="text-[#2d5a47]">notebooks &amp; spreadsheets.</span>
           </h1>
 
           {/* Supporting Copy */}

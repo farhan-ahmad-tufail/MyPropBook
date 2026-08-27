@@ -9,6 +9,7 @@ export default {
       fontFamily: {
         sans: ['Geist', 'system-ui', '-apple-system', 'sans-serif'],
         mono: ['Geist Mono', 'monospace'],
+        manrope: ['Manrope', 'sans-serif'],
       },
       colors: {
         slate: {
