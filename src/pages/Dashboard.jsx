@@ -99,6 +99,38 @@ export default function Dashboard() {
     [rooms, activeLeaseRoomIds]
   );
 
+  // Current Cycle Bills Breakdown (Option 3 Dynamic Target)
+  const currentMonthName = new Date().toLocaleString('en-IN', { month: 'short' });
+  const currentYearVal = new Date().getFullYear();
+
+  const currentCycleBills = useMemo(() => {
+    return bills.filter(b => {
+      if (!b.bill_date && !b.created_at && !b.bill_month) return false;
+      if (b.bill_month) {
+        const matchesMonth = b.bill_month.substring(0, 3).toLowerCase() === currentMonthName.toLowerCase();
+        const matchesYear = !b.bill_year || b.bill_year.toString() === currentYearVal.toString();
+        return matchesMonth && matchesYear;
+      }
+      const bDate = new Date(b.bill_date || b.created_at);
+      return bDate.getMonth() === new Date().getMonth() && bDate.getFullYear() === currentYearVal;
+    });
+  }, [bills, currentMonthName, currentYearVal]);
+
+  const currentCycleBilledTotal = useMemo(() => {
+    return currentCycleBills.reduce((sum, b) => sum + parseFloat(b.total_payable || 0), 0);
+  }, [currentCycleBills]);
+
+  const currentCycleUtilities = useMemo(() => {
+    return currentCycleBills.reduce((sum, b) => {
+      const elec = parseFloat(b.electricity_amount || 0);
+      const misc = parseFloat(b.additional_charges || 0);
+      return sum + elec + misc;
+    }, 0);
+  }, [currentCycleBills]);
+
+  // If bills exist for current cycle, target is total payable; otherwise portfolio expected base rent
+  const effectiveMonthlyTarget = currentCycleBilledTotal > 0 ? currentCycleBilledTotal : expectedMonthlyRevenue;
+
   const pendingArrears = useMemo(() => 
     bills
       .filter(b => b.payment_status === 'Unpaid' || b.payment_status === 'Partially Paid')
@@ -114,11 +146,11 @@ export default function Dashboard() {
   );
 
   const collectionHealthPct = useMemo(() => {
-    const totalTarget = expectedMonthlyRevenue;
+    const totalTarget = effectiveMonthlyTarget;
     if (!totalTarget) return 0;
-    const collected = totalCollected || Math.max(0, expectedMonthlyRevenue - pendingArrears);
+    const collected = totalCollected || Math.max(0, totalTarget - pendingArrears);
     return Math.min(100, Math.round((collected / totalTarget) * 100));
-  }, [expectedMonthlyRevenue, totalCollected, pendingArrears]);
+  }, [effectiveMonthlyTarget, totalCollected, pendingArrears]);
 
   const tenantsWithArrears = useMemo(() => {
     const roomIdsWithArrears = bills
@@ -402,9 +434,11 @@ export default function Dashboard() {
         <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-slate-100">
           {[
             {
-              label: 'Expected Rent',
-              value: <AnimatedCounter value={expectedMonthlyRevenue} formatter={v => formatINR(v)} />,
-              sub: `${new Date().toLocaleString('en-IN', { month: 'short' })} billing cycle`,
+              label: currentCycleBilledTotal > 0 ? 'Expected / Billed' : 'Expected Rent',
+              value: <AnimatedCounter value={effectiveMonthlyTarget} formatter={v => formatINR(v)} />,
+              sub: currentCycleUtilities > 0 
+                ? `Incl. ${formatINR(expectedMonthlyRevenue)} base + ${formatINR(currentCycleUtilities)} utilities`
+                : `${new Date().toLocaleString('en-IN', { month: 'short' })} billing cycle`,
               subColor: 'text-slate-400',
             },
             {
@@ -546,7 +580,7 @@ export default function Dashboard() {
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-slate-300 border border-slate-400" /> 
-                <span className="font-semibold text-slate-700">Expected:</span> <span className="font-mono">{formatINR(expectedMonthlyRevenue)}</span>
+                <span className="font-semibold text-slate-700">Expected:</span> <span className="font-mono">{formatINR(effectiveMonthlyTarget)}</span>
               </span>
             </div>
 
