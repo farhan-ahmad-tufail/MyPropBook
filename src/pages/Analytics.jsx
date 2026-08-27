@@ -42,6 +42,7 @@ export default function Analytics() {
   const [error, setError] = useState('');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const [chartType, setChartType] = useState('bar'); // 'bar' | 'area'
+  const [activeTab, setActiveTab] = useState('charts'); // 'charts' | 'ledger'
 
   useEffect(() => {
     const loadAnalyticsData = async () => {
@@ -196,19 +197,18 @@ export default function Analytics() {
     <div className="space-y-5 sm:space-y-8 fade-in-up active max-w-7xl mx-auto pb-24 lg:pb-8">
       
       {/* ── Page Header ── */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 pb-2">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 pb-1">
         <div>
-          <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
-            <BarChart3 className="text-[#2d5a47] shrink-0" size={28} />
-            <span>Financial Analytics & Reports</span>
+          <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            Financial Analytics & Reports
           </h1>
-          <p className="text-slate-500 mt-0.5 sm:mt-1 text-xs sm:text-sm">Track revenue collection, electricity consumption trends & export tax statements.</p>
+          <p className="text-slate-500 mt-0.5 text-xs sm:text-sm">Revenue collection, electricity trends & tax statements.</p>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           {/* Year Selector */}
-          <div className="flex items-center gap-2 bg-white border border-slate-200 px-3 sm:px-3.5 py-2.5 sm:py-2 rounded-2xl shadow-sm">
-            <Calendar size={14} className="text-slate-400 shrink-0" />
+          <div className="flex items-center gap-1.5 bg-white border border-slate-200 px-3 py-2 rounded-xl shadow-2xs">
+            <Calendar size={13} className="text-slate-400 shrink-0" />
             <select
               value={selectedYear}
               onChange={e => setSelectedYear(e.target.value)}
@@ -216,7 +216,7 @@ export default function Analytics() {
             >
               {availableYears.map(yr => (
                 <option key={yr} value={yr} className="bg-white text-slate-800">
-                  Year {yr}
+                  {yr}
                 </option>
               ))}
             </select>
@@ -225,10 +225,10 @@ export default function Analytics() {
           {/* Export CSV Button */}
           <button
             onClick={handleExportCSV}
-            className="flex-1 sm:flex-initial justify-center px-4 sm:px-5 py-2.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all flex items-center gap-2 shadow-sm cursor-pointer whitespace-nowrap"
+            className="flex-1 sm:flex-initial justify-center px-3.5 py-2 rounded-xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer whitespace-nowrap"
             title="Download CSV Report for Accounting/Tax"
           >
-            <Download size={15} /> Export CSV Report
+            <Download size={14} /> Export CSV
           </button>
         </div>
       </div>
@@ -303,8 +303,33 @@ export default function Analytics() {
 
       </div>
 
+      {/* ── View Tab Segmented Switcher (Charts vs Ledger) ── */}
+      <div className="flex items-center gap-1 bg-slate-200/60 p-1 rounded-2xl w-full sm:w-fit">
+        <button
+          onClick={() => setActiveTab('charts')}
+          className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeTab === 'charts'
+              ? 'bg-[#2d5a47] text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <BarChart3 size={13} /> Visual Charts
+        </button>
+        <button
+          onClick={() => setActiveTab('ledger')}
+          className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeTab === 'ledger'
+              ? 'bg-[#2d5a47] text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <ArrowUpRight size={13} /> Monthly Ledger Table
+        </button>
+      </div>
+
       {/* ── CHARTS SECTION ── */}
-      {yearBills.length > 0 ? (
+      {activeTab === 'charts' && (
+        yearBills.length > 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           {/* 1. Month-Over-Month Revenue Trend (Bar / Area Chart with SaaS Toggle) */}
@@ -479,16 +504,17 @@ export default function Analytics() {
               </ResponsiveContainer>
             </div>
           </div>
-
         </div>
       ) : (
         <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-12 text-center text-slate-400 text-xs">
           No chart data available for selection. Make sure bills are calculated and saved in the system first.
         </div>
+      )
       )}
 
       {/* ── Month-over-Month Revenue & Electricity Breakdown Table ── */}
-      <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm space-y-4 p-4 sm:p-6 overflow-hidden">
+      {activeTab === 'ledger' && (
+        <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm space-y-4 p-4 sm:p-6 overflow-hidden animate-in fade-in duration-150">
         <div className="flex justify-between items-center">
           <h2 className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 sm:gap-2">
             <ArrowUpRight size={15} className="text-[#2d5a47]" />
@@ -523,6 +549,7 @@ export default function Analytics() {
           </table>
         </div>
       </div>
+      )}
     </div>
   );
 }
