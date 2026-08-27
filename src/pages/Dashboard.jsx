@@ -347,12 +347,21 @@ export default function Dashboard() {
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <button
+            onClick={() => navigate('/analytics')}
+            className="flex-1 sm:flex-initial px-3.5 sm:px-4 py-2.5 rounded-2xl bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200/80 font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+            title="View financial analytics & reports"
+          >
+            <BarChart3 size={14} className="text-purple-600 shrink-0" />
+            <span>Analytics</span>
+          </button>
+
+          <button
             onClick={() => navigate('/properties?tab=bulk')}
-            className="w-full sm:w-auto px-4 py-2.5 rounded-2xl bg-amber-500/10 text-amber-900 border border-amber-500/30 font-bold text-xs hover:bg-amber-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+            className="flex-1 sm:flex-initial px-3.5 sm:px-4 py-2.5 rounded-2xl bg-amber-500/10 text-amber-900 border border-amber-500/30 font-bold text-xs hover:bg-amber-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
             title="Generate monthly bills for all rooms at once"
           >
             <Zap size={14} className="text-amber-600 shrink-0" />
-            <span>⚡ Bulk Generate Bills</span>
+            <span className="truncate">⚡ Bulk Bill</span>
           </button>
         </div>
       </div>
@@ -754,51 +763,6 @@ export default function Dashboard() {
           </button>
         </div>
 
-      </div>
-
-      {/* ── MONTHLY FINANCIAL LEDGER TABLE ON DASHBOARD ── */}
-      <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm p-4 sm:p-6 space-y-4 overflow-hidden">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="font-extrabold text-slate-900 text-sm sm:text-base flex items-center gap-2">
-              <ArrowUpRight size={16} className="text-[#2d5a47] shrink-0" />
-              <span>Monthly Financial Ledger ({new Date().getFullYear()})</span>
-            </h3>
-            <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">Month-by-month billing, collections & pending dues</p>
-          </div>
-          <Link
-            to="/analytics"
-            className="text-xs font-bold text-[#2d5a47] hover:text-[#1c4032] flex items-center gap-1 shrink-0"
-          >
-            <span>Full Analytics</span>
-            <ArrowUpRight size={13} />
-          </Link>
-        </div>
-
-        <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
-          <table className="w-full text-left border-collapse min-w-[480px]">
-            <thead>
-              <tr className="border-b border-slate-100 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50/50">
-                <th className="px-3 sm:px-5 py-3 sm:py-3.5">MONTH</th>
-                <th className="px-3 sm:px-5 py-3 sm:py-3.5">INVOICES</th>
-                <th className="px-3 sm:px-5 py-3 sm:py-3.5">BILLED</th>
-                <th className="px-3 sm:px-5 py-3 sm:py-3.5">COLLECTED</th>
-                <th className="px-3 sm:px-5 py-3 sm:py-3.5">PENDING</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 font-medium text-xs">
-              {dashboardMonthlyLedger.map(m => (
-                <tr key={m.fullMonth} className="hover:bg-slate-50/60 transition-colors">
-                  <td className="px-3 sm:px-5 py-3 font-bold text-slate-800">{m.fullMonth}</td>
-                  <td className="px-3 sm:px-5 py-3 text-slate-400">{m.count > 0 ? `${m.count} bill${m.count > 1 ? 's' : ''}` : '-'}</td>
-                  <td className="px-3 sm:px-5 py-3 font-semibold text-slate-700">₹{m.billed.toLocaleString()}</td>
-                  <td className="px-3 sm:px-5 py-3 font-bold text-[#2d5a47]">₹{m.collected.toLocaleString()}</td>
-                  <td className="px-3 sm:px-5 py-3 font-bold text-red-500">{m.pending > 0 ? `₹${m.pending.toLocaleString()}` : '₹0'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       </div>
 
       {/* ── PORTFOLIO SNAPSHOT SECTION ── */}
