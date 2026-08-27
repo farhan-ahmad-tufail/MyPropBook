@@ -36,6 +36,20 @@ import Logo from './Logo';
 import ProfileModal from './ProfileModal';
 import CommandPalette from './CommandPalette';
 
+const AVATAR_COLOR_MAP = {
+  sage: '#2d5a47',
+  navy: '#0f172a',
+  blue: '#2563eb',
+  purple: '#9333ea',
+  emerald: '#059669'
+};
+
+const getAvatarBg = (color) => {
+  if (!color) return '#2d5a47';
+  if (color.startsWith('#') || color.startsWith('rgb')) return color;
+  return AVATAR_COLOR_MAP[color] || '#2d5a47';
+};
+
 const navSections = [
   {
     title: 'WORKSPACE',
@@ -233,7 +247,7 @@ export default function Layout({ children }) {
           <div className="flex items-center gap-3 min-w-0">
             <div
               className="w-9 h-9 rounded-xl text-white flex items-center justify-center font-bold text-xs flex-shrink-0 transition-transform group-hover:scale-105"
-              style={{ backgroundColor: savedProfile.avatarColor || '#2d5a47' }}
+              style={{ backgroundColor: getAvatarBg(savedProfile.avatarColor) }}
             >
               {avatarLetter}
             </div>
@@ -456,7 +470,7 @@ export default function Layout({ children }) {
               onClick={() => setShowProfileModal(true)}
               title="Open profile & settings"
               className="w-8 h-8 rounded-full text-white flex items-center justify-center font-bold text-xs shadow-sm hover:ring-2 hover:ring-[#2d5a47]/40 hover:scale-105 transition-all cursor-pointer"
-              style={{ backgroundColor: savedProfile.avatarColor || '#2d5a47' }}
+              style={{ backgroundColor: getAvatarBg(savedProfile.avatarColor) }}
             >
               {avatarLetter}
             </button>
