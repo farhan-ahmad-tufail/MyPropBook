@@ -295,12 +295,6 @@ export default function Layout({ children }) {
                     <Icon size={16} className={`flex-shrink-0 transition-colors ${isActive ? 'text-emerald-300' : 'text-slate-400 group-hover:text-[#2d5a47]'}`} />
                     <span className="flex-1 truncate">{item.label}</span>
 
-                    {item.to === '/create-bill' && !isActive && (
-                      <span className="px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-800 font-black text-[9px] uppercase tracking-wider">
-                        ⚡ Quick
-                      </span>
-                    )}
-
                     {isActive && (
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 flex-shrink-0 animate-pulse" />
                     )}
@@ -370,20 +364,6 @@ export default function Layout({ children }) {
                 ⌘K
               </kbd>
             </button>
-
-            {/* Financial Analytics Quick Access Button (Desktop/Tablet) */}
-            <Link
-              to="/analytics"
-              className={`hidden sm:flex p-2 rounded-full border text-xs font-semibold transition-all shadow-sm items-center gap-1.5 cursor-pointer ${
-                location.pathname === '/analytics'
-                  ? 'bg-[#2d5a47] text-white border-[#2d5a47]'
-                  : 'bg-white border-slate-200 text-slate-600 hover:text-[#2d5a47] hover:border-[#2d5a47]/40'
-              }`}
-              title="Financial Analytics & Reports"
-            >
-              <BarChart3 size={15} className={location.pathname === '/analytics' ? 'text-white' : 'text-[#2d5a47]'} />
-              <span className="hidden md:inline font-bold text-[11px]">Analytics</span>
-            </Link>
 
             {/* Help Centre Button */}
             <button

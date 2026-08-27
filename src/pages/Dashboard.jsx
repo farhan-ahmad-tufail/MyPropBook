@@ -344,15 +344,6 @@ export default function Dashboard() {
 
         <div className="hidden sm:flex items-center gap-2">
           <button
-            onClick={() => navigate('/analytics')}
-            className="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 font-semibold text-[12px] hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
-            title="View financial analytics & reports"
-          >
-            <BarChart3 size={13} className="text-slate-500" />
-            Analytics
-          </button>
-
-          <button
             onClick={() => navigate('/properties?tab=bulk')}
             className="px-4 py-2 rounded-xl bg-[#2d5a47] text-white font-semibold text-[12px] hover:bg-[#234738] transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
             title="Generate monthly bills for all rooms at once"
@@ -362,7 +353,7 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* Mobile buttons row */}
+        {/* Mobile & Tablet buttons row */}
         <div className="flex sm:hidden items-center gap-2 w-full">
           <button
             onClick={() => navigate('/analytics')}
@@ -444,16 +435,16 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── MOBILE NEEDS ATTENTION QUICK ACTION BAR ── */}
+      {/* ── PORTFOLIO ATTENTION QUICK ACTION BAR ── */}
       {(pendingArrears > 0 || (rooms.length - activeLeaseRoomIds.length) > 0) && (
-        <div className="bg-[#edf5f1] border border-[#2d5a47]/20 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+        <div className="bg-white border border-amber-200/70 rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#2d5a47] text-white flex items-center justify-center shrink-0 shadow-2xs">
-              <AlertTriangle size={17} />
+            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0 border border-amber-200/60">
+              <AlertTriangle size={15} />
             </div>
             <div>
-              <h4 className="text-xs font-extrabold text-slate-900 leading-tight">Portfolio Attention Needed</h4>
-              <p className="text-[11px] text-slate-600 mt-0.5">
+              <h4 className="text-[13px] font-semibold text-slate-900 leading-tight">Portfolio Attention Needed</h4>
+              <p className="text-[12px] text-slate-500 mt-0.5">
                 {pendingArrears > 0 ? `Uncollected balance of ${formatINR(pendingArrears)} across ${tenantsWithArrears} tenant(s).` : `${rooms.length - activeLeaseRoomIds.length} room(s) available for lease.`}
               </p>
             </div>
@@ -462,7 +453,7 @@ export default function Dashboard() {
             {pendingArrears > 0 && (
               <button
                 onClick={() => navigate('/billing')}
-                className="flex-1 sm:flex-initial px-3 py-1.5 rounded-xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all flex items-center justify-center gap-1 shadow-2xs cursor-pointer"
+                className="flex-1 sm:flex-initial px-3.5 py-1.5 rounded-xl bg-[#2d5a47] text-white font-semibold text-[12px] hover:bg-[#234738] transition-all flex items-center justify-center gap-1 shadow-sm cursor-pointer"
               >
                 <span>Collect Rent</span>
                 <ArrowRight size={12} />
@@ -470,7 +461,7 @@ export default function Dashboard() {
             )}
             <button
               onClick={() => navigate('/tenants')}
-              className="flex-1 sm:flex-initial px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-all flex items-center justify-center gap-1 shadow-2xs cursor-pointer"
+              className="flex-1 sm:flex-initial px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-semibold text-[12px] hover:bg-slate-50 transition-all flex items-center justify-center gap-1 shadow-sm cursor-pointer"
             >
               <span>Manage Tenants</span>
             </button>

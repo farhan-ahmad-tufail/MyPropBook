@@ -42,7 +42,7 @@ function SaasDropdown({
   return (
     <div ref={ref} className="relative">
       {label && (
-        <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest block mb-2">
+        <label className="text-[11px] font-semibold text-slate-700 block mb-1.5">
           {label} {required && <span className="text-rose-500">*</span>}
         </label>
       )}
@@ -52,23 +52,22 @@ function SaasDropdown({
         type="button"
         disabled={disabled}
         onClick={() => { if (!disabled) setOpen(v => !v); setQuery(''); }}
-        className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl border text-sm font-semibold text-left transition-all duration-200 ${disabled
+        className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border text-[13px] font-medium text-left transition-all duration-150 ${disabled
           ? 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed'
           : open
-            ? 'bg-white border-[#2d5a47] shadow-sm'
-            : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-sm'
+            ? 'bg-white border-[#2d5a47] shadow-sm ring-2 ring-[#2d5a47]/10'
+            : 'bg-white border-slate-200 hover:border-slate-300'
           }`}
-        style={open ? { boxShadow: '0 0 0 3px rgba(45,90,71,0.1)' } : {}}
       >
         {/* Leading icon */}
         {IconComponent && (
-          <span className={`flex-shrink-0 ${selected ? 'text-[#2d5a47]' : 'text-slate-300'}`}>
-            <IconComponent size={16} />
+          <span className={`flex-shrink-0 ${selected ? 'text-[#2d5a47]' : 'text-slate-400'}`}>
+            <IconComponent size={15} />
           </span>
         )}
 
         {/* Selection or placeholder */}
-        <span className={`flex-1 truncate ${selected ? 'text-slate-900' : 'text-slate-400'}`}>
+        <span className={`flex-1 truncate ${selected ? 'text-slate-900 font-semibold' : 'text-slate-400'}`}>
           {selected ? selected.label : placeholder}
         </span>
 
@@ -164,13 +163,13 @@ function SaasDateInput({ label, value, onChange, required = false, placeholder =
   return (
     <div>
       {label && (
-        <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest block mb-2">
+        <label className="text-[11px] font-semibold text-slate-700 block mb-1.5">
           {label} {required && <span className="text-rose-500">*</span>}
         </label>
       )}
       <div className="relative">
         <Calendar
-          size={15}
+          size={14}
           className={`absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none transition-colors ${focused ? 'text-[#2d5a47]' : 'text-slate-400'
             }`}
         />
@@ -182,11 +181,10 @@ function SaasDateInput({ label, value, onChange, required = false, placeholder =
           onChange={e => onChange(e.target.value)}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          className={`w-full pl-10 pr-4 py-3 rounded-2xl border text-sm font-semibold text-slate-900 bg-white outline-none transition-all duration-200 cursor-pointer ${focused
-            ? 'border-[#2d5a47]'
+          className={`w-full pl-9 pr-3.5 py-2.5 rounded-xl border text-[13px] font-medium text-slate-900 bg-white outline-none transition-all duration-150 cursor-pointer ${focused
+            ? 'border-[#2d5a47] ring-2 ring-[#2d5a47]/10'
             : 'border-slate-200 hover:border-slate-300'
             }`}
-          style={focused ? { boxShadow: '0 0 0 3px rgba(45,90,71,0.1)' } : {}}
         />
         {/* Click overlay to open native picker */}
         <div
@@ -924,51 +922,31 @@ export default function Tenants() {
 
           {/* ── Allocation Form ── */}
           {showLeaseForm && (
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden max-w-2xl">
+            <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden max-w-xl">
 
-              {/* Premium gradient form header */}
-              <div
-                className="relative px-6 pt-6 pb-5 overflow-hidden"
-                style={{ background: 'linear-gradient(135deg, #1a3a2b 0%, #2d5a47 60%, #3a7a5c 100%)' }}
-              >
-                {/* Decorative blobs */}
-                <div className="absolute top-0 right-0 w-36 h-36 rounded-full opacity-10"
-                  style={{ background: 'radial-gradient(circle, #a8ffce, transparent 70%)', transform: 'translate(40%, -40%)' }} />
-                <div className="absolute bottom-0 left-0 w-24 h-24 rounded-full opacity-10"
-                  style={{ background: 'radial-gradient(circle, #7fffd4, transparent 70%)', transform: 'translate(-30%, 40%)' }} />
-
-                <div className="relative flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div
-                      className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
-                      style={{ background: 'rgba(255,255,255,0.15)', border: '1.5px solid rgba(255,255,255,0.25)' }}
-                    >
-                      <Link2 size={22} className="text-white" />
-                    </div>
-                    <div>
-                      <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-300/80 mb-0.5">
-                        New Allocation
-                      </div>
-                      <h3 className="font-extrabold text-white text-base leading-tight">Allocate Room to Tenant</h3>
-                      <p className="text-xs text-emerald-200/70 mt-0.5">Connect a registered tenant with an available room.</p>
-                    </div>
+              {/* Clean SaaS header */}
+              <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-[#edf5f1] text-[#2d5a47] flex items-center justify-center">
+                    <Link2 size={15} />
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setShowLeaseForm(false)}
-                    className="flex-shrink-0 p-2 rounded-xl cursor-pointer transition-all"
-                    style={{ background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.7)' }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.22)'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}
-                  >
-                    <X size={16} />
-                  </button>
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-sm leading-tight">Allocate Room to Tenant</h3>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Assign an available room to a registered tenant</p>
+                  </div>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowLeaseForm(false)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                >
+                  <X size={16} />
+                </button>
               </div>
 
               {/* Form fields */}
-              <form onSubmit={handleLeaseSubmit} className="p-6 space-y-5">
+              <form onSubmit={handleLeaseSubmit} className="p-5 space-y-4">
 
                 {/* SELECT TENANT */}
                 <SaasDropdown
@@ -982,7 +960,7 @@ export default function Tenants() {
                 />
 
                 {/* SELECT PROPERTY & ROOM */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <SaasDropdown
                     label="Select Property"
                     required
@@ -1019,33 +997,22 @@ export default function Tenants() {
                   if (existingTenantNames.length === 0) return null;
 
                   return (
-                    <div className="p-3.5 bg-amber-50/90 border border-amber-200 rounded-2xl text-xs text-amber-800 flex items-start gap-2.5 shadow-2xs">
-                      <span className="text-lg leading-none mt-0.5">👥</span>
-                      <div className="space-y-1">
-                        <p className="font-bold text-amber-900 text-xs">
-                          Adding Roommate / Co-Tenant to Room {selRoom.room_number}
+                    <div className="p-3 bg-amber-50/80 border border-amber-200/80 rounded-xl text-xs text-amber-900 flex items-start gap-2.5">
+                      <span className="text-sm mt-0.5">👥</span>
+                      <div className="space-y-0.5">
+                        <p className="font-semibold text-amber-900 text-[12px]">
+                          Adding Co-Tenant to Room {selRoom.room_number}
                         </p>
-                        <p className="text-[11px] text-amber-800 leading-snug">
-                          Current Occupants ({existingTenantNames.length}):{' '}
-                          <strong className="text-slate-900">{existingTenantNames.join(', ')}</strong>.
-                        </p>
-                        <p className="text-[10px] text-amber-700">
-                          This tenant will be added as a co-tenant. Electricity bills and charges will be split automatically between all {existingTenantNames.length + 1} tenants.
+                        <p className="text-[11px] text-amber-800">
+                          Current occupants: <span className="font-semibold">{existingTenantNames.join(', ')}</span>. Utility bills will be split automatically.
                         </p>
                       </div>
                     </div>
                   );
                 })()}
 
-                {/* Divider */}
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 border-t border-slate-100" />
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Lease Duration</span>
-                  <div className="flex-1 border-t border-slate-100" />
-                </div>
-
                 {/* LEASE DATES */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
                   <SaasDateInput
                     label="Lease Start Date"
                     required
@@ -1053,33 +1020,30 @@ export default function Tenants() {
                     onChange={setLeaseStartDate}
                   />
                   <SaasDateInput
-                    label={<>Lease End Date <span className="text-slate-400 font-medium normal-case">(optional)</span></>}
+                    label={<>Lease End Date <span className="text-slate-400 font-normal text-[10px]">(optional)</span></>}
                     value={leaseEndDate}
                     onChange={setLeaseEndDate}
                   />
                 </div>
 
                 {/* Helper */}
-                <p className="text-[11px] text-slate-400 flex items-center gap-1.5">
-                  <AlertCircle size={12} />
-                  Leave end date blank for open-ended / month-to-month leases.
+                <p className="text-[11px] text-slate-400 flex items-center gap-1.5 pt-0.5">
+                  <AlertCircle size={12} className="text-slate-400 flex-shrink-0" />
+                  <span>Leave end date blank for open-ended or monthly leases.</span>
                 </p>
 
                 {/* ACTION BUTTONS */}
-                <div className="flex gap-3 pt-1">
+                <div className="flex gap-2.5 pt-2 border-t border-slate-100">
                   <button
                     type="submit"
-                    className="flex-1 py-3 px-4 rounded-2xl text-white font-bold text-sm transition-all shadow-sm cursor-pointer flex items-center justify-center gap-2"
-                    style={{ background: 'linear-gradient(135deg, #2d5a47, #3a7a5c)' }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, #234738, #2d5a47)'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(135deg, #2d5a47, #3a7a5c)'}
+                    className="flex-1 py-2.5 px-4 rounded-xl bg-[#2d5a47] hover:bg-[#234738] text-white font-semibold text-xs transition-all shadow-sm cursor-pointer flex items-center justify-center gap-1.5"
                   >
-                    <Link2 size={15} /> Allocate Tenant
+                    <Link2 size={14} /> Allocate Tenant
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowLeaseForm(false)}
-                    className="py-3 px-5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm transition-all cursor-pointer"
+                    className="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold text-xs transition-all cursor-pointer"
                   >
                     Cancel
                   </button>
