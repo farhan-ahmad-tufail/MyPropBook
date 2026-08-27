@@ -858,7 +858,7 @@ export default function SmartCalc() {
   }
 
   return (
-    <div className="space-y-5 fade-in-up active max-w-7xl mx-auto pb-8">
+    <div className="space-y-5 fade-in-up active max-w-7xl mx-auto pb-24 lg:pb-8">
 
       {/* ── COMPACT HEADER ── */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-200/60">
@@ -1043,18 +1043,18 @@ export default function SmartCalc() {
                     <span className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
                       <Zap size={15} className="text-[#2d5a47]" /> Electricity billing mode:
                     </span>
-                    <div className="flex bg-slate-100/90 p-1 rounded-xl gap-1 border border-slate-200/70">
+                    <div className="grid grid-cols-2 sm:flex bg-slate-100/90 p-1 rounded-xl gap-1 border border-slate-200/70 w-full sm:w-auto">
                       {[
-                        { id: 'submeter', label: isSharedRoomTenants ? '⚡ Room Submeter (Shared)' : '⚡ Submeter' },
+                        { id: 'submeter', label: isSharedRoomTenants ? '⚡ Submeter (Shared)' : '⚡ Submeter' },
                         { id: 'direct', label: '📄 Direct' },
-                        { id: 'shared', label: '🏢 Building Split' },
+                        { id: 'shared', label: '🏢 Bldg Split' },
                         { id: 'none', label: '🚫 Included' }
                       ].map(mode => (
                         <button
                           key={mode.id}
                           type="button"
                           onClick={() => setElecMode(mode.id)}
-                          className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${elecMode === mode.id
+                          className={`px-2 sm:px-3 py-1.5 sm:py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap text-center ${elecMode === mode.id
                               ? 'bg-[#2d5a47] text-white shadow-xs'
                               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
                             }`}
@@ -1388,11 +1388,11 @@ export default function SmartCalc() {
               )}
 
               {/* ACTION BUTTONS & HOW IT WORKS */}
-              <div className="flex justify-between items-center pt-2">
+              <div className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-4 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowHowItWorks(!showHowItWorks)}
-                  className="text-xs font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-1 cursor-pointer"
+                  className="text-xs font-semibold text-slate-500 hover:text-slate-800 flex items-center justify-center sm:justify-start gap-1 cursor-pointer w-full sm:w-auto pb-2 sm:pb-0"
                 >
                   <HelpCircle size={13} />
                   <span>How is this calculated?</span>
@@ -1401,7 +1401,7 @@ export default function SmartCalc() {
                 <button
                   type="submit"
                   disabled={!selectedRoomId || isSaving}
-                  className="px-6 py-2.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all flex items-center gap-2 shadow-sm cursor-pointer disabled:opacity-50"
+                  className="w-full sm:w-auto px-6 py-3 sm:py-2.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer disabled:opacity-50"
                 >
                   {isSaving ? (
                     <><div className="w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" /> Saving...</>

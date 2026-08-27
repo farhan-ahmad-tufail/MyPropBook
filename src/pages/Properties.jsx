@@ -486,13 +486,13 @@ export default function Properties() {
   }
 
   return (
-    <div className="space-y-8 fade-in-up active">
+    <div className="space-y-5 sm:space-y-8 pb-24 lg:pb-4 fade-in-up active">
 
       {/* ── TOP HEADER BAR ── */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-2">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 pb-2">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Properties &amp; Rooms</h1>
-          <p className="text-slate-500 mt-1 text-sm">Manage your properties, rooms, rent, and billing settings.</p>
+          <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Properties & Rooms</h1>
+          <p className="text-slate-500 mt-0.5 sm:mt-1 text-xs sm:text-sm">Manage your properties, rooms, rent, and billing settings.</p>
         </div>
 
         <button
@@ -502,7 +502,7 @@ export default function Properties() {
             setPropAddress('');
             setShowPropModal(true);
           }}
-          className="px-5 py-2.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all flex items-center gap-2 shadow-sm cursor-pointer"
+          className="w-full sm:w-auto px-5 py-3 sm:py-2.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
         >
           <Plus size={16} /> + New Property
         </button>
@@ -641,27 +641,27 @@ export default function Properties() {
 
       {/* ── SELECTED PROPERTY ROOMS SECTION ── */}
       {selectedProperty ? (
-        <div className="space-y-6 pt-4 border-t border-slate-200/60">
+        <div className="space-y-4 sm:space-y-6 pt-4 border-t border-slate-200/60">
 
           {/* Selected Property Header Banner */}
-          <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900">
+          <div className="bg-white border border-slate-100 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-lg sm:text-2xl font-extrabold text-slate-900">
                   Rooms in {selectedProperty.name}
                 </h2>
-                <span className="text-xs font-bold text-emerald-800 bg-[#edf5f1] px-2.5 py-1 rounded-full border border-[#d8e7e0]">
+                <span className="text-[10px] sm:text-xs font-bold text-emerald-800 bg-[#edf5f1] px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full border border-[#d8e7e0]">
                   {selectedProperty.address || 'Active Property'}
                 </span>
               </div>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-[11px] sm:text-xs text-slate-500 mt-1">
                 {selectedPropertyStats.totalRooms} rooms · {selectedPropertyStats.occupied} occupied · {selectedPropertyStats.vacant} vacant
               </p>
             </div>
 
             {/* Quick Stats Pills */}
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="bg-slate-50 px-4 py-2 rounded-2xl border border-slate-200/80 text-center">
+            <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+              <div className="bg-slate-50 px-3 sm:px-4 py-2 rounded-2xl border border-slate-200/80 text-center">
                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">EXPECTED RENT</span>
                 <span className="text-sm font-extrabold text-[#2d5a47]">{formatINR(selectedPropertyStats.expectedRent)}</span>
               </div>
@@ -671,7 +671,7 @@ export default function Properties() {
                   setEditingRoom(null);
                   setShowRoomDrawer(true);
                 }}
-                className="px-4 py-2.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all flex items-center gap-2 shadow-sm cursor-pointer"
+                className="flex-1 sm:flex-initial px-4 py-2.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
               >
                 <Plus size={16} /> + Add Room
               </button>
@@ -711,34 +711,34 @@ export default function Properties() {
           {activeTab === 'bulkbill' && (
             <div className="space-y-5">
               {/* Intro Banner */}
-              <div className="bg-[#edf5f1] border border-[#2d5a47]/20 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 shadow-sm">
-                <div className="w-10 h-10 rounded-xl bg-[#2d5a47] text-white flex items-center justify-center flex-shrink-0 shadow-sm">
-                  <Bolt size={20} />
+              <div className="bg-[#edf5f1] border border-[#2d5a47]/20 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 shadow-sm">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#2d5a47] text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+                  <Bolt size={18} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-[10px] font-bold text-[#2d5a47] uppercase tracking-wider bg-[#2d5a47]/10 px-2 py-0.5 rounded-md">Smart Bulk Run</span>
-                    <span className="text-xs text-slate-500 font-medium">• {selectedProperty.name}</span>
+                    <span className="text-[11px] sm:text-xs text-slate-500 font-medium">• {selectedProperty.name}</span>
                   </div>
                   <h3 className="font-bold text-slate-900 text-sm mt-0.5">Generate Bills for All Occupied Rooms</h3>
-                  <p className="text-xs text-slate-600 mt-0.5">
-                    Generate rent &amp; utility bills for <strong className="text-slate-900">{occupiedRoomsForBulk.length} occupied rooms</strong> in one click. Previous unpaid balances are automatically fetched.
+                  <p className="text-[11px] sm:text-xs text-slate-600 mt-0.5 leading-relaxed">
+                    Generate rent & utility bills for <strong className="text-slate-900">{occupiedRoomsForBulk.length} occupied rooms</strong> in one click. Previous unpaid balances are automatically fetched.
                   </p>
                 </div>
               </div>
 
               {/* Month & Year Selector — Custom SaaS Popovers */}
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 {/* Month Dropdown */}
                 <div className="relative" ref={monthDropdownRef}>
                   <button
                     type="button"
                     onClick={() => { setMonthDropdownOpen(v => !v); setYearDropdownOpen(false); }}
-                    className={`flex items-center gap-2 bg-white border shadow-sm rounded-xl px-3.5 py-2.5 cursor-pointer transition-all duration-200 hover:shadow-md ${monthDropdownOpen ? 'border-[#2d5a47] ring-2 ring-[#2d5a47]/10' : 'border-slate-200/80 hover:border-slate-300'
+                    className={`flex items-center gap-1.5 sm:gap-2 bg-white border shadow-sm rounded-xl px-3 sm:px-3.5 py-2.5 cursor-pointer transition-all duration-200 hover:shadow-md ${monthDropdownOpen ? 'border-[#2d5a47] ring-2 ring-[#2d5a47]/10' : 'border-slate-200/80 hover:border-slate-300'
                       }`}
                   >
                     <Calendar size={14} className="text-[#2d5a47]" />
-                    <span className="text-[11px] font-medium text-slate-500">Month</span>
+                    <span className="text-[11px] font-medium text-slate-500 hidden sm:inline">Month</span>
                     <span className="text-xs font-bold text-slate-900">{bulkMonth}</span>
                     <ChevronDown size={13} className={`text-slate-400 transition-transform duration-200 ${monthDropdownOpen ? 'rotate-180' : ''}`} />
                   </button>
@@ -769,11 +769,11 @@ export default function Properties() {
                   <button
                     type="button"
                     onClick={() => { setYearDropdownOpen(v => !v); setMonthDropdownOpen(false); }}
-                    className={`flex items-center gap-2 bg-white border shadow-sm rounded-xl px-3.5 py-2.5 cursor-pointer transition-all duration-200 hover:shadow-md ${yearDropdownOpen ? 'border-[#2d5a47] ring-2 ring-[#2d5a47]/10' : 'border-slate-200/80 hover:border-slate-300'
+                    className={`flex items-center gap-1.5 sm:gap-2 bg-white border shadow-sm rounded-xl px-3 sm:px-3.5 py-2.5 cursor-pointer transition-all duration-200 hover:shadow-md ${yearDropdownOpen ? 'border-[#2d5a47] ring-2 ring-[#2d5a47]/10' : 'border-slate-200/80 hover:border-slate-300'
                       }`}
                   >
                     <Calendar size={14} className="text-[#2d5a47]" />
-                    <span className="text-[11px] font-medium text-slate-500">Year</span>
+                    <span className="text-[11px] font-medium text-slate-500 hidden sm:inline">Year</span>
                     <span className="text-xs font-bold text-slate-900">{bulkYear}</span>
                     <ChevronDown size={13} className={`text-slate-400 transition-transform duration-200 ${yearDropdownOpen ? 'rotate-180' : ''}`} />
                   </button>
@@ -803,7 +803,7 @@ export default function Properties() {
                 <button
                   type="button"
                   onClick={() => setShowBulkSplitModal(v => !v)}
-                  className="flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-[#2d5a47] border border-emerald-200/80 rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all shadow-2xs cursor-pointer ml-auto"
+                  className="flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-[#2d5a47] border border-emerald-200/80 rounded-xl px-3 sm:px-3.5 py-2.5 text-[11px] sm:text-xs font-bold transition-all shadow-2xs cursor-pointer ml-auto"
                   title="Split main building electricity bill equally across rooms"
                 >
                   <span>🤝 Split Main Electricity Bill</span>
@@ -1215,9 +1215,9 @@ export default function Properties() {
 
                         return (
                           <div key={room.id} className="p-4 space-y-3 bg-white">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <div className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                            <div className="flex justify-between items-start gap-2">
+                              <div className="min-w-0 flex-1">
+                                <div className="font-bold text-slate-900 text-sm flex items-center gap-1.5 flex-wrap">
                                   <span>Room {room.room_number}</span>
                                   {isShared && (
                                     <span className="bg-amber-100 text-amber-800 text-[9px] font-bold px-1.5 py-0.5 rounded">
@@ -1225,11 +1225,11 @@ export default function Properties() {
                                     </span>
                                   )}
                                 </div>
-                                <div className="text-xs text-slate-500">
+                                <div className="text-[11px] text-slate-500 truncate">
                                   {isShared ? `${roomTenants.map(t => t.name).join(', ')}` : (roomTenants[0]?.name || 'No Tenant')}
                                 </div>
                               </div>
-                              <span className="font-extrabold text-sm text-[#2d5a47]">
+                              <span className="font-extrabold text-sm text-[#2d5a47] whitespace-nowrap">
                                 Rent: {formatINR(rent)}
                               </span>
                             </div>
@@ -1318,11 +1318,11 @@ export default function Properties() {
                   </div>
 
                   {/* Generate Button */}
-                  <div className="flex justify-end pt-2">
+                  <div className="pt-3 sm:pt-2">
                     <button
                       onClick={handleBulkGenerate}
                       disabled={bulkRunning}
-                      className="btn flex items-center gap-2 bg-[#2d5a47] hover:bg-[#234738] disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-xl px-6 py-3 text-sm font-semibold shadow-sm transition-all cursor-pointer"
+                      className="w-full sm:w-auto sm:ml-auto btn flex items-center justify-center gap-2 bg-[#2d5a47] hover:bg-[#234738] disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-2xl px-6 py-3.5 sm:py-3 text-sm font-bold shadow-sm transition-all cursor-pointer"
                     >
                       {bulkRunning ? (
                         <><div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" /> Generating Bills...</>

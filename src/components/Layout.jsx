@@ -206,12 +206,11 @@ export default function Layout({ children }) {
   return (
     <div className="flex min-h-screen bg-[#f1f5f3]">
 
-      {/* ── Sidebar ── */}
-      <aside className={`
-        fixed top-0 left-0 h-screen w-64 bg-white/95 backdrop-blur-xl border-r border-slate-200/80
-        z-50 flex flex-col transition-transform duration-300 ease-in-out px-4 py-5 shadow-xs
-        ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0
-      `}>
+      {/* ── Sidebar (Desktop Only) ── */}
+      <aside className="
+        hidden lg:flex fixed top-0 left-0 h-screen w-64 bg-white/95 backdrop-blur-xl border-r border-slate-200/80
+        z-50 flex-col px-4 py-5 shadow-xs
+      ">
         {/* Top Logo */}
         <div className="flex items-center justify-between px-2 pb-5 border-b border-slate-200/50">
           <Link to="/" className="flex items-center">
@@ -328,19 +327,13 @@ export default function Layout({ children }) {
         
         {/* Top Header Bar */}
         <header className="sticky top-0 z-30 flex items-center justify-between px-6 lg:px-8 py-4 bg-[#f1f5f3]/90 backdrop-blur">
-          {/* Mobile hamburger */}
-          <div className="flex items-center gap-3 lg:hidden">
-            <button
-              onClick={() => setMobileOpen(true)}
-              className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 rounded-xl transition-colors"
-            >
-              <Menu size={20} />
-            </button>
-            <Logo size={28} showText={false} />
+          {/* Logo (Left) */}
+          <div className="flex items-center gap-3">
+            <Logo size={28} showText={false} className="lg:hidden" />
           </div>
 
           {/* Dynamic Breadcrumbs */}
-          <div className="hidden lg:flex items-center gap-2 text-xs font-medium text-slate-400">
+          <div className="hidden lg:flex items-center gap-2 text-xs font-medium text-slate-400 -ml-4">
             <span>Workspace</span>
             <span>&rsaquo;</span>
             <span className="text-slate-700 font-semibold">{currentBreadcrumb}</span>

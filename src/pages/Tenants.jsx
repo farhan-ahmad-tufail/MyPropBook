@@ -760,74 +760,143 @@ export default function Tenants() {
               No tenants registered in the directory. Click "Add Tenant" to register.
             </div>
           ) : (
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse min-w-[600px]">
-                <thead>
-                  <tr className="border-b border-slate-100 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50/50">
-                    <th className="px-6 py-4">NAME</th>
-                    <th className="px-6 py-4">PHONE</th>
-                    <th className="px-6 py-4">EMAIL</th>
-                    <th className="px-6 py-4">STATUS</th>
-                    <th className="px-6 py-4 text-right">ACTIONS</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 font-medium text-xs">
-                  {tenants
-                    .filter(t => !tenantSearch.trim() || t.name?.toLowerCase().includes(tenantSearch.trim().toLowerCase()))
-                    .map(t => {
-                      const isHighlighted = !!highlightName && t.name?.toLowerCase() === highlightName;
-                      return (
-                        <tr
-                          key={t.id}
-                          ref={isHighlighted ? highlightRowRef : null}
-                          className={`transition-all duration-700 ${isHighlighted && !highlightFading
-                            ? 'bg-emerald-50/80 ring-2 ring-inset ring-[#2d5a47]/40'
-                            : 'hover:bg-slate-50/60'
-                            }`}
-                        >
-                          <td className="px-6 py-4 font-bold text-slate-800">
-                            <div className="flex items-center gap-2">
-                              {isHighlighted && !highlightFading && (
-                                <span className="inline-flex w-2 h-2 rounded-full bg-[#2d5a47] animate-pulse flex-shrink-0" />
-                              )}
-                              {t.name}
+            <div className="bg-transparent lg:bg-white rounded-3xl lg:border lg:border-slate-100 lg:shadow-sm overflow-hidden">
+              
+              {/* Desktop Table View */}
+              <div className="hidden lg:block overflow-x-auto">
+                <table className="w-full text-left border-collapse min-w-[600px]">
+                  <thead>
+                    <tr className="border-b border-slate-100 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50/50">
+                      <th className="px-6 py-4">NAME</th>
+                      <th className="px-6 py-4">PHONE</th>
+                      <th className="px-6 py-4">EMAIL</th>
+                      <th className="px-6 py-4">STATUS</th>
+                      <th className="px-6 py-4 text-right">ACTIONS</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-medium text-xs">
+                    {tenants
+                      .filter(t => !tenantSearch.trim() || t.name?.toLowerCase().includes(tenantSearch.trim().toLowerCase()))
+                      .map(t => {
+                        const isHighlighted = !!highlightName && t.name?.toLowerCase() === highlightName;
+                        return (
+                          <tr
+                            key={t.id}
+                            ref={isHighlighted ? highlightRowRef : null}
+                            className={`transition-all duration-700 ${isHighlighted && !highlightFading
+                              ? 'bg-emerald-50/80 ring-2 ring-inset ring-[#2d5a47]/40'
+                              : 'hover:bg-slate-50/60'
+                              }`}
+                          >
+                            <td className="px-6 py-4 font-bold text-slate-800">
+                              <div className="flex items-center gap-2">
+                                {isHighlighted && !highlightFading && (
+                                  <span className="inline-flex w-2 h-2 rounded-full bg-[#2d5a47] animate-pulse flex-shrink-0" />
+                                )}
+                                {t.name}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-slate-500">{t.phone || '-'}</td>
+                            <td className="px-6 py-4 text-slate-500">{t.email || '-'}</td>
+                            <td className="px-6 py-4">
+                              <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold ${t.active
+                                ? 'bg-emerald-50 text-emerald-700'
+                                : 'bg-slate-100 text-slate-500'
+                                }`}>
+                                {t.active ? 'Active' : 'Inactive'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <div className="flex justify-end gap-1">
+                                <button
+                                  onClick={() => startEditTenant(t)}
+                                  className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                                  title="Edit Tenant"
+                                >
+                                  <Edit2 size={14} />
+                                </button>
+                                <button
+                                  onClick={() => handleTenantDelete(t.id)}
+                                  className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                  title="Delete Tenant"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    }
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="lg:hidden flex flex-col gap-3 mt-4">
+                {tenants
+                  .filter(t => !tenantSearch.trim() || t.name?.toLowerCase().includes(tenantSearch.trim().toLowerCase()))
+                  .map(t => {
+                    const isHighlighted = !!highlightName && t.name?.toLowerCase() === highlightName;
+                    const initials = t.name ? t.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'TN';
+                    return (
+                      <div 
+                        key={t.id} 
+                        className={`bg-white border rounded-3xl p-4 shadow-sm flex flex-col gap-3 relative overflow-hidden transition-all duration-700 ${
+                          isHighlighted && !highlightFading 
+                            ? 'border-[#2d5a47]/40 ring-1 ring-inset ring-[#2d5a47]/40' 
+                            : 'border-slate-100'
+                        }`}
+                      >
+                        {/* Top row: Identity & Status */}
+                        <div className="flex justify-between items-start gap-3">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center font-bold text-slate-600 text-sm flex-shrink-0">
+                              {initials}
                             </div>
-                          </td>
-                          <td className="px-6 py-4 text-slate-500">{t.phone || '-'}</td>
-                          <td className="px-6 py-4 text-slate-500">{t.email || '-'}</td>
-                          <td className="px-6 py-4">
-                            <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold ${t.active
-                              ? 'bg-emerald-50 text-emerald-700'
-                              : 'bg-slate-100 text-slate-500'
-                              }`}>
-                              {t.active ? 'Active' : 'Inactive'}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <div className="flex justify-end gap-1">
-                              <button
-                                onClick={() => startEditTenant(t)}
-                                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
-                                title="Edit Tenant"
-                              >
-                                <Edit2 size={14} />
-                              </button>
-                              <button
-                                onClick={() => handleTenantDelete(t.id)}
-                                className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                title="Delete Tenant"
-                              >
-                                <Trash2 size={14} />
-                              </button>
+                            <div className="min-w-0">
+                              <p className="font-extrabold text-slate-800 text-sm truncate flex items-center gap-2">
+                                {isHighlighted && !highlightFading && (
+                                  <span className="w-1.5 h-1.5 rounded-full bg-[#2d5a47] animate-pulse flex-shrink-0" />
+                                )}
+                                {t.name}
+                              </p>
+                              <p className="text-xs text-slate-400 font-medium truncate">{t.phone || 'No phone'}</p>
                             </div>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  }
-                </tbody>
-              </table>
+                          </div>
+                          <span className={`px-2.5 py-1 rounded-full font-bold text-[10px] flex-shrink-0 ${
+                            t.active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'
+                          }`}>
+                            {t.active ? 'Active' : 'Inactive'}
+                          </span>
+                        </div>
+                        
+                        {/* Middle row: Email (if exists) */}
+                        {t.email && (
+                          <div className="bg-slate-50/80 p-2.5 rounded-xl">
+                            <p className="text-xs text-slate-500 truncate">{t.email}</p>
+                          </div>
+                        )}
+                        
+                        {/* Bottom row: Actions */}
+                        <div className="flex justify-end gap-2 mt-1">
+                          <button
+                            onClick={() => startEditTenant(t)}
+                            className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs hover:bg-slate-200 transition-all cursor-pointer shadow-sm flex items-center gap-1.5"
+                          >
+                            <Edit2 size={12} /> Edit
+                          </button>
+                          <button
+                            onClick={() => handleTenantDelete(t.id)}
+                            className="px-4 py-2 rounded-xl bg-red-50 text-red-600 font-bold text-xs hover:bg-red-100 transition-all cursor-pointer shadow-sm flex items-center gap-1.5"
+                          >
+                            <Trash2 size={12} /> Delete
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })
+                }
               </div>
             </div>
           )}
@@ -1025,42 +1094,87 @@ export default function Tenants() {
               No active tenant-to-room allocations exist. Click "Allocate Room" to start.
             </div>
           ) : (
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse min-w-[600px]">
-                  <thead>
-                    <tr className="border-b border-slate-100 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50/50">
-                      <th className="px-6 py-4">TENANT NAME</th>
-                      <th className="px-6 py-4">ALLOCATED PROPERTY &amp; ROOM</th>
-                      <th className="px-6 py-4">START DATE</th>
-                      <th className="px-6 py-4">END DATE</th>
-                      <th className="px-6 py-4 text-right">ACTIONS</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 font-medium text-xs">
-                    {leases
-                      .filter(l => l.is_active)
-                      .map(l => (
-                        <tr key={l.id} className="hover:bg-slate-50/60 transition-colors">
-                          <td className="px-6 py-4 font-bold text-slate-800">{getTenantName(l.tenant_id)}</td>
-                          <td className="px-6 py-4 text-slate-600 font-semibold">{getRoomName(l.room_id)}</td>
-                          <td className="px-6 py-4 text-slate-500">{l.start_date}</td>
-                          <td className="px-6 py-4 text-slate-500">{l.end_date || 'Ongoing'}</td>
-                          <td className="px-6 py-4 text-right">
+              <div className="bg-transparent lg:bg-white rounded-3xl lg:border lg:border-slate-100 lg:shadow-sm overflow-hidden">
+                
+                {/* Desktop Table View */}
+                <div className="hidden lg:block overflow-x-auto">
+                  <table className="w-full text-left border-collapse min-w-[600px]">
+                    <thead>
+                      <tr className="border-b border-slate-100 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50/50">
+                        <th className="px-6 py-4">TENANT NAME</th>
+                        <th className="px-6 py-4">ALLOCATED PROPERTY &amp; ROOM</th>
+                        <th className="px-6 py-4">START DATE</th>
+                        <th className="px-6 py-4">END DATE</th>
+                        <th className="px-6 py-4 text-right">ACTIONS</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 font-medium text-xs">
+                      {leases
+                        .filter(l => l.is_active)
+                        .map(l => (
+                          <tr key={l.id} className="hover:bg-slate-50/60 transition-colors">
+                            <td className="px-6 py-4 font-bold text-slate-800">{getTenantName(l.tenant_id)}</td>
+                            <td className="px-6 py-4 text-slate-600 font-semibold">{getRoomName(l.room_id)}</td>
+                            <td className="px-6 py-4 text-slate-500">{l.start_date}</td>
+                            <td className="px-6 py-4 text-slate-500">{l.end_date || 'Ongoing'}</td>
+                            <td className="px-6 py-4 text-right">
+                              <button
+                                onClick={() => handleDeactivateLease(l.id)}
+                                className="px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs transition-colors cursor-pointer"
+                                title="End Lease Agreement"
+                              >
+                                Terminate Lease
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="lg:hidden flex flex-col gap-3 mt-4">
+                  {leases
+                    .filter(l => l.is_active)
+                    .map(l => {
+                      const tenantName = getTenantName(l.tenant_id);
+                      const roomName = getRoomName(l.room_id);
+                      return (
+                        <div key={l.id} className="bg-white border border-slate-100 rounded-3xl p-4 shadow-sm flex flex-col gap-3">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="font-extrabold text-slate-800 text-sm">{tenantName}</p>
+                              <p className="text-xs text-slate-500 font-medium mt-0.5">{roomName}</p>
+                            </div>
+                            <span className="px-2.5 py-1 rounded-full font-bold text-[10px] bg-emerald-50 text-emerald-700">
+                              Active
+                            </span>
+                          </div>
+                          
+                          <div className="flex items-center justify-between bg-slate-50 p-2.5 rounded-xl mt-1">
+                            <div>
+                              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Start Date</span>
+                              <p className="text-xs font-semibold text-slate-700">{l.start_date}</p>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">End Date</span>
+                              <p className="text-xs font-semibold text-slate-700">{l.end_date || 'Ongoing'}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex justify-end mt-1">
                             <button
                               onClick={() => handleDeactivateLease(l.id)}
-                              className="px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs transition-colors cursor-pointer"
-                              title="End Lease Agreement"
+                              className="px-4 py-2 rounded-xl bg-red-50 text-red-600 font-bold text-xs hover:bg-red-100 transition-all cursor-pointer shadow-sm w-full sm:w-auto text-center"
                             >
                               Terminate Lease
                             </button>
-                          </td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
               </div>
-            </div>
           )}
         </div>
       )}

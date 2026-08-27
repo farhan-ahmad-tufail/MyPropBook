@@ -179,23 +179,23 @@ export default function RoomDrawer({
       >
 
         {/* ─── Header ─── */}
-        <div className="px-6 py-5 border-b border-slate-200/80 bg-white flex items-start justify-between flex-shrink-0">
+        <div className="px-5 sm:px-6 py-4 sm:py-5 border-b border-slate-200/80 bg-white flex items-start justify-between flex-shrink-0 z-10 shadow-2xs relative">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#edf5f1] text-[#2d5a47] flex items-center justify-center flex-shrink-0">
               <Home size={20} />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-900 leading-tight">
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 leading-tight">
                 {editingRoom ? 'Edit room' : 'Add room'}
               </h2>
-              <p className="text-[13px] text-slate-500 mt-0.5">
+              <p className="text-xs sm:text-[13px] text-slate-500 mt-0.5">
                 Set up this room and its billing preferences.
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 -mr-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors"
+            className="p-2 -mr-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
             aria-label="Close drawer"
           >
             <X size={20} />
@@ -208,9 +208,9 @@ export default function RoomDrawer({
 
             {/* ═══ SECTION 1: Room Details ═══ */}
             <div className="pb-6">
-              <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center justify-between gap-2 mb-1">
                 <h3 className="text-[15px] font-bold text-slate-900">Room details</h3>
-                <span className="text-xs text-slate-400 font-medium">1 of 3</span>
+                <span className="text-[11px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full shrink-0">1 of 3</span>
               </div>
               <p className="text-[13px] text-slate-500 mb-4">
                 Give this space a name and a few basics.
@@ -307,9 +307,9 @@ export default function RoomDrawer({
 
             {/* ═══ SECTION 2: Monthly Rent ═══ */}
             <div className="py-6">
-              <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center justify-between gap-2 mb-1">
                 <h3 className="text-[15px] font-bold text-slate-900">Monthly rent</h3>
-                <span className="text-xs text-slate-400 font-medium">2 of 3</span>
+                <span className="text-[11px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full shrink-0">2 of 3</span>
               </div>
               <p className="text-[13px] text-slate-500 mb-4">
                 The base rent before utility charges.
@@ -337,16 +337,16 @@ export default function RoomDrawer({
             <div className="border-t border-slate-200/80" />
 
             {/* ═══ SECTION 3: Electricity Billing ═══ */}
-            <div className="pt-6 pb-4 space-y-4">
-              <div className="flex items-center justify-between">
+            <div className="pt-6 pb-6 space-y-4">
+              <div className="flex items-start justify-between gap-2">
                 <div>
                   <h3 className="text-[15px] font-bold text-slate-900">Electricity billing</h3>
                   <p className="text-xs text-slate-500 mt-0.5">
                     Choose how electricity is metered or charged for this room.
                   </p>
                 </div>
-                <span className="text-[11px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
-                  Step 3 of 3
+                <span className="text-[11px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full shrink-0">
+                  3 of 3
                 </span>
               </div>
 
@@ -369,11 +369,11 @@ export default function RoomDrawer({
                         <Zap size={18} />
                       </div>
                       <div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className={`text-sm font-bold ${elecMode === 'submeter' ? 'text-[#1c4032]' : 'text-slate-900'}`}>
                             Room Submeter (Meter-based)
                           </span>
-                          <span className="bg-emerald-100 text-[#2d5a47] text-[10px] font-extrabold px-2 py-0.5 rounded-full">
+                          <span className="bg-emerald-100 text-[#2d5a47] text-[10px] font-extrabold px-2 py-0.5 rounded-full shrink-0">
                             Popular for PGs
                           </span>
                         </div>
@@ -617,18 +617,18 @@ export default function RoomDrawer({
         </form>
 
         {/* ─── Footer ─── */}
-        <div className="px-6 py-4 bg-white border-t border-slate-200/80 flex items-center justify-end gap-3 flex-shrink-0">
+        <div className="px-5 sm:px-6 py-3.5 sm:py-4 bg-white border-t border-slate-200/80 flex items-center justify-end gap-2.5 sm:gap-3 flex-shrink-0 z-10 shadow-lg sm:shadow-none">
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2.5 text-sm font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors"
+            className="flex-1 sm:flex-initial py-3 sm:py-2.5 px-4 sm:px-5 text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer text-center"
           >
             Cancel
           </button>
           <button
             type="submit"
             form="room-form"
-            className="px-6 py-2.5 bg-[#2d5a47] text-white text-sm font-semibold rounded-xl hover:bg-[#234738] transition-colors flex items-center gap-2 shadow-sm"
+            className="flex-1 sm:flex-initial py-3 sm:py-2.5 px-5 sm:px-6 bg-[#2d5a47] text-white text-xs sm:text-sm font-semibold rounded-xl hover:bg-[#234738] transition-colors flex items-center justify-center gap-2 shadow-sm cursor-pointer"
           >
             {editingRoom ? 'Save changes' : 'Save room'}
             <ArrowRight size={15} />

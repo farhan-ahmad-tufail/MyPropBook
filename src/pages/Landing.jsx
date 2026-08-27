@@ -322,7 +322,7 @@ export default function Landing() {
       {/* ══════════════════════════════════════════
           2. HERO SECTION
       ══════════════════════════════════════════ */}
-      <section className="relative z-10 px-4 sm:px-6 pt-20 sm:pt-24 pb-16 text-center max-w-5xl mx-auto">
+      <section className="relative z-10 px-4 sm:px-6 pt-14 sm:pt-24 pb-12 sm:pb-16 text-center max-w-5xl mx-auto">
         
         {/* Soft light vignette behind hero headline */}
         <div 
@@ -333,22 +333,22 @@ export default function Landing() {
         {/* Animated Hero Header */}
         <div className="relative z-10 animate-fade-in-up">
           {/* Main Headline */}
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-slate-900 tracking-tight leading-[1.05] relative z-10">
+          <h1 className="text-[2rem] sm:text-6xl lg:text-7xl font-extrabold text-slate-900 tracking-tight leading-[1.1] sm:leading-[1.05] relative z-10">
             Stop tracking rent on WhatsApp and messy spreadsheets.
           </h1>
 
           {/* Supporting Copy */}
-          <p className="mt-5 sm:mt-6 max-w-2xl mx-auto text-base sm:text-lg text-slate-500 leading-relaxed font-medium relative z-10">
+          <p className="mt-4 sm:mt-6 max-w-2xl mx-auto text-sm sm:text-lg text-slate-500 leading-relaxed font-medium relative z-10">
             Manage properties, tenants, rent, utility bills, and receipts from one simple workspace.
           </p>
         </div>
 
         {/* CTAs */}
-        <div className="mt-7 sm:mt-8 flex flex-col sm:flex-row gap-3 items-center justify-center relative z-10">
+        <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-center relative z-10 w-full sm:w-auto">
           {user ? (
             <Link
               to="/dashboard"
-              className="px-8 py-3.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-sm hover:bg-[#234738] hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98] transition-all duration-200 shadow-md flex items-center gap-2"
+              className="px-8 py-4 sm:py-3.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-sm hover:bg-[#234738] hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98] transition-all duration-200 shadow-md flex items-center justify-center gap-2 w-full sm:w-auto"
             >
               <span>Go to Dashboard</span>
               <ArrowRight size={16} />
@@ -357,7 +357,7 @@ export default function Landing() {
             <>
               <Link
                 to="/signup"
-                className="px-8 py-3.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-sm hover:bg-[#234738] hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98] transition-all duration-200 shadow-md flex items-center gap-2 w-full sm:w-auto justify-center"
+                className="px-8 py-4 sm:py-3.5 rounded-2xl bg-[#2d5a47] text-white font-bold text-sm hover:bg-[#234738] hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98] transition-all duration-200 shadow-md flex items-center justify-center gap-2 w-full sm:w-auto"
               >
                 <span>Create Free Account</span>
                 <ArrowRight size={16} />
@@ -366,7 +366,7 @@ export default function Landing() {
                 type="button"
                 onClick={handleDemoClick}
                 disabled={demoLoading}
-                className="px-8 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-700 font-bold text-sm hover:bg-slate-50 hover:border-slate-300 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 shadow-sm w-full sm:w-auto text-center cursor-pointer"
+                className="px-8 py-4 sm:py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-700 font-bold text-sm hover:bg-slate-50 hover:border-slate-300 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 shadow-sm w-full sm:w-auto text-center cursor-pointer"
               >
                 {demoLoading ? 'Starting...' : 'View Demo'}
               </button>
@@ -700,10 +700,10 @@ export default function Landing() {
       {/* ══════════════════════════════════════════
           5. SMART BILLING SECTION (Key Differentiator)
       ══════════════════════════════════════════ */}
-      <section className="py-20 px-6 max-w-6xl mx-auto overflow-hidden">
+      <section className="py-12 sm:py-20 px-4 sm:px-6 max-w-6xl mx-auto overflow-hidden">
         <div 
           ref={billingRef}
-          className={`bg-[#edf5f1] border border-[#d8e7e0] rounded-3xl p-8 sm:p-12 lg:p-16 transition-all duration-1000 ease-out transform-gpu ${
+          className={`bg-[#edf5f1] border border-[#d8e7e0] rounded-3xl p-6 sm:p-12 lg:p-16 transition-all duration-1000 ease-out transform-gpu ${
             isBillingVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-16 scale-95'
           }`}
         >
@@ -1069,25 +1069,25 @@ export default function Landing() {
       {/* ══════════════════════════════════════════
           8. FOUNDER / STORY SECTION ("A Tool With A Reason")
       ══════════════════════════════════════════ */}
-      <section id="about" className="py-20 px-6 max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      <section id="about" className="py-12 sm:py-20 px-4 sm:px-6 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-12 items-center">
           
           {/* Left Text */}
-          <div className="lg:col-span-7 space-y-5 text-left">
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+          <div className="lg:col-span-7 space-y-4 sm:space-y-5 text-left">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
               Built for landlords. Built from a real problem.
             </h2>
-            <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-              I kept hearing the same recurring frustration from PG owners and independent landlords: calculating utility bills by hand each month, splitting shared-room electricity on scratch pads, and texting screenshots of calculator apps as "receipts."
+            <p className="text-slate-600 text-sm leading-relaxed">
+              I kept hearing the same recurring frustration from PG owners and independent landlords: calculating utility bills by hand each month, splitting shared-room electricity on scratch pads, and texting screenshots of calculator apps as &ldquo;receipts.&rdquo;
             </p>
-            <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
+            <p className="text-slate-600 text-sm leading-relaxed">
               MyPropBook replaces that manual loop: meter readings go in, clear bills and itemized receipts come out, and every tenant receives their own shareable PDF.
             </p>
           </div>
 
           {/* Right — pure identity block */}
-          <div className="lg:col-span-5 text-left space-y-4 lg:pl-6 border-l border-slate-200/60 lg:py-2">
-            <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
+          <div className="lg:col-span-5 text-left space-y-3 sm:space-y-4 lg:pl-6 border-t lg:border-t-0 lg:border-l border-slate-200/60 pt-6 sm:pt-8 lg:pt-0 lg:py-2">
+            <p className="text-slate-600 text-sm leading-relaxed">
               Built specifically for the Indian rental and PG workflow.
             </p>
             <div>
@@ -1107,18 +1107,18 @@ export default function Landing() {
       {/* ══════════════════════════════════════════
           9. FINAL CTA BANNER
       ══════════════════════════════════════════ */}
-      <section className="py-12 px-6 max-w-5xl mx-auto text-center">
-        <div className="bg-gradient-to-br from-[#edf5f1] via-[#eff6ff] to-[#e4efe9] border border-[#d8e7e0] rounded-3xl p-10 sm:p-14 space-y-5">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+      <section className="py-10 sm:py-12 px-4 sm:px-6 max-w-5xl mx-auto text-center">
+        <div className="bg-gradient-to-br from-[#edf5f1] via-[#eff6ff] to-[#e4efe9] border border-[#d8e7e0] rounded-3xl p-7 sm:p-14 space-y-4 sm:space-y-5">
+          <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-snug">
             Set up your first bill in under 5 minutes.
           </h2>
           <p className="text-slate-600 text-sm max-w-xl mx-auto leading-relaxed font-medium">
             Add a property, enter a meter reading, and send your tenant a receipt — all in one sitting. No training required.
           </p>
-          <div className="pt-2 flex flex-col sm:flex-row gap-3 items-center justify-center">
+          <div className="pt-2 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-center">
             <Link
               to={user ? "/dashboard" : "/signup"}
-              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-[#2d5a47] hover:bg-[#234738] text-white font-bold text-sm shadow-md transition-all"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 sm:py-3.5 rounded-2xl bg-[#2d5a47] hover:bg-[#234738] text-white font-bold text-sm shadow-md transition-all w-full sm:w-auto"
             >
               <span>Create free account</span>
               <ArrowRight size={16} />
@@ -1127,7 +1127,7 @@ export default function Landing() {
               type="button"
               onClick={handleDemoClick}
               disabled={demoLoading}
-              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-700 font-bold text-sm hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 sm:py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-700 font-bold text-sm hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm cursor-pointer w-full sm:w-auto"
             >
               {demoLoading ? 'Starting...' : 'View Demo'}
             </button>
@@ -1138,11 +1138,11 @@ export default function Landing() {
       {/* ══════════════════════════════════════════
           10. FOOTER (Clean SaaS - NO "Made with Replit")
       ══════════════════════════════════════════ */}
-      <footer className="bg-[#0b1a14] px-6 lg:px-12 pt-16 pb-8 text-left">
-        <div className="max-w-7xl mx-auto space-y-12">
+      <footer className="bg-[#0b1a14] px-5 sm:px-6 lg:px-12 pt-12 sm:pt-16 pb-8 text-left">
+        <div className="max-w-7xl mx-auto space-y-10 sm:space-y-12">
 
           {/* Top Row: Brand + Nav Columns */}
-          <div className="grid grid-cols-2 lg:grid-cols-12 gap-10 pb-10 border-b border-white/10">
+          <div className="grid grid-cols-2 lg:grid-cols-12 gap-8 sm:gap-10 pb-8 sm:pb-10 border-b border-white/10">
 
             {/* Brand Column — full width on mobile */}
             <div className="col-span-2 lg:col-span-5 space-y-5">
@@ -1208,11 +1208,11 @@ export default function Landing() {
           </div>
 
           {/* Bottom Bar */}
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-500 font-medium">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-slate-500 font-medium text-center sm:text-left">
             <p>
               © {year} <span className="font-bold text-slate-300">MyPropBook</span> · Property Management Software
             </p>
-            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5">
               <span className="flex items-center gap-1.5">
                 <span>🇮🇳</span>
                 <span>Made in India</span>

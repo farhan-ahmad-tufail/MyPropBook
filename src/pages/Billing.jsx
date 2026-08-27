@@ -385,7 +385,7 @@ export default function Billing() {
 
         <button
           onClick={() => navigate('/create-bill')}
-          className="px-5 py-3 rounded-2xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all flex items-center gap-2 shadow-sm cursor-pointer"
+          className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
         >
           <Zap size={14} fill="currentColor" />
           <span>Create smart bill</span>
@@ -401,83 +401,83 @@ export default function Billing() {
       )}
 
       {/* ── TOP 4 DYNAMIC KPI CARDS (Real Database Data) ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mt-6 sm:mt-8">
         
         {/* KPI 1: Collections Health */}
-        <div className="bg-[#edf5f1] p-5 rounded-3xl border border-[#d8e7e0] shadow-sm flex flex-col justify-between">
+        <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
           <div className="flex justify-between items-start">
             <span className="text-[10px] font-bold text-[#2d5a47] uppercase tracking-widest">COLLECTIONS HEALTH</span>
-            <div className="w-8 h-8 rounded-full bg-white text-slate-700 flex items-center justify-center shadow-sm">
-              <Gauge size={15} />
+            <div className="w-8 h-8 rounded-full border border-slate-100 flex items-center justify-center flex-shrink-0 bg-white">
+              <Gauge size={14} className="text-slate-400" />
             </div>
           </div>
-          <div className="mt-4">
-            <div className="text-3xl sm:text-4xl font-black text-slate-900">{kpiStats.healthRate}%</div>
+          <div className="mt-2 sm:mt-4">
+            <div className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">{kpiStats.healthRate}%</div>
             
             {/* Progress Bar */}
-            <div className="w-full bg-slate-200/80 h-2 rounded-full overflow-hidden mt-3">
+            <div className="w-full bg-slate-100 rounded-full h-1.5 sm:h-2 mt-2 sm:mt-3 mb-1.5 sm:mb-2 overflow-hidden">
               <div 
-                className="bg-[#2d5a47] h-full rounded-full transition-all duration-500"
+                className="bg-[#2d5a47] h-full rounded-full transition-all duration-1000 ease-out" 
                 style={{ width: `${kpiStats.healthRate}%` }}
               />
             </div>
-
-            <p className="text-xs text-slate-500 font-medium mt-2">
-              {formatINR(kpiStats.totalCollected)} collected overall
-            </p>
+            
+            <span className="text-[10px] sm:text-xs text-slate-500 font-medium">
+              {formatINRShort(kpiStats.totalCollected)} collected overall
+            </span>
           </div>
         </div>
 
         {/* KPI 2: Total Billed */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
+        <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
           <div className="flex justify-between items-start">
-            <div className="w-8 h-8 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-2xl bg-indigo-50 text-indigo-500 flex items-center justify-center">
               <Receipt size={16} />
             </div>
           </div>
-          <div className="mt-4">
+          <div className="mt-3 sm:mt-4">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">TOTAL BILLED</span>
-            <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">
-              {formatINR(kpiStats.totalBilled)}
+            <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-1 leading-tight">
+              {formatINRShort(kpiStats.totalBilled)}
             </div>
-            <span className="text-xs text-slate-400 font-medium block mt-1">
+            <span className="text-[10px] sm:text-xs text-slate-400 font-medium block mt-1">
               {kpiStats.totalInvoices} invoice{kpiStats.totalInvoices !== 1 ? 's' : ''} generated
             </span>
           </div>
         </div>
 
         {/* KPI 3: Outstanding */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
+        <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
           <div className="flex justify-between items-start">
             <div className="w-8 h-8 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
               <Clock size={16} />
             </div>
           </div>
-          <div className="mt-4">
+          <div className="mt-3 sm:mt-4">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">OUTSTANDING</span>
-            <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">
-              {formatINR(kpiStats.totalOutstanding)}
+            <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-1 leading-tight">
+              {formatINRShort(kpiStats.totalOutstanding)}
             </div>
-            <span className="text-xs text-amber-600 font-semibold block mt-1">
+            <span className="text-[10px] sm:text-xs text-amber-600 font-semibold block mt-1">
               {kpiStats.unpaidCount} invoice{kpiStats.unpaidCount !== 1 ? 's' : ''} need attention
             </span>
           </div>
         </div>
 
         {/* KPI 4: Paid Invoices */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
+        <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
           <div className="flex justify-between items-start">
             <div className="w-8 h-8 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
               <CheckCircle size={16} />
             </div>
           </div>
-          <div className="mt-4">
+          <div className="mt-3 sm:mt-4">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">PAID INVOICES</span>
-            <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">
-              {kpiStats.paidCount} of {kpiStats.totalInvoices}
+            <div className="text-xl sm:text-3xl font-black text-slate-900 mt-1 leading-tight">
+              {kpiStats.paidCount} <span className="text-sm sm:text-2xl font-bold text-slate-400">of {kpiStats.totalInvoices}</span>
             </div>
-            <span className="text-xs text-slate-400 font-medium block mt-1">
-              {formatINR(kpiStats.totalCollected)} settled
+            <span className="text-[10px] sm:text-xs text-slate-400 font-medium block mt-1">
+              {formatINRShort(kpiStats.totalCollected)} settled
             </span>
           </div>
         </div>
@@ -639,135 +639,226 @@ export default function Billing() {
           ))}
         </div>
 
-        {/* Main Table */}
+        {/* Main Content Area */}
         {filteredBills.length === 0 ? (
           <div className="p-12 text-center text-slate-400 text-xs">
             No billing records match the selected filter or search query.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-100 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50/50">
-                  <th className="px-4 py-3.5">TENANT / ROOM</th>
-                  <th className="px-4 py-3.5">BILLING MONTH</th>
-                  <th className="px-4 py-3.5">PAYABLE AMOUNT</th>
-                  <th className="px-4 py-3.5">PAID / REMAINING</th>
-                  <th className="px-4 py-3.5">STATUS</th>
-                  <th className="px-4 py-3.5 text-right">ACTIONS</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 font-medium text-xs">
-                {filteredBills.map(bill => {
-                  const tenantName = getTenantName(bill);
-                  const { number: roomNum, propName } = getRoomInfo(bill.room_id);
-                  const total = parseFloat(bill.total_payable || 0);
-                  const paid = parseFloat(bill.amount_paid || 0);
-                  const remaining = total - paid;
+          <>
+            {/* ── DESKTOP TABLE VIEW ── */}
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-100 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50/50">
+                    <th className="px-4 py-3.5">TENANT / ROOM</th>
+                    <th className="px-4 py-3.5">BILLING MONTH</th>
+                    <th className="px-4 py-3.5">PAYABLE AMOUNT</th>
+                    <th className="px-4 py-3.5">PAID / REMAINING</th>
+                    <th className="px-4 py-3.5">STATUS</th>
+                    <th className="px-4 py-3.5 text-right">ACTIONS</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-medium text-xs">
+                  {filteredBills.map(bill => {
+                    const tenantName = getTenantName(bill);
+                    const { number: roomNum, propName } = getRoomInfo(bill.room_id);
+                    const total = parseFloat(bill.total_payable || 0);
+                    const paid = parseFloat(bill.amount_paid || 0);
+                    const remaining = total - paid;
 
-                  // Initials badge
-                  const initials = tenantName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'TN';
-                  const isPaid = bill.payment_status === 'Paid';
-                  const isPartial = bill.payment_status === 'Partially Paid';
+                    const initials = tenantName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'TN';
+                    const isPaid = bill.payment_status === 'Paid';
+                    const isPartial = bill.payment_status === 'Partially Paid';
 
-                  return (
-                    <tr key={bill.id} className="hover:bg-slate-50/60 transition-colors">
-                      {/* Tenant & Room */}
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-9 h-9 rounded-2xl flex items-center justify-center font-bold text-xs ${
+                    return (
+                      <tr key={bill.id} className="hover:bg-slate-50/60 transition-colors">
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-9 h-9 rounded-2xl flex items-center justify-center font-bold text-xs ${
+                              isPaid ? 'bg-emerald-50 text-emerald-700' : isPartial ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-600'
+                            }`}>
+                              {initials}
+                            </div>
+                            <div>
+                              <p className="font-extrabold text-slate-800 text-xs">{tenantName}</p>
+                              <p className="text-[11px] text-slate-400 font-normal">
+                                {Array.isArray(bill.room_items) && bill.room_items.length > 0
+                                  ? `Rooms ${bill.room_items.map(i => i.room_number).join(', ')}`
+                                  : `Room ${roomNum}`} {propName ? `· ${propName}` : ''}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <p className="font-bold text-slate-700">{bill.bill_month} {bill.bill_year}</p>
+                          <p className="text-[10px] text-slate-400">
+                            {bill.created_at ? new Date(bill.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Bill record'}
+                          </p>
+                        </td>
+                        <td className="py-3.5 px-4 font-black text-slate-900 text-sm">
+                          {formatINR(total)}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <p className="text-emerald-700 font-bold">Paid: {formatINR(paid)}</p>
+                          {remaining > 0 ? (
+                            <p className="text-amber-700 font-semibold text-[11px]">Due: {formatINR(remaining)}</p>
+                          ) : (
+                            <p className="text-slate-400 text-[11px]">Fully paid</p>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] ${
                             isPaid ? 'bg-emerald-50 text-emerald-700' : isPartial ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-600'
                           }`}>
-                            {initials}
+                            {bill.payment_status}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              onClick={() => handleOpenViewModal(bill)}
+                              className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                              title="View Receipt"
+                            >
+                              <Eye size={15} />
+                            </button>
+                            <button
+                              onClick={() => handleOpenHistoryModal(bill)}
+                              className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                              title="Payment History"
+                            >
+                              <History size={15} />
+                            </button>
+                            {remaining > 0 && (
+                              <button
+                                onClick={() => handleOpenReminderModal(bill)}
+                                className="p-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
+                                title="Send WhatsApp Reminder (English/Hindi)"
+                              >
+                                <MessageSquare size={15} />
+                              </button>
+                            )}
+                            {bill.payment_status !== 'Paid' && (
+                              <button
+                                onClick={() => handleOpenPayModal(bill)}
+                                className="px-3 py-1 rounded-xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all cursor-pointer shadow-sm"
+                              >
+                                Pay
+                              </button>
+                            )}
                           </div>
-                          <div>
-                            <p className="font-extrabold text-slate-800 text-xs">{tenantName}</p>
-                            <p className="text-[11px] text-slate-400 font-normal">
-                              {Array.isArray(bill.room_items) && bill.room_items.length > 0
-                                ? `Rooms ${bill.room_items.map(i => i.room_number).join(', ')}`
-                                : `Room ${roomNum}`} {propName ? `· ${propName}` : ''}
-                            </p>
-                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* ── MOBILE CARD VIEW ── */}
+            <div className="lg:hidden flex flex-col gap-3 mt-4">
+              {filteredBills.map(bill => {
+                const tenantName = getTenantName(bill);
+                const { number: roomNum, propName } = getRoomInfo(bill.room_id);
+                const total = parseFloat(bill.total_payable || 0);
+                const paid = parseFloat(bill.amount_paid || 0);
+                const remaining = total - paid;
+
+                const initials = tenantName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'TN';
+                const isPaid = bill.payment_status === 'Paid';
+                const isPartial = bill.payment_status === 'Partially Paid';
+
+                return (
+                  <div key={bill.id} className="bg-white border border-slate-100 rounded-3xl p-4 shadow-sm flex flex-col gap-4 relative overflow-hidden group hover:border-[#2d5a47]/30 transition-all">
+                    {/* Top row: Tenant & Status */}
+                    <div className="flex justify-between items-start gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-sm flex-shrink-0 ${
+                          isPaid ? 'bg-emerald-50 text-emerald-700' : isPartial ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-600'
+                        }`}>
+                          {initials}
                         </div>
-                      </td>
+                        <div className="min-w-0">
+                          <p className="font-extrabold text-slate-800 text-sm truncate">{tenantName}</p>
+                          <p className="text-xs text-slate-400 font-normal truncate">
+                            {Array.isArray(bill.room_items) && bill.room_items.length > 0
+                              ? `Rooms ${bill.room_items.map(i => i.room_number).join(', ')}`
+                              : `Room ${roomNum}`} {propName ? `· ${propName}` : ''}
+                          </p>
+                        </div>
+                      </div>
+                      <span className={`px-2.5 py-1 rounded-full font-bold text-[10px] flex-shrink-0 ${
+                        isPaid ? 'bg-emerald-50 text-emerald-700' : isPartial ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-600'
+                      }`}>
+                        {bill.payment_status}
+                      </span>
+                    </div>
 
-                      {/* Month */}
-                      <td className="py-3.5 px-4">
-                        <p className="font-bold text-slate-700">{bill.bill_month} {bill.bill_year}</p>
-                        <p className="text-[10px] text-slate-400">
-                          {bill.created_at ? new Date(bill.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Bill record'}
-                        </p>
-                      </td>
+                    {/* Middle row: Amount details */}
+                    <div className="flex items-center justify-between bg-slate-50/80 p-3 rounded-2xl">
+                      <div>
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Billing Month</span>
+                        <p className="font-bold text-slate-700 text-xs">{bill.bill_month} {bill.bill_year}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Payable Amount</span>
+                        <p className="font-black text-slate-900 text-base">{formatINR(total)}</p>
+                      </div>
+                    </div>
 
-                      {/* Payable Amount */}
-                      <td className="py-3.5 px-4 font-black text-slate-900 text-sm">
-                        {formatINR(total)}
-                      </td>
-
-                      {/* Paid / Remaining */}
-                      <td className="py-3.5 px-4">
-                        <p className="text-emerald-700 font-bold">Paid: {formatINR(paid)}</p>
+                    {/* Bottom row: Paid/Remaining & Actions */}
+                    <div className="flex items-center justify-between mt-1">
+                      <div>
+                        <p className="text-emerald-700 font-bold text-xs">Paid: {formatINR(paid)}</p>
                         {remaining > 0 ? (
                           <p className="text-amber-700 font-semibold text-[11px]">Due: {formatINR(remaining)}</p>
                         ) : (
-                          <p className="text-slate-400 text-[11px]">Fully paid</p>
+                          <p className="text-slate-400 text-[11px] font-medium">Fully paid</p>
                         )}
-                      </td>
-
-                      {/* Status Badge */}
-                      <td className="py-3.5 px-4">
-                        <span className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] ${
-                          isPaid ? 'bg-emerald-50 text-emerald-700' : isPartial ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-600'
-                        }`}>
-                          {bill.payment_status}
-                        </span>
-                      </td>
-
-                      {/* Actions */}
-                      <td className="py-3.5 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
+                      </div>
+                      
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => handleOpenViewModal(bill)}
+                          className="p-2 bg-slate-50 text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 rounded-xl transition-colors cursor-pointer"
+                          title="View Receipt"
+                        >
+                          <Eye size={16} />
+                        </button>
+                        
+                        {remaining > 0 && (
                           <button
-                            onClick={() => handleOpenViewModal(bill)}
-                            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-                            title="View Receipt"
+                            onClick={() => handleOpenReminderModal(bill)}
+                            className="p-2 bg-emerald-50 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100 rounded-xl transition-colors cursor-pointer"
+                            title="Send WhatsApp Reminder (English/Hindi)"
                           >
-                            <Eye size={15} />
+                            <MessageSquare size={16} />
                           </button>
-                          
+                        )}
+
+                        {bill.payment_status !== 'Paid' ? (
+                          <button
+                            onClick={() => handleOpenPayModal(bill)}
+                            className="px-4 py-2 rounded-xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all cursor-pointer shadow-sm"
+                          >
+                            Pay
+                          </button>
+                        ) : (
                           <button
                             onClick={() => handleOpenHistoryModal(bill)}
-                            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-                            title="Payment History"
+                            className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs hover:bg-slate-200 transition-all cursor-pointer shadow-sm flex items-center gap-1.5"
                           >
-                            <History size={15} />
+                            <History size={14} /> History
                           </button>
-
-                          {remaining > 0 && (
-                            <button
-                              onClick={() => handleOpenReminderModal(bill)}
-                              className="p-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
-                              title="Send WhatsApp Reminder (English/Hindi)"
-                            >
-                              <MessageSquare size={15} />
-                            </button>
-                          )}
-
-                          {bill.payment_status !== 'Paid' && (
-                            <button
-                              onClick={() => handleOpenPayModal(bill)}
-                              className="px-3 py-1 rounded-xl bg-[#2d5a47] text-white font-bold text-xs hover:bg-[#234738] transition-all cursor-pointer shadow-sm"
-                            >
-                              Pay
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
         )}
 
       </div>

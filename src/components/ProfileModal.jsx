@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from './Toast';
 import { 
@@ -11,7 +12,11 @@ import {
   Check, 
   Sparkles,
   ShieldCheck,
-  Palette
+  Palette,
+  BarChart3,
+  Calculator,
+  LogOut,
+  ArrowRight
 } from 'lucide-react';
 
 const avatarColors = [
@@ -23,13 +28,18 @@ const avatarColors = [
 ];
 
 export default function ProfileModal({ isOpen, onClose }) {
-  const { user, updateProfile } = useAuth();
+  const { user, updateProfile, signOut } = useAuth();
   const toast = useToast();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await signOut();
+    onClose();
+    navigate('/');
+  };
 
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
-  const [workspaceName, setWorkspaceName] = useState('');
-  const [upiId, setUpiId] = useState('');
   const [avatarColor, setAvatarColor] = useState('sage');
   const [loading, setLoading] = useState(false);
 
@@ -39,8 +49,6 @@ export default function ProfileModal({ isOpen, onClose }) {
       const defaultName = sp.fullName || user?.user_metadata?.full_name || user?.fullName || 'Landlord Owner';
       setFullName(defaultName === 'Google Demo User' || defaultName === 'Google' ? 'Farhan Ahmad Tufail' : defaultName);
       setPhone(sp.phone || user?.user_metadata?.phone || '');
-      setWorkspaceName(sp.workspaceName || user?.user_metadata?.workspace_name || 'My Workspace');
-      setUpiId(sp.upiId || user?.user_metadata?.upi_id || '');
       setAvatarColor(sp.avatarColor || user?.user_metadata?.avatar_color || 'sage');
     }
   }, [user]);
@@ -62,8 +70,6 @@ export default function ProfileModal({ isOpen, onClose }) {
       await updateProfile({
         fullName,
         phone,
-        workspaceName,
-        upiId,
         avatarColor
       });
       toast('Profile & Workspace settings updated!', 'success');
@@ -104,7 +110,6 @@ export default function ProfileModal({ isOpen, onClose }) {
             </div>
             <div>
               <h4 className="font-extrabold text-slate-900 text-sm">{fullName || 'Landlord Owner'}</h4>
-              <p className="text-xs text-slate-500 font-medium">{workspaceName || 'Landlord Workspace'}</p>
               <div className="flex items-center gap-1 mt-1 text-[10px] text-emerald-700 font-bold">
                 <ShieldCheck size={12} />
                 <span>Verified Landlord</span>
@@ -149,40 +154,6 @@ export default function ProfileModal({ isOpen, onClose }) {
               </div>
             </div>
 
-            {/* Workspace Name */}
-            <div>
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">
-                WORKSPACE NAME
-              </label>
-              <div className="relative">
-                <Building2 size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="E.g. Tufail Property Operations"
-                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-900 outline-none focus:border-[#2d5a47] transition-all"
-                  value={workspaceName}
-                  onChange={e => setWorkspaceName(e.target.value)}
-                />
-              </div>
-            </div>
-
-            {/* Default UPI ID */}
-            <div>
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">
-                DEFAULT UPI ID (FOR TENANT RECEIPTS)
-              </label>
-              <div className="relative">
-                <CreditCard size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="landlord@upi"
-                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-900 outline-none focus:border-[#2d5a47] transition-all"
-                  value={upiId}
-                  onChange={e => setUpiId(e.target.value)}
-                />
-              </div>
-            </div>
-
             {/* Avatar Theme Color */}
             <div>
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">
@@ -221,6 +192,58 @@ export default function ProfileModal({ isOpen, onClose }) {
               >
                 Cancel
               </button>
+            </div>
+
+            {/* ── Mobile-Only "More" Navigation & Logout ── */}
+            <div className="block lg:hidden mt-6 space-y-1 pt-6 border-t border-slate-100">
+              <div className="px-1 mb-2">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">
+                  MANAGE & UTILITIES
+                </span>
+              </div>
+              
+              <button
+                type="button"
+                onClick={() => { onClose(); navigate('/analytics'); }}
+                className="w-full flex items-center justify-between px-3 py-3 rounded-xl hover:bg-slate-50 transition-colors"
+              >
+                <div className="flex items-center gap-3 text-slate-700">
+                  <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
+                    <BarChart3 size={15} />
+                  </div>
+                  <span className="font-bold text-xs">Financial analytics</span>
+                </div>
+                <ArrowRight size={14} className="text-slate-300" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => { onClose(); navigate('/quick-calc'); }}
+                className="w-full flex items-center justify-between px-3 py-3 rounded-xl hover:bg-slate-50 transition-colors"
+              >
+                <div className="flex items-center gap-3 text-slate-700">
+                  <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
+                    <Calculator size={15} />
+                  </div>
+                  <span className="font-bold text-xs">Quick Calculator</span>
+                </div>
+                <ArrowRight size={14} className="text-slate-300" />
+              </button>
+
+              <div className="pt-3 mt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="w-full flex items-center justify-between px-3 py-3 rounded-xl hover:bg-rose-50 transition-colors group"
+                >
+                  <div className="flex items-center gap-3 text-rose-600">
+                    <div className="w-8 h-8 rounded-lg bg-rose-50 group-hover:bg-rose-100 flex items-center justify-center transition-colors">
+                      <LogOut size={15} />
+                    </div>
+                    <span className="font-bold text-xs">Sign out</span>
+                  </div>
+                </button>
+              </div>
             </div>
 
           </form>
