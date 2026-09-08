@@ -93,7 +93,7 @@ const BILL_TRANSLATIONS = {
     monthlyRent: "कमरे का किराया",
     previousBalance: "पिछला बकाया",
     otherCharges: "अन्य खर्चे",
-    amountDue: "टोटल देय रकम",
+    amountDue: "टोटल किराया देना है",
     itemizedBreakdown: (count) => `कमरे के अनुसार विवरण (${count} कमरे)`,
     dueBadge: (m) => `लास्ट डेट: 10 ${m.substring(0, 3).toUpperCase()}`,
     thankYou: "समय पर भुगतान के लिए धन्यवाद।",

@@ -79,7 +79,7 @@ const L = {
     prev: 'पिछला', curr: 'नया', usage: 'उपयोग',
     preLabel: 'पिछला:', curLabel: 'नया:', usageLabel: 'उपयोग:', units: 'यूनिट', room: 'कमरा',
     rent: 'कमरे का किराया', prevBal: 'पिछला बकाया', other: 'अन्य खर्चे',
-    amtDue: 'टोटल देय रकम', received: 'मिली हुई रकम', remaining: 'बाकी बकाया',
+    amtDue: 'टोटल किराया देना है', received: 'मिली हुई रकम', remaining: 'बाकी बकाया',
     itemizedBreakdown: (count) => `कमरे के अनुसार विवरण (${count} कमरे)`,
     due: (m) => `लास्ट डेट 10 ${(m || '').slice(0, 3).toUpperCase()}`,
     thanks: 'समय पर भुगतान के लिए धन्यवाद।',
@@ -151,14 +151,39 @@ export default function BillReceiptModal({ isOpen, onClose, bill, room, tenant, 
   const shareNote = bill.split_count > 1 ? ` (1/${bill.split_count} share)` : '';
   const elecText = elec > 0 ? ` | Electricity: ₹${elec.toFixed(2)}${shareNote}` : '';
 
-  const shareWhatsApp = () => {
-    const phone = tenant?.phone ? tenant.phone.replace(/[^0-9]/g, '') : '';
-    const msg = `*${lbl.waTitle}*\nMonth: ${month} ${year}\nTenant: ${tenant?.name || 'Tenant'} • Room: ${room?.room_number || ''}\nRent: ₹${rent.toFixed(2)}${elecText}` +
-      (other > 0 ? `\nOther: ₹${other.toFixed(2)}` : '') +
-      (arrears > 0 ? `\nPrev Balance: ₹${arrears.toFixed(2)}` : '') +
-      `\n*Total: ₹${total.toFixed(2)}*` +
-      (paid > 0 ? `\nPaid: ₹${paid.toFixed(2)} | Due: ₹${due.toFixed(2)}` : '');
-    window.open(phone ? `https://wa.me/${phone}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+  const shareWhatsApp = async () => {
+    if (!receiptRef.current) return;
+    try {
+      toast('Preparing receipt image…', 'info');
+      const canvas = await html2canvas(receiptRef.current, {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: null,
+        logging: false,
+      });
+      canvas.toBlob(async (blob) => {
+        if (!blob) throw new Error('Canvas to blob failed');
+        const file = new File([blob], `Receipt_${tenant?.name || 'Tenant'}_${month}_${year}.png`, { type: 'image/png' });
+        const phone = tenant?.phone ? tenant.phone.replace(/[^0-9]/g, '') : '';
+        const caption = `*${lbl.waTitle}* — ${month} ${year}\n${tenant?.name || 'Tenant'} • Room ${room?.room_number || ''}\n*Total: ₹${total.toLocaleString('en-IN')}*`;
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], text: caption });
+        } else {
+          // Fallback: open wa.me with text
+          const msg = `*${lbl.waTitle}*\nMonth: ${month} ${year}\nTenant: ${tenant?.name || 'Tenant'} • Room: ${room?.room_number || ''}\nRent: ₹${rent.toFixed(2)}` +
+            (elec > 0 ? ` | Electricity: ₹${elec.toFixed(2)}` : '') +
+            (other > 0 ? `\nOther: ₹${other.toFixed(2)}` : '') +
+            (arrears > 0 ? `\nPrev Balance: ₹${arrears.toFixed(2)}` : '') +
+            `\n*Total: ₹${total.toFixed(2)}*` +
+            (paid > 0 ? `\nPaid: ₹${paid.toFixed(2)} | Due: ₹${due.toFixed(2)}` : '');
+          window.open(phone ? `https://wa.me/${phone}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+      }, 'image/png');
+    } catch (e) {
+      console.error(e);
+      toast('Could not share image. Try downloading the PDF instead.', 'error');
+    }
   };
 
   return createPortal(
