@@ -75,11 +75,11 @@ const L = {
   },
   hi: {
     tag: 'किराया रसीद', billedTo: 'किरायेदार',
-    electricity: 'बिजली का कुल बिल', totalRent: 'कुल किराया', totalElectricity: 'बिजली का कुल बिल',
+    electricity: 'बिजली का टोटल बिल', totalRent: 'टोटल किराया', totalElectricity: 'बिजली का टोटल बिल',
     prev: 'पिछला', curr: 'नया', usage: 'उपयोग',
     preLabel: 'पिछला:', curLabel: 'नया:', usageLabel: 'उपयोग:', units: 'यूनिट', room: 'कमरा',
     rent: 'कमरे का किराया', prevBal: 'पिछला बकाया', other: 'अन्य खर्चे',
-    amtDue: 'कुल देय राशि', received: 'मिली हुई राशि', remaining: 'बाकी बकाया',
+    amtDue: 'टोटल देय रकम', received: 'मिली हुई रकम', remaining: 'बाकी बकाया',
     itemizedBreakdown: (count) => `कमरे के अनुसार विवरण (${count} कमरे)`,
     due: (m) => `लास्ट डेट 10 ${(m || '').slice(0, 3).toUpperCase()}`,
     thanks: 'समय पर भुगतान के लिए धन्यवाद।',

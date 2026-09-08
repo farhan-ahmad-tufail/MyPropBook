@@ -79,9 +79,9 @@ const BILL_TRANSLATIONS = {
     previewLabel: "किराया रसीद",
     monthBill: (m, y) => `${m} ${y || ''}`,
     billedTo: "किरायेदार",
-    electricity: "बिजली का कुल बिल",
-    totalRent: "कुल किराया",
-    totalElectricity: "बिजली का कुल बिल",
+    electricity: "बिजली का टोटल बिल",
+    totalRent: "टोटल किराया",
+    totalElectricity: "बिजली का टोटल बिल",
     previous: "पिछला",
     current: "नया",
     usage: "उपयोग",
@@ -93,14 +93,14 @@ const BILL_TRANSLATIONS = {
     monthlyRent: "कमरे का किराया",
     previousBalance: "पिछला बकाया",
     otherCharges: "अन्य खर्चे",
-    amountDue: "कुल देय राशि",
+    amountDue: "टोटल देय रकम",
     itemizedBreakdown: (count) => `कमरे के अनुसार विवरण (${count} कमरे)`,
     dueBadge: (m) => `लास्ट डेट: 10 ${m.substring(0, 3).toUpperCase()}`,
     thankYou: "समय पर भुगतान के लिए धन्यवाद।",
     waTitle: "किराया रसीद",
     waMonth: "महीना",
     waTenant: "किरायेदार",
-    waTotal: "कुल राशि"
+    waTotal: "टोटल रकम"
   }
 };
 
