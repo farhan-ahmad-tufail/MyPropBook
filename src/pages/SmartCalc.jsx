@@ -36,12 +36,12 @@ import { useToast } from '../components/Toast';
    Curated Professional Invoice Color Themes
 ───────────────────────────────────────────────────────────────────────────*/
 const INVOICE_THEMES = [
-  { id: 'green', name: 'BillRoom Green', bg: '#2d5a47', border: '#234738', textAccent: 'text-emerald-200', pillBg: 'bg-emerald-100', pillText: 'text-[#2d5a47]', gradient: 'linear-gradient(135deg, #1a3a2b, #2d5a47)' },
-  { id: 'navy', name: 'Classic Navy', bg: '#0f172a', border: '#1e293b', textAccent: 'text-slate-300', pillBg: 'bg-slate-200', pillText: 'text-slate-900', gradient: 'linear-gradient(135deg, #020617, #0f172a)' },
-  { id: 'blue', name: 'Royal Blue', bg: '#1e40af', border: '#1d4ed8', textAccent: 'text-blue-200', pillBg: 'bg-blue-100', pillText: 'text-blue-900', gradient: 'linear-gradient(135deg, #1e3a8a, #1e40af)' },
-  { id: 'maroon', name: 'Burgundy', bg: '#881337', border: '#9f1239', textAccent: 'text-rose-200', pillBg: 'bg-rose-100', pillText: 'text-rose-900', gradient: 'linear-gradient(135deg, #4c0519, #881337)' },
-  { id: 'purple', name: 'Deep Purple', bg: '#581c87', border: '#6b21a8', textAccent: 'text-purple-200', pillBg: 'bg-purple-100', pillText: 'text-purple-900', gradient: 'linear-gradient(135deg, #3b0764, #581c87)' },
-  { id: 'slate', name: 'Minimal Black', bg: '#09090b', border: '#27272a', textAccent: 'text-zinc-300', pillBg: 'bg-zinc-200', pillText: 'text-zinc-900', gradient: 'linear-gradient(135deg, #000000, #18181b)' }
+  { id: 'green',  name: 'BillRoom Green', bg: '#2d5a47', border: '#234738', textAccent: 'text-emerald-200', pillBg: 'bg-emerald-100', pillText: 'text-[#2d5a47]', pillBgHex: '#d1fae5', pillTextHex: '#2d5a47', gradient: 'linear-gradient(135deg, #1a3a2b, #2d5a47)' },
+  { id: 'navy',   name: 'Classic Navy',   bg: '#0f172a', border: '#1e293b', textAccent: 'text-slate-300',   pillBg: 'bg-slate-200',   pillText: 'text-slate-900', pillBgHex: '#e2e8f0', pillTextHex: '#0f172a', gradient: 'linear-gradient(135deg, #020617, #0f172a)' },
+  { id: 'blue',   name: 'Royal Blue',     bg: '#1e40af', border: '#1d4ed8', textAccent: 'text-blue-200',    pillBg: 'bg-blue-100',    pillText: 'text-blue-900',  pillBgHex: '#dbeafe', pillTextHex: '#1e3a8a', gradient: 'linear-gradient(135deg, #1e3a8a, #1e40af)' },
+  { id: 'maroon', name: 'Burgundy',       bg: '#881337', border: '#9f1239', textAccent: 'text-rose-200',    pillBg: 'bg-rose-100',    pillText: 'text-rose-900',  pillBgHex: '#ffe4e6', pillTextHex: '#881337', gradient: 'linear-gradient(135deg, #4c0519, #881337)' },
+  { id: 'purple', name: 'Deep Purple',    bg: '#581c87', border: '#6b21a8', textAccent: 'text-purple-200',  pillBg: 'bg-purple-100',  pillText: 'text-purple-900',pillBgHex: '#f3e8ff', pillTextHex: '#581c87', gradient: 'linear-gradient(135deg, #3b0764, #581c87)' },
+  { id: 'slate',  name: 'Minimal Black',  bg: '#09090b', border: '#27272a', textAccent: 'text-zinc-300',    pillBg: 'bg-zinc-200',    pillText: 'text-zinc-900',  pillBgHex: '#e4e4e7', pillTextHex: '#18181b', gradient: 'linear-gradient(135deg, #000000, #18181b)' }
 ];
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -1699,9 +1699,23 @@ export default function SmartCalc() {
                         </div>
                       </div>
                       <div
-                        className={`inline-flex items-center justify-center px-3.5 py-2 rounded-full font-extrabold text-[11px] leading-none tracking-wider uppercase shadow-sm flex-shrink-0 text-center ${activeTheme.pillBg} ${activeTheme.pillText}`}
+                        style={{
+                          display: 'inline-block',
+                          backgroundColor: activeTheme.pillBgHex,
+                          color: activeTheme.pillTextHex,
+                          padding: '5px 13px',
+                          borderRadius: '9999px',
+                          fontSize: '9px',
+                          fontWeight: '800',
+                          letterSpacing: '0.08em',
+                          textTransform: 'uppercase',
+                          lineHeight: '1',
+                          flexShrink: 0,
+                          textAlign: 'center',
+                          verticalAlign: 'middle',
+                        }}
                       >
-                        <span className="leading-none pt-[1px]">{t.dueBadge(billMonth)}</span>
+                        {t.dueBadge(billMonth)}
                       </div>
                     </div>
 
@@ -1925,9 +1939,23 @@ export default function SmartCalc() {
                       </div>
 
                       <div
-                        className={`inline-flex items-center justify-center px-3.5 py-2 rounded-full font-extrabold text-[11px] leading-none tracking-wider uppercase shadow-sm flex-shrink-0 text-center ${activeTheme.pillBg} ${activeTheme.pillText}`}
+                        style={{
+                          display: 'inline-block',
+                          backgroundColor: activeTheme.pillBgHex,
+                          color: activeTheme.pillTextHex,
+                          padding: '5px 13px',
+                          borderRadius: '9999px',
+                          fontSize: '9px',
+                          fontWeight: '800',
+                          letterSpacing: '0.08em',
+                          textTransform: 'uppercase',
+                          lineHeight: '1',
+                          flexShrink: 0,
+                          textAlign: 'center',
+                          verticalAlign: 'middle',
+                        }}
                       >
-                        <span className="leading-none pt-[1px]">{t.dueBadge(billMonth)}</span>
+                        {t.dueBadge(billMonth)}
                       </div>
                     </div>
 

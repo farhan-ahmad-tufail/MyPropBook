@@ -420,10 +420,23 @@ export default function BillReceiptModal({ isOpen, onClose, bill, room, tenant, 
                 </div>
               </div>
               <div
-                className="inline-flex items-center justify-center px-3.5 py-1.5 rounded-full font-extrabold text-[10px] leading-none tracking-wider uppercase flex-shrink-0 text-center"
-                style={{ backgroundColor: t.pill.bg, color: t.pill.text, boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+                style={{
+                  display: 'inline-block',
+                  backgroundColor: t.pill.bg,
+                  color: t.pill.text,
+                  padding: '5px 13px',
+                  borderRadius: '9999px',
+                  fontSize: '9px',
+                  fontWeight: '800',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  lineHeight: '1',
+                  flexShrink: 0,
+                  textAlign: 'center',
+                  verticalAlign: 'middle',
+                }}
               >
-                <span className="leading-none">{lbl.due(month)}</span>
+                {lbl.due(month)}
               </div>
             </div>
 

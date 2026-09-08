@@ -1068,8 +1068,24 @@ export default function QuickCalc() {
                   </div>
                 </div>
 
-                <div className="inline-flex items-center justify-center px-3.5 py-1.5 rounded-full bg-emerald-100 text-[#2d5a47] font-extrabold text-[10px] leading-none tracking-wider uppercase shadow-sm flex-shrink-0 text-center">
-                  <span className="leading-none">DUE 10 {result.billMonth.substring(0,3).toUpperCase()}</span>
+                <div
+                  style={{
+                    display: 'inline-block',
+                    backgroundColor: '#d1fae5',
+                    color: '#2d5a47',
+                    padding: '5px 13px',
+                    borderRadius: '9999px',
+                    fontSize: '9px',
+                    fontWeight: '800',
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    lineHeight: '1',
+                    flexShrink: 0,
+                    textAlign: 'center',
+                    verticalAlign: 'middle',
+                  }}
+                >
+                  <span style={{ lineHeight: '1' }}>DUE 10 {result.billMonth.substring(0,3).toUpperCase()}</span>
                 </div>
               </div>
 
