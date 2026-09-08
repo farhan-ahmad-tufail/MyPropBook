@@ -36,7 +36,7 @@ import { useToast } from '../components/Toast';
    Curated Professional Invoice Color Themes
 ───────────────────────────────────────────────────────────────────────────*/
 const INVOICE_THEMES = [
-  { id: 'green',  name: 'BillRoom Green', bg: '#2d5a47', border: '#234738', textAccent: 'text-emerald-200', pillBg: 'bg-emerald-100', pillText: 'text-[#2d5a47]', pillBgHex: '#d1fae5', pillTextHex: '#2d5a47', gradient: 'linear-gradient(135deg, #1a3a2b, #2d5a47)' },
+  { id: 'green',  name: 'MyPropBook Green', bg: '#2d5a47', border: '#234738', textAccent: 'text-emerald-200', pillBg: 'bg-emerald-100', pillText: 'text-[#2d5a47]', pillBgHex: '#d1fae5', pillTextHex: '#2d5a47', gradient: 'linear-gradient(135deg, #1a3a2b, #2d5a47)' },
   { id: 'navy',   name: 'Classic Navy',   bg: '#0f172a', border: '#1e293b', textAccent: 'text-slate-300',   pillBg: 'bg-slate-200',   pillText: 'text-slate-900', pillBgHex: '#e2e8f0', pillTextHex: '#0f172a', gradient: 'linear-gradient(135deg, #020617, #0f172a)' },
   { id: 'blue',   name: 'Royal Blue',     bg: '#1e40af', border: '#1d4ed8', textAccent: 'text-blue-200',    pillBg: 'bg-blue-100',    pillText: 'text-blue-900',  pillBgHex: '#dbeafe', pillTextHex: '#1e3a8a', gradient: 'linear-gradient(135deg, #1e3a8a, #1e40af)' },
   { id: 'maroon', name: 'Burgundy',       bg: '#881337', border: '#9f1239', textAccent: 'text-rose-200',    pillBg: 'bg-rose-100',    pillText: 'text-rose-900',  pillBgHex: '#ffe4e6', pillTextHex: '#881337', gradient: 'linear-gradient(135deg, #4c0519, #881337)' },

@@ -138,7 +138,7 @@ export const AuthProvider = ({ children }) => {
         }
       };
       setUser(updatedUser);
-      localStorage.setItem('billroom_user_profile', JSON.stringify(profileData));
+      localStorage.setItem('mypropbook_user_profile', JSON.stringify(profileData));
       if (isLocalMode()) {
         localStorage.setItem('mock_users', JSON.stringify([updatedUser]));
         window.dispatchEvent(new Event('storage'));

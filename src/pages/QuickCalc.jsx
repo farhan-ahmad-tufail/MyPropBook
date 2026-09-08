@@ -287,7 +287,7 @@ export default function QuickCalc() {
   const [theme, setTheme] = useState('emerald');
 
   const themeOptions = {
-    emerald: { name: 'BillRoom Green', bg: '#2d5a47', text: 'white', hex: '#2d5a47' },
+    emerald: { name: 'MyPropBook Green', bg: '#2d5a47', text: 'white', hex: '#2d5a47' },
     navy:    { name: 'Classic Navy',   bg: '#0f172a', text: 'white', hex: '#0f172a' },
     blue:    { name: 'Royal Blue',     bg: '#1e40af', text: 'white', hex: '#1e40af' },
     maroon:  { name: 'Burgundy',       bg: '#881337', text: 'white', hex: '#881337' },

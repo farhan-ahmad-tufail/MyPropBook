@@ -45,7 +45,7 @@ export default function ProfileModal({ isOpen, onClose }) {
 
   useEffect(() => {
     if (user) {
-      const sp = JSON.parse(localStorage.getItem('billroom_user_profile') || '{}');
+      const sp = JSON.parse(localStorage.getItem('mypropbook_user_profile') || '{}');
       const defaultName = sp.fullName || user?.user_metadata?.full_name || user?.fullName || 'Landlord Owner';
       setFullName(defaultName === 'Google Demo User' || defaultName === 'Google' ? 'Farhan Ahmad Tufail' : defaultName);
       setPhone(sp.phone || user?.user_metadata?.phone || '');

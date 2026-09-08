@@ -16,7 +16,7 @@ import { useToast } from './Toast';
 /* ─── Color Themes ─── */
 const THEMES = [
   {
-    id: 'green', name: 'BillRoom Green', hex: '#2d5a47',
+    id: 'green', name: 'MyPropBook Green', hex: '#2d5a47',
     gradient: 'linear-gradient(150deg, #1a3a2b 0%, #2d5a47 55%, #214035 100%)',
     border: 'rgba(255,255,255,0.10)',
     accent: '#6ee7b7', pill: { bg: '#d1fae5', text: '#065f46' },

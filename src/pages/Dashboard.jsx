@@ -344,7 +344,7 @@ export default function Dashboard() {
     return 'Good night';
   };
 
-  const savedProfile = JSON.parse(localStorage.getItem('billroom_user_profile') || '{}');
+  const savedProfile = JSON.parse(localStorage.getItem('mypropbook_user_profile') || '{}');
   const rawName = savedProfile.fullName || user?.user_metadata?.full_name || user?.fullName || user?.email?.split('@')[0] || 'Farhan';
   const cleanName = (rawName === 'Google Demo User' || rawName === 'Google') ? 'Farhan' : rawName.split(' ')[0];
 

@@ -194,7 +194,7 @@ export default function Layout({ children }) {
     return <div className="min-h-screen bg-[#f8faf9] text-slate-800">{children}</div>;
   }
 
-  const savedProfile = JSON.parse(localStorage.getItem('billroom_user_profile') || '{}');
+  const savedProfile = JSON.parse(localStorage.getItem('mypropbook_user_profile') || '{}');
   const rawName = savedProfile.fullName || user?.user_metadata?.full_name || user?.fullName || user?.email?.split('@')[0] || 'Farhan';
   const displayName = (rawName === 'Google Demo User' || rawName === 'Google') ? 'Farhan Ahmad Tufail' : rawName;
   const avatarLetter = (displayName[0] || 'F').toUpperCase() + (displayName.split(' ')[1]?.[0] || 'A').toUpperCase();
