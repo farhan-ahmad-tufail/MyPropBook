@@ -6,7 +6,8 @@ import {
   Share2,
   Receipt,
   Check,
-  ChevronDown
+  ChevronDown,
+  Home
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
@@ -297,10 +298,11 @@ export default function BillReceiptModal({ isOpen, onClose, bill, room, tenant, 
                       >
                         {/* Header with Home Icon */}
                         <div className="flex justify-between items-center font-extrabold text-white">
-                          <div className="flex items-center gap-1.5 truncate">
-                            <span className="truncate">{item.room_type ? `${item.room_type} (Room ${item.room_number})` : `Room ${item.room_number}`}</span>
+                          <div className="flex items-center gap-2 min-w-0 pr-2">
+                            <Home size={15} className="text-white/80 flex-shrink-0" />
+                            <span className="break-words leading-snug">{item.room_type ? `${item.room_type} (Room ${item.room_number})` : `Room ${item.room_number}`}</span>
                           </div>
-                          <span className="font-mono text-sm ml-2">₹{fmt(itemRent)}</span>
+                          <span className="font-mono text-sm font-bold flex-shrink-0 ml-auto">₹{fmt(itemRent)}</span>
                         </div>
 
                         {/* Electricity Details */}
@@ -345,10 +347,11 @@ export default function BillReceiptModal({ isOpen, onClose, bill, room, tenant, 
                     style={{ background: 'rgba(0,0,0,0.20)', border: '1px solid rgba(255,255,255,0.15)' }}
                   >
                     <div className="flex justify-between items-center font-extrabold text-white">
-                      <div className="flex items-center gap-1.5 truncate">
-                        <span className="truncate">{room?.room_type ? `${room.room_type} (Room ${room.room_number})` : `Room ${room?.room_number || '00'}`}</span>
+                      <div className="flex items-center gap-2 min-w-0 pr-2">
+                        <Home size={15} className="text-white/80 flex-shrink-0" />
+                        <span className="break-words leading-snug">{room?.room_type ? `${room.room_type} (Room ${room.room_number})` : `Room ${room?.room_number || '00'}`}</span>
                       </div>
-                      <span className="font-mono text-sm ml-2">₹{fmt(rent)}</span>
+                      <span className="font-mono text-sm font-bold flex-shrink-0 ml-auto">₹{fmt(rent)}</span>
                     </div>
 
                     {elec > 0 && (
@@ -409,19 +412,19 @@ export default function BillReceiptModal({ isOpen, onClose, bill, room, tenant, 
             <div style={{ height: 1, background: 'rgba(255,255,255,0.10)' }} />
 
             {/* Amount Due */}
-            <div className="flex justify-between items-end">
+            <div className="flex justify-between items-end pt-0.5">
               <div>
                 <span className="text-[11px] font-semibold block mb-0.5" style={{ color: t.accent }}>{lbl.amtDue}</span>
                 <div className="text-[2rem] font-black tracking-tight text-white leading-none font-mono">
                   ₹{fmt(total)}
                 </div>
               </div>
-              <span
-                className="px-3 py-1.5 rounded-full font-extrabold text-[10px] tracking-wider uppercase flex-shrink-0"
+              <div
+                className="inline-flex items-center justify-center px-3.5 py-1.5 rounded-full font-extrabold text-[10px] leading-none tracking-wider uppercase flex-shrink-0 text-center"
                 style={{ backgroundColor: t.pill.bg, color: t.pill.text, boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
               >
-                {lbl.due(month)}
-              </span>
+                <span className="leading-none">{lbl.due(month)}</span>
+              </div>
             </div>
 
             {/* Payment Status — only when partially/fully paid */}

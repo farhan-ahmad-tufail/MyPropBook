@@ -1632,11 +1632,11 @@ export default function SmartCalc() {
                     <div className="space-y-3 pt-1 relative z-10 text-xs">
                       <div className="bg-black/20 border border-white/15 rounded-2xl p-3.5 space-y-2 text-xs backdrop-blur-xs">
                         <div className="flex justify-between items-center font-extrabold text-white">
-                          <div className="flex items-center gap-1.5">
-                            <Home size={14} className="text-white/80" />
-                            <span>{activeRoom?.room_type ? `${activeRoom.room_type} (Room ${activeRoom?.room_number})` : `Room ${activeRoom?.room_number}`}</span>
+                          <div className="flex items-center gap-2 min-w-0 pr-2">
+                            <Home size={15} className="text-white/80 flex-shrink-0" />
+                            <span className="break-words leading-snug">{activeRoom?.room_type ? `${activeRoom.room_type} (Room ${activeRoom?.room_number})` : `Room ${activeRoom?.room_number}`}</span>
                           </div>
-                          <span className="font-mono text-sm">₹{cRent.toLocaleString('en-IN')}</span>
+                          <span className="font-mono text-sm font-bold flex-shrink-0 ml-auto">₹{cRent.toLocaleString('en-IN')}</span>
                         </div>
 
                         {cElec > 0 && (
@@ -1691,16 +1691,18 @@ export default function SmartCalc() {
 
                     <div className="h-px bg-white/15 w-full" />
 
-                    <div className="flex justify-between items-end relative z-10">
+                    <div className="flex justify-between items-end relative z-10 pt-0.5">
                       <div>
                         <span className={`text-xs font-semibold block ${activeTheme.textAccent}`}>{t.amountDue}</span>
-                        <div className="text-3xl font-black tracking-tight text-white mt-0.5">
+                        <div className="text-3xl font-black tracking-tight text-white mt-0.5 font-mono leading-none">
                           ₹{cTotal.toLocaleString('en-IN')}
                         </div>
                       </div>
-                      <span className={`px-3 py-1 rounded-full font-extrabold text-[10px] tracking-wider uppercase shadow-sm ${activeTheme.pillBg} ${activeTheme.pillText}`}>
-                        {t.dueBadge(billMonth)}
-                      </span>
+                      <div
+                        className={`inline-flex items-center justify-center px-3.5 py-2 rounded-full font-extrabold text-[11px] leading-none tracking-wider uppercase shadow-sm flex-shrink-0 text-center ${activeTheme.pillBg} ${activeTheme.pillText}`}
+                      >
+                        <span className="leading-none pt-[1px]">{t.dueBadge(billMonth)}</span>
+                      </div>
                     </div>
 
                     <div className="flex justify-center items-center text-[10px] text-white/50 pt-3 border-t border-white/10 italic">
@@ -1817,11 +1819,11 @@ export default function SmartCalc() {
                             return (
                               <div key={idx} className="bg-black/20 border border-white/15 rounded-2xl p-3.5 space-y-2 text-xs backdrop-blur-xs">
                                 <div className="flex justify-between items-center font-extrabold text-white">
-                                  <div className="flex items-center gap-1.5 truncate">
-                                    <Home size={14} className="text-white/80 flex-shrink-0" />
-                                    <span className="truncate">{item.room_type ? `${item.room_type} (Room ${item.room_number})` : `Room ${item.room_number}`}</span>
+                                  <div className="flex items-center gap-2 min-w-0 pr-2">
+                                    <Home size={15} className="text-white/80 flex-shrink-0" />
+                                    <span className="break-words leading-snug">{item.room_type ? `${item.room_type} (Room ${item.room_number})` : `Room ${item.room_number}`}</span>
                                   </div>
-                                  <span className="font-mono text-sm ml-2">₹{item.rent_amount.toLocaleString('en-IN')}</span>
+                                  <span className="font-mono text-sm font-bold flex-shrink-0 ml-auto">₹{item.rent_amount.toLocaleString('en-IN')}</span>
                                 </div>
                                 {item.elec_amount > 0 && (
                                   <div className="space-y-1 pt-1.5 border-t border-white/10 text-[11px] text-white/90">
@@ -1842,11 +1844,11 @@ export default function SmartCalc() {
                       ) : (
                         <div className="bg-black/20 border border-white/15 rounded-2xl p-3.5 space-y-2 text-xs backdrop-blur-xs">
                           <div className="flex justify-between items-center font-extrabold text-white">
-                            <div className="flex items-center gap-1.5 truncate">
-                              <Home size={14} className="text-white/80 flex-shrink-0" />
-                              <span className="truncate">{activeRoom?.room_type ? `${activeRoom.room_type} (Room ${activeRoom.room_number})` : `Room ${activeRoom?.room_number || '00'}`}</span>
+                            <div className="flex items-center gap-2 min-w-0 pr-2">
+                              <Home size={15} className="text-white/80 flex-shrink-0" />
+                              <span className="break-words leading-snug">{activeRoom?.room_type ? `${activeRoom.room_type} (Room ${activeRoom.room_number})` : `Room ${activeRoom?.room_number || '00'}`}</span>
                             </div>
-                            <span className="font-mono text-sm ml-2">₹{sRent.toLocaleString('en-IN')}</span>
+                            <span className="font-mono text-sm font-bold flex-shrink-0 ml-auto">₹{sRent.toLocaleString('en-IN')}</span>
                           </div>
 
                           {sElec > 0 && (
@@ -1917,14 +1919,16 @@ export default function SmartCalc() {
                     <div className="flex justify-between items-end relative z-10 pt-0.5">
                       <div>
                         <span className={`text-xs font-semibold block ${activeTheme.textAccent}`}>{t.amountDue}</span>
-                        <div className="text-3xl font-black tracking-tight text-white mt-0.5">
+                        <div className="text-3xl font-black tracking-tight text-white mt-0.5 font-mono leading-none">
                           ₹{sTotal.toLocaleString('en-IN')}
                         </div>
                       </div>
 
-                      <span className={`px-3 py-1 rounded-full font-extrabold text-[10px] tracking-wider uppercase shadow-sm ${activeTheme.pillBg} ${activeTheme.pillText}`}>
-                        {t.dueBadge(billMonth)}
-                      </span>
+                      <div
+                        className={`inline-flex items-center justify-center px-3.5 py-2 rounded-full font-extrabold text-[11px] leading-none tracking-wider uppercase shadow-sm flex-shrink-0 text-center ${activeTheme.pillBg} ${activeTheme.pillText}`}
+                      >
+                        <span className="leading-none pt-[1px]">{t.dueBadge(billMonth)}</span>
+                      </div>
                     </div>
 
                     {/* Footer */}

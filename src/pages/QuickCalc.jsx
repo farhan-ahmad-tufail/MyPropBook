@@ -999,11 +999,12 @@ export default function QuickCalc() {
               <div className="space-y-3 relative z-10 text-xs">
                 {(result.rooms || [result]).map((room, idx) => (
                   <div key={idx} className="bg-black/20 border border-white/15 rounded-2xl p-3.5 space-y-2">
-                    <div className="flex justify-between items-center font-bold text-emerald-100">
-                      <span className="flex items-center gap-1.5">
-                        <Home size={13} /> {room.roomType || 'Room'} {room.floor && `(${formatFloor(room.floor)})`}
-                      </span>
-                      <span className="font-mono text-white">₹{parseFloat(room.rent || 0).toLocaleString('en-IN')}</span>
+                    <div className="flex justify-between items-center font-bold text-white">
+                      <div className="flex items-center gap-2 min-w-0 pr-2">
+                        <Home size={15} className="text-white/80 flex-shrink-0" />
+                        <span className="break-words leading-snug">{room.roomType || 'Room'} {room.floor && `(${formatFloor(room.floor)})`}</span>
+                      </div>
+                      <span className="font-mono text-sm font-bold flex-shrink-0 ml-auto">₹{parseFloat(room.rent || 0).toLocaleString('en-IN')}</span>
                     </div>
 
                     {room.elecMode === 'submeter' && (
@@ -1033,25 +1034,25 @@ export default function QuickCalc() {
               <div className="space-y-2 pt-1 relative z-10 text-xs">
                 <div className="flex justify-between items-center">
                   <span className="text-emerald-100/90 font-medium">{translations[language].totalRent}</span>
-                  <span className="font-black tracking-tight">₹{parseFloat(result.totalRent || 0).toLocaleString('en-IN')}</span>
+                  <span className="font-black tracking-tight font-mono">₹{parseFloat(result.totalRent || 0).toLocaleString('en-IN')}</span>
                 </div>
 
                 <div className="flex justify-between items-center">
                   <span className="text-emerald-100/90 font-medium">{translations[language].totalElectricity}</span>
-                  <span className="font-black tracking-tight">₹{parseFloat(result.totalElec || 0).toLocaleString('en-IN')}</span>
+                  <span className="font-black tracking-tight font-mono">₹{parseFloat(result.totalElec || 0).toLocaleString('en-IN')}</span>
                 </div>
 
                 {parseFloat(result.otherCharges || 0) > 0 && (
                   <div className="flex justify-between items-center">
                     <span className="text-emerald-100/90 font-medium">{translations[language].otherCharges}</span>
-                    <span className="font-black tracking-tight">₹{parseFloat(result.otherCharges).toLocaleString('en-IN')}</span>
+                    <span className="font-black tracking-tight font-mono">₹{parseFloat(result.otherCharges).toLocaleString('en-IN')}</span>
                   </div>
                 )}
 
                 {parseFloat(result.arrears || 0) > 0 && (
                   <div className="flex justify-between items-center">
                     <span className="text-emerald-100/90 font-medium">{translations[language].oldPendingBalance}</span>
-                    <span className="font-black tracking-tight">₹{parseFloat(result.arrears).toLocaleString('en-IN')}</span>
+                    <span className="font-black tracking-tight font-mono">₹{parseFloat(result.arrears).toLocaleString('en-IN')}</span>
                   </div>
                 )}
               </div>
@@ -1062,14 +1063,14 @@ export default function QuickCalc() {
               <div className="flex justify-between items-end relative z-10 pt-0.5">
                 <div>
                   <span className="text-xs font-semibold text-emerald-200/80 block">{translations[language].totalPayable}</span>
-                  <div className="text-3xl font-black tracking-tight text-white mt-0.5">
+                  <div className="text-3xl font-black tracking-tight text-white mt-0.5 font-mono leading-none">
                     ₹{parseFloat(result.total || 0).toLocaleString('en-IN')}
                   </div>
                 </div>
 
-                <span className="px-3 py-1 rounded-full bg-emerald-100 text-[#2d5a47] font-extrabold text-[10px] tracking-wider uppercase shadow-sm">
-                  DUE 10 {result.billMonth.substring(0,3).toUpperCase()}
-                </span>
+                <div className="inline-flex items-center justify-center px-3.5 py-1.5 rounded-full bg-emerald-100 text-[#2d5a47] font-extrabold text-[10px] leading-none tracking-wider uppercase shadow-sm flex-shrink-0 text-center">
+                  <span className="leading-none">DUE 10 {result.billMonth.substring(0,3).toUpperCase()}</span>
+                </div>
               </div>
 
               {/* Footer */}
