@@ -60,7 +60,7 @@ export default function Billing() {
     ];
     return allMonths[new Date().getMonth()];
   });
-  const [yearFilter, setYearFilter] = useState('All');
+  const [yearFilter, setYearFilter] = useState(() => new Date().getFullYear().toString());
   const [monthDropdownOpen, setMonthDropdownOpen] = useState(false);
   const [yearDropdownOpen, setYearDropdownOpen] = useState(false);
   const [selectedBill, setSelectedBill] = useState(null);
@@ -426,16 +426,16 @@ export default function Billing() {
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-slate-700">Collection Overview</span>
             <span className="text-[11px] font-semibold text-[#2d5a47] bg-[#2d5a47]/10 px-2.5 py-0.5 rounded-full">
-              {monthFilter === 'All' ? 'All Months' : monthFilter} {yearFilter === 'All' ? '' : yearFilter}
+              {monthFilter === 'All' ? 'All Months' : monthFilter} {yearFilter === 'All' ? '(All Years)' : yearFilter}
             </span>
           </div>
-          {monthFilter !== 'All' && (
+          {(monthFilter !== 'All' || yearFilter !== 'All') && (
             <button
               type="button"
-              onClick={() => setMonthFilter('All')}
+              onClick={() => { setMonthFilter('All'); setYearFilter('All'); }}
               className="text-[11px] font-bold text-slate-400 hover:text-[#2d5a47] transition-colors cursor-pointer"
             >
-              View all months &rarr;
+              View all records &rarr;
             </button>
           )}
         </div>
@@ -696,13 +696,13 @@ export default function Billing() {
                 : 'No billing records match the selected status filter.'}
             </p>
             <div className="mt-4 flex items-center justify-center gap-2">
-              {monthFilter !== 'All' && (
+              {(monthFilter !== 'All' || yearFilter !== 'All') && (
                 <button
                   type="button"
-                  onClick={() => setMonthFilter('All')}
+                  onClick={() => { setMonthFilter('All'); setYearFilter('All'); }}
                   className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer"
                 >
-                  View all months
+                  View all records
                 </button>
               )}
               <button
