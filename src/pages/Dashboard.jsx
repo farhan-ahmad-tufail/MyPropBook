@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
@@ -82,6 +82,8 @@ export default function Dashboard() {
     loadDashboardData();
   }, [user]);
 
+  const [viewMode, setViewMode] = useState('current'); // 'current' | 'all'
+
   // Statistics Computations
   const totalProperties = properties.length;
   const totalRooms = rooms.length;
@@ -99,22 +101,42 @@ export default function Dashboard() {
     [rooms, activeLeaseRoomIds]
   );
 
-  // Current Cycle Bills Breakdown (Option 3 Dynamic Target)
-  const currentMonthName = new Date().toLocaleString('en-IN', { month: 'short' });
-  const currentYearVal = new Date().getFullYear();
+  // Current Cycle Month / Year definition
+  const now = new Date();
+  const currentMonthLong = now.toLocaleString('en-IN', { month: 'long' });
+  const currentMonthShort = now.toLocaleString('en-IN', { month: 'short' });
+  const currentYearVal = now.getFullYear();
 
-  const currentCycleBills = useMemo(() => {
-    return bills.filter(b => {
-      if (!b.bill_date && !b.created_at && !b.bill_month) return false;
-      if (b.bill_month) {
-        const matchesMonth = b.bill_month.substring(0, 3).toLowerCase() === currentMonthName.toLowerCase();
-        const matchesYear = !b.bill_year || b.bill_year.toString() === currentYearVal.toString();
-        return matchesMonth && matchesYear;
+  // Helper to match a bill to a specific month and year robustly
+  const isBillInMonthYear = useCallback((b, monthTarget, yearTarget) => {
+    if (!b) return false;
+    const targetMonthPrefix = monthTarget.substring(0, 3).toLowerCase();
+    
+    // Check bill_month string
+    if (b.bill_month) {
+      const bMonthPrefix = b.bill_month.substring(0, 3).toLowerCase();
+      const matchesMonth = bMonthPrefix === targetMonthPrefix;
+      const matchesYear = !b.bill_year || String(b.bill_year) === String(yearTarget);
+      return matchesMonth && matchesYear;
+    }
+    
+    // Fallback to bill_date or created_at
+    const dateStr = b.bill_date || b.created_at;
+    if (dateStr) {
+      const d = new Date(dateStr);
+      if (!isNaN(d.getTime())) {
+        const monthMatch = d.toLocaleString('en-IN', { month: 'short' }).toLowerCase() === targetMonthPrefix;
+        const yearMatch = d.getFullYear() === Number(yearTarget);
+        return monthMatch && yearMatch;
       }
-      const bDate = new Date(b.bill_date || b.created_at);
-      return bDate.getMonth() === new Date().getMonth() && bDate.getFullYear() === currentYearVal;
-    });
-  }, [bills, currentMonthName, currentYearVal]);
+    }
+    return false;
+  }, []);
+
+  // Bills matching CURRENT month & year specifically
+  const currentCycleBills = useMemo(() => {
+    return bills.filter(b => isBillInMonthYear(b, currentMonthLong, currentYearVal));
+  }, [bills, isBillInMonthYear, currentMonthLong, currentYearVal]);
 
   const currentCycleBilledTotal = useMemo(() => {
     return currentCycleBills.reduce((sum, b) => sum + parseFloat(b.total_payable || 0), 0);
@@ -128,30 +150,58 @@ export default function Dashboard() {
     }, 0);
   }, [currentCycleBills]);
 
-  // If bills exist for current cycle, target is total payable; otherwise portfolio expected base rent
+  // Current month's actual collections & pending
+  const currentCycleCollected = useMemo(() => {
+    return currentCycleBills.reduce((sum, b) => sum + parseFloat(b.amount_paid || 0), 0);
+  }, [currentCycleBills]);
+
+  const currentCyclePending = useMemo(() => {
+    return currentCycleBills.reduce((sum, b) => {
+      const payable = parseFloat(b.total_payable || 0);
+      const paid = parseFloat(b.amount_paid || 0);
+      return sum + Math.max(0, payable - paid);
+    }, 0);
+  }, [currentCycleBills]);
+
+  // All-time actual collections & pending
+  const allTimeCollected = useMemo(() => {
+    return bills.reduce((sum, b) => sum + parseFloat(b.amount_paid || 0), 0);
+  }, [bills]);
+
+  const allTimePending = useMemo(() => {
+    return bills.reduce((sum, b) => {
+      const payable = parseFloat(b.total_payable || 0);
+      const paid = parseFloat(b.amount_paid || 0);
+      return sum + Math.max(0, payable - paid);
+    }, 0);
+  }, [bills]);
+
+  // If bills exist for current cycle, target is total payable; otherwise expected base rent
   const effectiveMonthlyTarget = currentCycleBilledTotal > 0 ? currentCycleBilledTotal : expectedMonthlyRevenue;
 
-  const pendingArrears = useMemo(() => 
-    bills
-      .filter(b => b.payment_status === 'Unpaid' || b.payment_status === 'Partially Paid')
-      .reduce((sum, b) => sum + (parseFloat(b.total_payable || 0) - parseFloat(b.amount_paid || 0)), 0),
-    [bills]
-  );
+  // Active metrics depending on viewMode (Current Month vs All-Time)
+  const activeTarget = viewMode === 'current' ? effectiveMonthlyTarget : effectiveMonthlyTarget;
+  const activeCollected = viewMode === 'current' ? currentCycleCollected : allTimeCollected;
+  const activePending = viewMode === 'current' ? currentCyclePending : allTimePending;
 
-  const totalCollected = useMemo(() => 
-    bills
-      .filter(b => b.payment_status === 'Paid' || b.payment_status === 'Partially Paid')
-      .reduce((sum, b) => sum + parseFloat(b.amount_paid || 0), 0),
-    [bills]
-  );
+  // Collection Health % specifically for the current cycle
+  const currentCollectionHealthPct = useMemo(() => {
+    if (effectiveMonthlyTarget <= 0) return 0;
+    return Math.min(100, Math.round((currentCycleCollected / effectiveMonthlyTarget) * 100));
+  }, [currentCycleCollected, effectiveMonthlyTarget]);
 
-  const collectionHealthPct = useMemo(() => {
-    const totalTarget = effectiveMonthlyTarget;
-    if (!totalTarget) return 0;
-    const collected = totalCollected || Math.max(0, totalTarget - pendingArrears);
-    return Math.min(100, Math.round((collected / totalTarget) * 100));
-  }, [effectiveMonthlyTarget, totalCollected, pendingArrears]);
+  // All-time Collection Health %
+  const allTimeCollectionHealthPct = useMemo(() => {
+    const totalBilledAll = bills.reduce((sum, b) => sum + parseFloat(b.total_payable || 0), 0);
+    if (totalBilledAll <= 0) return 0;
+    return Math.min(100, Math.round((allTimeCollected / totalBilledAll) * 100));
+  }, [bills, allTimeCollected]);
 
+  const activeCollectionHealthPct = viewMode === 'current' ? currentCollectionHealthPct : allTimeCollectionHealthPct;
+
+  // Backward-compatible aliases for portfolio-wide alerts & components
+  const pendingArrears = allTimePending;
+  const totalCollected = allTimeCollected;
   const tenantsWithArrears = useMemo(() => {
     const roomIdsWithArrears = bills
       .filter(b => b.payment_status === 'Unpaid' || b.payment_status === 'Partially Paid')
@@ -163,6 +213,19 @@ export default function Dashboard() {
     }).filter(Boolean);
     return [...new Set(tenantIds)].length;
   }, [bills, leases]);
+
+  const currentTenantsWithDues = useMemo(() => {
+    const relevantBills = viewMode === 'current' ? currentCycleBills : bills;
+    const roomIdsWithArrears = relevantBills
+      .filter(b => b.payment_status === 'Unpaid' || b.payment_status === 'Partially Paid')
+      .map(b => b.room_id);
+    const uniqueRoomIds = [...new Set(roomIdsWithArrears)];
+    const tenantIds = uniqueRoomIds.map(rid => {
+      const lease = leases.find(l => l.room_id === rid && l.is_active);
+      return lease?.tenant_id;
+    }).filter(Boolean);
+    return [...new Set(tenantIds)].length;
+  }, [viewMode, currentCycleBills, bills, leases]);
 
   const getRoomOccupancy = (roomId) => {
     const activeLease = leases.find(l => l.room_id === roomId && l.is_active);
@@ -234,17 +297,8 @@ export default function Dashboard() {
       const fullMonthName = d.toLocaleString('en-IN', { month: 'long' });
       const yearVal = d.getFullYear();
 
-      // Filter bills matching this month and year
-      const monthBills = bills.filter(b => {
-        if (!b.bill_date && !b.created_at && !b.bill_month) return false;
-        if (b.bill_month) {
-          const matchesMonth = b.bill_month.substring(0, 3).toLowerCase() === monthName.toLowerCase();
-          const matchesYear = !b.bill_year || b.bill_year.toString() === yearVal.toString();
-          return matchesMonth && matchesYear;
-        }
-        const bDate = new Date(b.bill_date || b.created_at);
-        return bDate.getMonth() === d.getMonth() && bDate.getFullYear() === yearVal;
-      });
+      // Filter bills matching this month and year robustly
+      const monthBills = bills.filter(b => isBillInMonthYear(b, fullMonthName, yearVal));
 
       const collected = monthBills.reduce((sum, b) => sum + parseFloat(b.amount_paid || 0), 0);
       const totalBilled = monthBills.reduce((sum, b) => sum + parseFloat(b.total_payable || 0), 0);
@@ -262,7 +316,7 @@ export default function Dashboard() {
     }
 
     return months;
-  }, [bills, expectedMonthlyRevenue, chartPeriod]);
+  }, [bills, expectedMonthlyRevenue, chartPeriod, isBillInMonthYear]);
 
   // Chart SVG Coordinates Generator
   const chartCoordinates = useMemo(() => {
@@ -414,8 +468,8 @@ export default function Dashboard() {
       {/* ── EXECUTIVE METRICS CARD ── */}
       {/* Desktop: 4-column KPI bar | Mobile: unchanged 2-col grid */}
       <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-        {/* Portfolio header row */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100/80">
+        {/* Portfolio header row with Month Focus Switcher */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between px-5 py-3.5 border-b border-slate-100/80 gap-3">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-[#edf5f1] text-[#2d5a47] flex items-center justify-center">
               <Building size={13} />
@@ -424,34 +478,65 @@ export default function Dashboard() {
               {totalProperties} {totalProperties === 1 ? 'Property' : 'Properties'}
             </span>
             <span className="text-slate-400 text-[12px]">· {activeLeaseRoomIds.length} rooms occupied</span>
+            <span className="text-[11px] font-semibold text-[#2d5a47] bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100 hidden md:inline-block">
+              {totalRooms > 0 ? `${Math.min(100, Math.round((activeLeaseRoomIds.length / Math.max(1, totalRooms)) * 100))}% occupancy` : 'Active'}
+            </span>
           </div>
-          <span className="text-[11px] font-semibold text-[#2d5a47] bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
-            {totalRooms > 0 ? `${Math.min(100, Math.round((activeLeaseRoomIds.length / Math.max(1, totalRooms)) * 100))}% occupancy` : 'Active'}
-          </span>
+
+          {/* Current Month Focus / All-Time Toggle */}
+          <div className="flex items-center bg-slate-100/90 p-0.5 rounded-xl border border-slate-200/60 self-start sm:self-auto text-xs">
+            <button
+              type="button"
+              onClick={() => setViewMode('current')}
+              className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                viewMode === 'current'
+                  ? 'bg-white text-[#2d5a47] shadow-xs'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <Calendar size={12} className={viewMode === 'current' ? 'text-[#2d5a47]' : 'text-slate-400'} />
+              <span>{currentMonthLong} {currentYearVal}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('all')}
+              className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+                viewMode === 'all'
+                  ? 'bg-white text-[#2d5a47] shadow-xs'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <span>All-Time Summary</span>
+            </button>
+          </div>
         </div>
 
         {/* KPI grid — 4 cols on desktop, 2 on mobile */}
         <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-slate-100">
           {[
             {
-              label: currentCycleBilledTotal > 0 ? 'Expected / Billed' : 'Expected Rent',
-              value: <AnimatedCounter value={effectiveMonthlyTarget} formatter={v => formatINR(v)} />,
-              sub: currentCycleUtilities > 0 
+              label: viewMode === 'current' ? `${currentMonthShort} Expected / Billed` : 'Monthly Target',
+              value: <AnimatedCounter value={activeTarget} formatter={v => formatINR(v)} />,
+              sub: currentCycleUtilities > 0 && viewMode === 'current'
                 ? `Incl. ${formatINR(expectedMonthlyRevenue)} base + ${formatINR(currentCycleUtilities)} utilities`
-                : `${new Date().toLocaleString('en-IN', { month: 'short' })} billing cycle`,
+                : viewMode === 'current'
+                ? `${currentMonthShort} billing cycle`
+                : 'Active monthly run rate',
               subColor: 'text-slate-400',
             },
             {
-              label: 'Total Collected',
-              value: formatINR(totalCollected),
-              sub: totalCollected > 0 ? `${collectionHealthPct}% of target` : 'No collections yet',
-              subColor: totalCollected > 0 ? 'text-emerald-600' : 'text-slate-400',
+              label: viewMode === 'current' ? `${currentMonthShort} Collected` : 'Total Collected',
+              value: formatINR(activeCollected),
+              sub: activeCollected > 0 
+                ? `${activeCollectionHealthPct}% of ${viewMode === 'current' ? currentMonthShort : 'total'}` 
+                : `₹0 collected in ${currentMonthShort}`,
+              subColor: activeCollected > 0 ? 'text-emerald-600' : 'text-slate-400',
             },
             {
-              label: 'Pending Arrears',
-              value: <span className={pendingArrears > 0 ? 'text-red-500' : 'text-slate-900'}>{formatINR(pendingArrears)}</span>,
-              sub: pendingArrears > 0 ? `${tenantsWithArrears} tenant(s) with dues` : 'All clear',
-              subColor: pendingArrears > 0 ? 'text-amber-600' : 'text-emerald-600',
+              label: viewMode === 'current' ? `${currentMonthShort} Pending` : 'Pending Arrears',
+              value: <span className={activePending > 0 ? 'text-red-500' : 'text-slate-900'}>{formatINR(activePending)}</span>,
+              sub: activePending > 0 ? `${currentTenantsWithDues} tenant(s) with dues` : 'All clear',
+              subColor: activePending > 0 ? 'text-amber-600' : 'text-emerald-600',
             },
             {
               label: 'Active Tenants',
@@ -564,25 +649,40 @@ export default function Dashboard() {
           </div>
 
           <div>
-            <div className="flex items-baseline gap-3">
-              <span className="text-3xl font-black text-slate-900 font-mono tracking-tight">{formatINR(totalCollected)}</span>
-              {totalCollected > 0 && (
-                <span className="text-xs font-bold text-emerald-600 flex items-center gap-0.5">
-                  <TrendingUp size={12} /> collected
-                </span>
-              )}
-            </div>
+            {(() => {
+              const activeChartPoint = hoveredDataPoint?.data || (selectedMonthIdx !== null ? monthlyChartData[selectedMonthIdx] : null);
+              const displayCollected = activeChartPoint ? activeChartPoint.collected : totalCollected;
+              const displayExpected = activeChartPoint ? activeChartPoint.expected : effectiveMonthlyTarget;
+              const displayLabel = activeChartPoint ? activeChartPoint.fullLabel : (chartPeriod === '3months' ? 'Last 3 months' : chartPeriod === '6months' ? 'Last 6 months' : 'Full Year');
 
-            <div className="flex items-center gap-6 text-xs font-medium text-slate-500 mt-2 mb-4">
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#2d5a47]" /> 
-                <span className="font-semibold text-slate-700">Collected:</span> <span className="font-mono">{formatINR(totalCollected)}</span>
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-slate-300 border border-slate-400" /> 
-                <span className="font-semibold text-slate-700">Expected:</span> <span className="font-mono">{formatINR(effectiveMonthlyTarget)}</span>
-              </span>
-            </div>
+              return (
+                <>
+                  <div className="flex items-baseline gap-3">
+                    <span className="text-3xl font-black text-slate-900 font-mono tracking-tight">{formatINR(displayCollected)}</span>
+                    {displayCollected > 0 ? (
+                      <span className="text-xs font-bold text-emerald-600 flex items-center gap-0.5">
+                        <TrendingUp size={12} /> collected {activeChartPoint ? `in ${activeChartPoint.label}` : ''}
+                      </span>
+                    ) : (
+                      <span className="text-xs font-semibold text-slate-400">
+                        ₹0 collected {activeChartPoint ? `in ${activeChartPoint.label}` : ''}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-6 text-xs font-medium text-slate-500 mt-2 mb-4">
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#2d5a47]" /> 
+                      <span className="font-semibold text-slate-700">Collected ({activeChartPoint ? activeChartPoint.label : 'Period'}):</span> <span className="font-mono">{formatINR(displayCollected)}</span>
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-slate-300 border border-slate-400" /> 
+                      <span className="font-semibold text-slate-700">Expected:</span> <span className="font-mono">{formatINR(displayExpected)}</span>
+                    </span>
+                  </div>
+                </>
+              );
+            })()}
 
             {/* Interactive SVG Chart */}
             <div className="w-full bg-[#f8faf9] rounded-2xl p-4 flex flex-col justify-between relative overflow-visible border border-slate-100/90 shadow-inner">
@@ -779,7 +879,7 @@ export default function Dashboard() {
             <div className="flex justify-between items-center mb-4">
               <div>
                 <h3 className="font-semibold text-slate-900 text-[13px]">Collections</h3>
-                <p className="text-[11px] text-slate-400 mt-0.5">{new Date().toLocaleString('en-IN', { month: 'long' })} performance</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">{currentMonthLong} performance</p>
               </div>
               <div className="w-8 h-8 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center border border-slate-100">
                 <Gauge size={15} />
@@ -787,26 +887,26 @@ export default function Dashboard() {
             </div>
 
             <div className="mt-2">
-              <div className="text-3xl font-extrabold text-slate-900 font-mono tracking-tight">{collectionHealthPct}%</div>
-              <p className="text-[11px] text-slate-400 mt-0.5 font-medium">of {new Date().toLocaleString('en-IN', { month: 'long' })} expected rent</p>
+              <div className="text-3xl font-extrabold text-slate-900 font-mono tracking-tight">{currentCollectionHealthPct}%</div>
+              <p className="text-[11px] text-slate-400 mt-0.5 font-medium">of {currentMonthLong} expected rent</p>
             </div>
 
             {/* Progress Bar */}
             <div className="w-full bg-slate-200/80 h-2.5 rounded-full overflow-hidden mt-4">
               <div 
                 className="bg-[#2d5a47] h-full rounded-full transition-all duration-500"
-                style={{ width: `${collectionHealthPct}%` }}
+                style={{ width: `${currentCollectionHealthPct}%` }}
               />
             </div>
 
             <div className="space-y-3 mt-6 text-xs font-semibold">
               <div className="flex justify-between items-center text-slate-600">
-                <span>Collected</span>
-                <span className="text-slate-900 font-bold font-mono">{formatINR(totalCollected)}</span>
+                <span>Collected in {currentMonthShort}</span>
+                <span className="text-slate-900 font-bold font-mono">{formatINR(currentCycleCollected)}</span>
               </div>
               <div className="flex justify-between items-center text-slate-600">
-                <span>Still to collect</span>
-                <span className="text-amber-700 font-bold font-mono">{formatINR(pendingArrears)}</span>
+                <span>Still to collect ({currentMonthShort})</span>
+                <span className="text-amber-700 font-bold font-mono">{formatINR(currentCyclePending)}</span>
               </div>
             </div>
           </div>
@@ -815,7 +915,7 @@ export default function Dashboard() {
             onClick={() => navigate('/billing')}
             className="w-full py-3 mt-6 bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs rounded-2xl border border-slate-200 transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
           >
-            <span>Review outstanding</span>
+            <span>Review {currentMonthShort} billing</span>
             <ArrowUpRight size={14} />
           </button>
         </div>
