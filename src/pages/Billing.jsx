@@ -53,7 +53,13 @@ export default function Billing() {
   // UI & Search Filters State
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
-  const [monthFilter, setMonthFilter] = useState('All');
+  const [monthFilter, setMonthFilter] = useState(() => {
+    const allMonths = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    return allMonths[new Date().getMonth()];
+  });
   const [yearFilter, setYearFilter] = useState('All');
   const [monthDropdownOpen, setMonthDropdownOpen] = useState(false);
   const [yearDropdownOpen, setYearDropdownOpen] = useState(false);
@@ -125,12 +131,15 @@ export default function Billing() {
       'January', 'February', 'March', 'April', 'May', 'June',
       'July', 'August', 'September', 'October', 'November', 'December'
     ];
+    const currentMonthName = allMonths[new Date().getMonth()];
     const presentMonths = Array.from(new Set(bills.map(b => b.bill_month).filter(Boolean)));
-    return allMonths.filter(m => presentMonths.includes(m));
+    // Ensure current month is always present in dropdown options along with billed months
+    return allMonths.filter(m => presentMonths.includes(m) || m === currentMonthName);
   }, [bills]);
 
   const availableYears = useMemo(() => {
-    const years = Array.from(new Set(bills.map(b => (b.bill_year || '').toString()).filter(Boolean)));
+    const currentYear = new Date().getFullYear().toString();
+    const years = Array.from(new Set([...bills.map(b => (b.bill_year || '').toString()).filter(Boolean), currentYear]));
     return years.sort((a, b) => b - a);
   }, [bills]);
 
@@ -188,15 +197,25 @@ export default function Billing() {
     });
   }, [bills, statusFilter, monthFilter, yearFilter, searchQuery, getTenantName, rooms]);
 
-  // Live Aggregate KPI Metrics (Computed 100% dynamically from bills data)
+  // Bills scoped by Month & Year for KPIs & Status Badges
+  const periodScopedBills = useMemo(() => {
+    return bills.filter(b => {
+      const matchMonth = monthFilter === 'All' || b.bill_month === monthFilter;
+      const matchYear = yearFilter === 'All' || String(b.bill_year) === String(yearFilter);
+      return matchMonth && matchYear;
+    });
+  }, [bills, monthFilter, yearFilter]);
+
+  // Live Aggregate KPI Metrics (Dynamically scoped to selected month and year)
   const kpiStats = useMemo(() => {
-    const totalBilled = bills.reduce((sum, b) => sum + parseFloat(b.total_payable || 0), 0);
-    const totalCollected = bills.reduce((sum, b) => sum + parseFloat(b.amount_paid || 0), 0);
+    const totalBilled = periodScopedBills.reduce((sum, b) => sum + parseFloat(b.total_payable || 0), 0);
+    const totalCollected = periodScopedBills.reduce((sum, b) => sum + parseFloat(b.amount_paid || 0), 0);
     const totalOutstanding = Math.max(0, totalBilled - totalCollected);
     
-    const paidCount = bills.filter(b => b.payment_status === 'Paid').length;
-    const unpaidCount = bills.filter(b => b.payment_status === 'Unpaid').length;
-    const totalInvoices = bills.length;
+    const paidCount = periodScopedBills.filter(b => b.payment_status === 'Paid').length;
+    const unpaidCount = periodScopedBills.filter(b => b.payment_status === 'Unpaid').length;
+    const partialCount = periodScopedBills.filter(b => b.payment_status === 'Partially Paid').length;
+    const totalInvoices = periodScopedBills.length;
 
     const healthRate = totalBilled > 0 ? Math.min(100, Math.round((totalCollected / totalBilled) * 100)) : 0;
 
@@ -206,10 +225,11 @@ export default function Billing() {
       totalOutstanding,
       paidCount,
       unpaidCount,
+      partialCount,
       totalInvoices,
       healthRate
     };
-  }, [bills]);
+  }, [periodScopedBills]);
 
   // Payment Actions
   const handleOpenPayModal = async (bill) => {
@@ -400,88 +420,108 @@ export default function Billing() {
         </div>
       )}
 
-      {/* ── TOP 4 DYNAMIC KPI CARDS (Real Database Data) ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mt-6 sm:mt-8">
-        
-        {/* KPI 1: Collections Health */}
-        <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
-          <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-[#2d5a47] uppercase tracking-widest">COLLECTIONS HEALTH</span>
-            <div className="w-8 h-8 rounded-full border border-slate-100 flex items-center justify-center flex-shrink-0 bg-white">
-              <Gauge size={14} className="text-slate-400" />
-            </div>
-          </div>
-          <div className="mt-2 sm:mt-4">
-            <div className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">{kpiStats.healthRate}%</div>
-            
-            {/* Progress Bar */}
-            <div className="w-full bg-slate-100 rounded-full h-1.5 sm:h-2 mt-2 sm:mt-3 mb-1.5 sm:mb-2 overflow-hidden">
-              <div 
-                className="bg-[#2d5a47] h-full rounded-full transition-all duration-1000 ease-out" 
-                style={{ width: `${kpiStats.healthRate}%` }}
-              />
-            </div>
-            
-            <span className="text-[10px] sm:text-xs text-slate-500 font-medium">
-              {formatINRShort(kpiStats.totalCollected)} collected overall
+      {/* ── TOP 4 DYNAMIC KPI CARDS (Scoped to Selected Period) ── */}
+      <div>
+        <div className="flex items-center justify-between mb-3 px-1">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-700">Collection Overview</span>
+            <span className="text-[11px] font-semibold text-[#2d5a47] bg-[#2d5a47]/10 px-2.5 py-0.5 rounded-full">
+              {monthFilter === 'All' ? 'All Months' : monthFilter} {yearFilter === 'All' ? '' : yearFilter}
             </span>
           </div>
+          {monthFilter !== 'All' && (
+            <button
+              type="button"
+              onClick={() => setMonthFilter('All')}
+              className="text-[11px] font-bold text-slate-400 hover:text-[#2d5a47] transition-colors cursor-pointer"
+            >
+              View all months &rarr;
+            </button>
+          )}
         </div>
 
-        {/* KPI 2: Total Billed */}
-        <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
-          <div className="flex justify-between items-start">
-            <div className="w-8 h-8 rounded-2xl bg-indigo-50 text-indigo-500 flex items-center justify-center">
-              <Receipt size={16} />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+          
+          {/* KPI 1: Collections Health */}
+          <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
+            <div className="flex justify-between items-start">
+              <span className="text-[10px] font-bold text-[#2d5a47] uppercase tracking-widest">COLLECTIONS HEALTH</span>
+              <div className="w-8 h-8 rounded-full border border-slate-100 flex items-center justify-center flex-shrink-0 bg-white">
+                <Gauge size={14} className="text-slate-400" />
+              </div>
+            </div>
+            <div className="mt-2 sm:mt-4">
+              <div className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">{kpiStats.healthRate}%</div>
+              
+              {/* Progress Bar */}
+              <div className="w-full bg-slate-100 rounded-full h-1.5 sm:h-2 mt-2 sm:mt-3 mb-1.5 sm:mb-2 overflow-hidden">
+                <div 
+                  className="bg-[#2d5a47] h-full rounded-full transition-all duration-1000 ease-out" 
+                  style={{ width: `${kpiStats.healthRate}%` }}
+                />
+              </div>
+              
+              <span className="text-[10px] sm:text-xs text-slate-500 font-medium">
+                {formatINRShort(kpiStats.totalCollected)} collected {monthFilter === 'All' ? 'overall' : `in ${monthFilter}`}
+              </span>
             </div>
           </div>
-          <div className="mt-3 sm:mt-4">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">TOTAL BILLED</span>
-            <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-1 leading-tight">
-              {formatINRShort(kpiStats.totalBilled)}
-            </div>
-            <span className="text-[10px] sm:text-xs text-slate-400 font-medium block mt-1">
-              {kpiStats.totalInvoices} invoice{kpiStats.totalInvoices !== 1 ? 's' : ''} generated
-            </span>
-          </div>
-        </div>
 
-        {/* KPI 3: Outstanding */}
-        <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
-          <div className="flex justify-between items-start">
-            <div className="w-8 h-8 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
-              <Clock size={16} />
+          {/* KPI 2: Total Billed */}
+          <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
+            <div className="flex justify-between items-start">
+              <div className="w-8 h-8 rounded-2xl bg-indigo-50 text-indigo-500 flex items-center justify-center">
+                <Receipt size={16} />
+              </div>
+            </div>
+            <div className="mt-3 sm:mt-4">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">TOTAL BILLED</span>
+              <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-1 leading-tight">
+                {formatINRShort(kpiStats.totalBilled)}
+              </div>
+              <span className="text-[10px] sm:text-xs text-slate-400 font-medium block mt-1">
+                {kpiStats.totalInvoices} invoice{kpiStats.totalInvoices !== 1 ? 's' : ''} generated
+              </span>
             </div>
           </div>
-          <div className="mt-3 sm:mt-4">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">OUTSTANDING</span>
-            <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-1 leading-tight">
-              {formatINRShort(kpiStats.totalOutstanding)}
-            </div>
-            <span className="text-[10px] sm:text-xs text-amber-600 font-semibold block mt-1">
-              {kpiStats.unpaidCount} invoice{kpiStats.unpaidCount !== 1 ? 's' : ''} need attention
-            </span>
-          </div>
-        </div>
 
-        {/* KPI 4: Paid Invoices */}
-        <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
-          <div className="flex justify-between items-start">
-            <div className="w-8 h-8 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <CheckCircle size={16} />
+          {/* KPI 3: Outstanding */}
+          <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
+            <div className="flex justify-between items-start">
+              <div className="w-8 h-8 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                <Clock size={16} />
+              </div>
+            </div>
+            <div className="mt-3 sm:mt-4">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">OUTSTANDING</span>
+              <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-1 leading-tight">
+                {formatINRShort(kpiStats.totalOutstanding)}
+              </div>
+              <span className="text-[10px] sm:text-xs text-amber-600 font-semibold block mt-1">
+                {kpiStats.unpaidCount} invoice{kpiStats.unpaidCount !== 1 ? 's' : ''} need attention
+              </span>
             </div>
           </div>
-          <div className="mt-3 sm:mt-4">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">PAID INVOICES</span>
-            <div className="text-xl sm:text-3xl font-black text-slate-900 mt-1 leading-tight">
-              {kpiStats.paidCount} <span className="text-sm sm:text-2xl font-bold text-slate-400">of {kpiStats.totalInvoices}</span>
-            </div>
-            <span className="text-[10px] sm:text-xs text-slate-400 font-medium block mt-1">
-              {formatINRShort(kpiStats.totalCollected)} settled
-            </span>
-          </div>
-        </div>
 
+          {/* KPI 4: Paid Invoices */}
+          <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
+            <div className="flex justify-between items-start">
+              <div className="w-8 h-8 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <CheckCircle size={16} />
+              </div>
+            </div>
+            <div className="mt-3 sm:mt-4">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">PAID INVOICES</span>
+              <div className="text-xl sm:text-3xl font-black text-slate-900 mt-1 leading-tight">
+                {kpiStats.paidCount} <span className="text-sm sm:text-2xl font-bold text-slate-400">of {kpiStats.totalInvoices}</span>
+              </div>
+              <span className="text-[10px] sm:text-xs text-slate-400 font-medium block mt-1">
+                {formatINRShort(kpiStats.totalCollected)} settled
+              </span>
+            </div>
+          </div>
+
+        </div>
       </div>
 
       {/* ── INVOICE LEDGER TABLE CARD ── */}
@@ -641,8 +681,38 @@ export default function Billing() {
 
         {/* Main Content Area */}
         {filteredBills.length === 0 ? (
-          <div className="p-12 text-center text-slate-400 text-xs">
-            No billing records match the selected filter or search query.
+          <div className="py-16 px-4 text-center">
+            <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto text-slate-400 mb-3">
+              <Calendar size={22} />
+            </div>
+            <p className="text-sm font-bold text-slate-700">
+              No bills found {monthFilter !== 'All' ? `for ${monthFilter}` : ''} {yearFilter !== 'All' ? yearFilter : ''}
+            </p>
+            <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+              {searchQuery
+                ? `No results matching "${searchQuery}". Try changing your search query.`
+                : monthFilter !== 'All'
+                ? `No billing records have been generated for ${monthFilter} yet. You can create a new bill or view previous months.`
+                : 'No billing records match the selected status filter.'}
+            </p>
+            <div className="mt-4 flex items-center justify-center gap-2">
+              {monthFilter !== 'All' && (
+                <button
+                  type="button"
+                  onClick={() => setMonthFilter('All')}
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+                >
+                  View all months
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => navigate('/create-bill')}
+                className="px-4 py-2 rounded-xl bg-[#2d5a47] hover:bg-[#234738] text-white text-xs font-bold transition-all cursor-pointer"
+              >
+                Create bill
+              </button>
+            </div>
           </div>
         ) : (
           <>
