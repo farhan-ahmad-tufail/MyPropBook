@@ -118,12 +118,36 @@ export default function Analytics() {
       const collected = mBills.reduce((sum, b) => sum + parseFloat(b.amount_paid || 0), 0);
       const pending = billed - collected;
       const units = mBills.reduce((sum, b) => sum + parseFloat(b.units_consumed || 0), 0);
+
+      // Electricity amount generated for this month
+      const electricityAmount = mBills.reduce((sum, b) => {
+        const bUnits = parseFloat(b.units_consumed || 0);
+        const bRate = parseFloat(b.rate_per_unit || 0);
+        const bRent = parseFloat(b.rent_amount || 0);
+        const bOther = parseFloat(b.other_charges || 0);
+        const bArrears = parseFloat(b.arrears || 0);
+        const bTotal = parseFloat(b.total_payable || 0);
+
+        let elecAmt = 0;
+        if (b.electricity_amount !== undefined && b.electricity_amount !== null && !isNaN(b.electricity_amount)) {
+          elecAmt = parseFloat(b.electricity_amount);
+        } else if (b.elec_amount !== undefined && b.elec_amount !== null && !isNaN(b.elec_amount)) {
+          elecAmt = parseFloat(b.elec_amount);
+        } else if (bUnits > 0 && bRate > 0) {
+          elecAmt = bUnits * bRate;
+        } else if (bTotal > 0) {
+          elecAmt = Math.max(0, bTotal - bRent - bOther - bArrears);
+        }
+        return sum + elecAmt;
+      }, 0);
+
       return { 
         month, 
         billed, 
         collected, 
         pending, 
         units, 
+        electricityAmount,
         count: mBills.length,
         fullMonth: fullMonths[idx] 
       };
@@ -523,7 +547,7 @@ export default function Analytics() {
         </div>
 
         <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
-          <table className="w-full text-left border-collapse min-w-[500px]">
+          <table className="w-full text-left border-collapse min-w-[640px]">
             <thead>
               <tr className="border-b border-slate-100 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50/50">
                 <th className="px-3 sm:px-5 py-3 sm:py-4">MONTH</th>
@@ -532,6 +556,7 @@ export default function Analytics() {
                 <th className="px-3 sm:px-5 py-3 sm:py-4">COLLECTED (₹)</th>
                 <th className="px-3 sm:px-5 py-3 sm:py-4">PENDING (₹)</th>
                 <th className="px-3 sm:px-5 py-3 sm:py-4">ELEC UNITS</th>
+                <th className="px-3 sm:px-5 py-3 sm:py-4">ELEC AMOUNT (₹)</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-medium text-xs">
@@ -543,6 +568,9 @@ export default function Analytics() {
                   <td className="px-3 sm:px-5 py-3.5 font-bold text-[#2d5a47]">₹{m.collected.toLocaleString()}</td>
                   <td className="px-3 sm:px-5 py-3.5 font-bold text-red-500">{m.pending > 0 ? `₹${m.pending.toLocaleString()}` : '₹0'}</td>
                   <td className="px-3 sm:px-5 py-3.5 font-mono text-amber-600">{m.units > 0 ? `${m.units.toFixed(1)} units` : '-'}</td>
+                  <td className="px-3 sm:px-5 py-3.5 font-semibold text-amber-700">
+                    {m.electricityAmount > 0 ? `₹${m.electricityAmount.toLocaleString()}` : '-'}
+                  </td>
                 </tr>
               ))}
             </tbody>
