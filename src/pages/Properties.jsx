@@ -1779,76 +1779,39 @@ export default function Properties() {
           onClick={(e) => { if (e.target === e.currentTarget) setShowPropModal(false); }}
         >
           <div
-            className="relative w-full sm:max-w-lg bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
-            style={{ animation: 'slideUpModal 0.22s cubic-bezier(0.34,1.56,0.64,1)', maxHeight: '96vh' }}
+            className="relative w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-2xl shadow-xl border border-slate-100 overflow-hidden"
+            style={{ animation: 'slideUpModal 0.2s cubic-bezier(0.16, 1, 0.3, 1)', maxHeight: '96vh' }}
           >
-            {/* Premium Gradient Header */}
-            <div
-              className="relative px-6 pt-7 pb-6 overflow-hidden"
-              style={{ background: 'linear-gradient(135deg, #1a3a2b 0%, #2d5a47 55%, #3a7a5c 100%)' }}
-            >
-              {/* Decorative blobs */}
-              <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #a8ffce, transparent 70%)', transform: 'translate(40%, -40%)' }} />
-              <div className="absolute bottom-0 left-0 w-28 h-28 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #7fffd4, transparent 70%)', transform: 'translate(-30%, 40%)' }} />
-
-              <div className="relative flex items-start justify-between">
-                <div className="flex items-center gap-4">
-                  {/* Animated icon */}
-                  <div
-                    className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
-                    style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', border: '1.5px solid rgba(255,255,255,0.25)' }}
-                  >
-                    <Building size={26} className="text-white" />
-                  </div>
-                  <div>
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-300/80 mb-0.5">
-                      {editingPropId ? 'Update Property' : 'New Property'}
-                    </div>
-                    <h2 className="text-lg font-extrabold text-white leading-tight">
-                      {editingPropId ? 'Edit Property Details' : 'Add New Property'}
-                    </h2>
-                    <p className="text-xs text-emerald-200/70 mt-0.5 font-medium">
-                      Configure building name &amp; location
-                    </p>
-                  </div>
+            {/* Clean Professional Modal Header */}
+            <div className="px-6 pt-6 pb-4 flex items-start justify-between border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-[#2d5a47] flex items-center justify-center flex-shrink-0 border border-emerald-100/60">
+                  <Building size={20} />
                 </div>
-
-                <button
-                  onClick={() => setShowPropModal(false)}
-                  className="flex-shrink-0 p-2 rounded-xl transition-all cursor-pointer"
-                  style={{ background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.7)' }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.22)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}
-                >
-                  <X size={16} />
-                </button>
+                <div>
+                  <h2 className="text-base font-bold text-slate-900 leading-tight">
+                    {editingPropId ? 'Edit Property Details' : 'Add New Property'}
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {editingPropId ? 'Update your property name and address' : 'Enter the building name and location to get started'}
+                  </p>
+                </div>
               </div>
 
-              {/* Feature chips */}
-              {!editingPropId && (
-                <div className="relative flex flex-wrap gap-2 mt-5">
-                  {[
-                    { icon: '🏠', label: 'Manage rooms' },
-                    { icon: '👤', label: 'Track tenants' },
-                    { icon: '⚡', label: 'Smart billing' },
-                  ].map(chip => (
-                    <span
-                      key={chip.label}
-                      className="text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1"
-                      style={{ background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.85)', border: '1px solid rgba(255,255,255,0.18)' }}
-                    >
-                      {chip.icon} {chip.label}
-                    </span>
-                  ))}
-                </div>
-              )}
+              <button
+                type="button"
+                onClick={() => setShowPropModal(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer flex-shrink-0"
+              >
+                <X size={16} />
+              </button>
             </div>
 
             {/* Form Body */}
-            <form onSubmit={handlePropSubmit} className="p-6 space-y-5">
+            <form onSubmit={handlePropSubmit} className="p-6 space-y-4">
               {/* Property Name */}
               <div>
-                <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest block mb-2">
+                <label className="text-xs font-semibold text-slate-700 block mb-1.5">
                   Property / Building Name <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
@@ -1856,60 +1819,48 @@ export default function Properties() {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Royal Heights, Sunrise Apartments…"
-                    className="w-full pl-9 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#2d5a47] focus:bg-white transition-all"
-                    style={{ boxShadow: 'none' }}
-                    onFocus={e => { e.target.style.boxShadow = '0 0 0 3px rgba(45,90,71,0.12)'; e.target.style.borderColor = '#2d5a47'; }}
-                    onBlur={e => { e.target.style.boxShadow = 'none'; e.target.style.borderColor = ''; }}
+                    placeholder="e.g. Royal Heights, Sunrise Apartments"
+                    className="w-full pl-9 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#2d5a47] focus:ring-2 focus:ring-[#2d5a47]/10 transition-all"
                     value={propName}
                     onChange={e => setPropName(e.target.value)}
                     autoFocus
                   />
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1.5 ml-1">This will appear as the property title across your dashboard.</p>
+                <p className="text-[11px] text-slate-400 mt-1">This will appear across your rooms, bills, and receipts.</p>
               </div>
 
               {/* Address */}
               <div>
-                <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest block mb-2">
-                  Address / Location <span className="text-slate-400 font-medium normal-case">(optional)</span>
+                <label className="text-xs font-semibold text-slate-700 block mb-1.5">
+                  Address / Location <span className="text-slate-400 font-normal">(optional)</span>
                 </label>
                 <div className="relative">
                   <MapPin size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                   <input
                     type="text"
                     placeholder="e.g. Sector 62, Noida, UP"
-                    className="w-full pl-9 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#2d5a47] focus:bg-white transition-all"
-                    style={{ boxShadow: 'none' }}
-                    onFocus={e => { e.target.style.boxShadow = '0 0 0 3px rgba(45,90,71,0.12)'; e.target.style.borderColor = '#2d5a47'; }}
-                    onBlur={e => { e.target.style.boxShadow = 'none'; e.target.style.borderColor = ''; }}
+                    className="w-full pl-9 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#2d5a47] focus:ring-2 focus:ring-[#2d5a47]/10 transition-all"
                     value={propAddress}
                     onChange={e => setPropAddress(e.target.value)}
                   />
                 </div>
               </div>
 
-              {/* Divider */}
-              <div className="border-t border-slate-100" />
-
               {/* Footer Actions */}
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100 mt-5">
                 <button
                   type="button"
                   onClick={() => setShowPropModal(false)}
-                  className="flex-1 py-2.5 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-2xl transition-all cursor-pointer"
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 text-sm font-bold text-white rounded-2xl transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm"
-                  style={{ background: 'linear-gradient(135deg, #2d5a47, #3a7a5c)' }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, #234738, #2d5a47)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(135deg, #2d5a47, #3a7a5c)'}
+                  className="px-4 py-2 text-xs font-bold text-white bg-[#2d5a47] hover:bg-[#234738] rounded-xl transition-all cursor-pointer shadow-sm flex items-center gap-1.5"
                 >
-                  <Building size={15} />
-                  {editingPropId ? 'Save Changes' : 'Create Property'}
+                  <Building size={14} />
+                  <span>{editingPropId ? 'Save Changes' : 'Create Property'}</span>
                 </button>
               </div>
             </form>
@@ -1918,7 +1869,7 @@ export default function Properties() {
           <style>{`
             @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
             @keyframes slideUpModal {
-              from { opacity: 0; transform: translateY(32px) scale(0.97) }
+              from { opacity: 0; transform: translateY(12px) scale(0.99) }
               to   { opacity: 1; transform: translateY(0)    scale(1)    }
             }
           `}</style>
