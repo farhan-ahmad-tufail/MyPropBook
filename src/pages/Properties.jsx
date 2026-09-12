@@ -118,6 +118,11 @@ export default function Properties() {
   const [bulkSplitAmount, setBulkSplitAmount] = useState('');
   const [bulkSplitTarget, setBulkSplitTarget] = useState('all'); // 'all' | 'shared_only'
 
+  // Track which mobile bulk-billing cards have their Extra Charges panel open
+  const [expandedMobileCards, setExpandedMobileCards] = useState({});
+  const toggleMobileCardExpand = (roomId) =>
+    setExpandedMobileCards(prev => ({ ...prev, [roomId]: !prev[roomId] }));
+
   // Close dropdowns & action menus on outside click or Escape key
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -1264,6 +1269,90 @@ export default function Properties() {
                                 </div>
                               )}
                             </div>
+
+                            {/* Single-tenant: Extra Charges expandable panel */}
+                            {!isShared && (() => {
+                              const autoArrears = bills
+                                .filter(b => b.room_id === room.id && (b.payment_status === 'Unpaid' || b.payment_status === 'Partially Paid'))
+                                .reduce((sum, b) => sum + (parseFloat(b.total_payable || 0) - parseFloat(b.amount_paid || 0)), 0);
+                              const arrears = readings.arrears !== undefined && readings.arrears !== '' ? parseFloat(readings.arrears || 0) : autoArrears;
+                              const other = parseFloat(readings.otherCharges || 0);
+                              const total = rent + totalRoomElec + arrears + other;
+                              const isExpanded = !!expandedMobileCards[room.id];
+                              const hasExtras = arrears > 0 || other > 0;
+
+                              return (
+                                <div className="space-y-2">
+                                  {/* Summary row + toggle */}
+                                  <div
+                                    className="flex items-center justify-between cursor-pointer select-none"
+                                    onClick={() => toggleMobileCardExpand(room.id)}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Extra Charges</span>
+                                      {hasExtras && (
+                                        <span className="bg-amber-100 text-amber-800 text-[9px] font-black px-1.5 py-0.5 rounded">
+                                          {arrears > 0 && `Arrears: ${formatINR(arrears)}`}
+                                          {arrears > 0 && other > 0 && ' · '}
+                                          {other > 0 && `Other: ${formatINR(other)}`}
+                                        </span>
+                                      )}
+                                      {!hasExtras && !isExpanded && (
+                                        <span className="text-[10px] text-slate-400 italic">tap to add</span>
+                                      )}
+                                    </div>
+                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-all ${
+                                      isExpanded ? 'bg-[#2d5a47] text-white' : 'bg-slate-100 text-slate-400'
+                                    }`}>
+                                      <ChevronDown size={12} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                                    </div>
+                                  </div>
+
+                                  {/* Expanded fields */}
+                                  {isExpanded && (
+                                    <div className="grid grid-cols-2 gap-2 p-2.5 bg-amber-50/60 rounded-xl border border-amber-100">
+                                      <div>
+                                        <label className="text-[10px] text-amber-700 font-bold uppercase block mb-0.5">Prev Balance</label>
+                                        <input
+                                          type="number"
+                                          min="0"
+                                          placeholder={autoArrears > 0 ? formatINR(autoArrears) : '₹0'}
+                                          value={readings.arrears !== undefined ? readings.arrears : (autoArrears > 0 ? autoArrears : '')}
+                                          onChange={e => handleBulkReadingChange(room.id, 'arrears', e.target.value)}
+                                          className={`w-full px-2.5 py-1.5 border rounded-lg text-xs font-bold focus:outline-none focus:ring-1 transition-all ${
+                                            arrears > 0
+                                              ? 'bg-amber-50 border-amber-300 text-amber-900 focus:border-amber-500 focus:ring-amber-500/20'
+                                              : 'bg-white border-slate-200 text-slate-800 focus:border-[#2d5a47] focus:ring-[#2d5a47]/20'
+                                          }`}
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="text-[10px] text-slate-500 font-bold uppercase block mb-0.5">Other Charges</label>
+                                        <input
+                                          type="number"
+                                          min="0"
+                                          placeholder="₹0"
+                                          value={readings.otherCharges || ''}
+                                          onChange={e => handleBulkReadingChange(room.id, 'otherCharges', e.target.value)}
+                                          className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:border-[#2d5a47] focus:ring-1 focus:ring-[#2d5a47]/20 transition-all"
+                                        />
+                                      </div>
+                                      <div className="col-span-2 pt-1 border-t border-amber-200/60 flex justify-between items-center">
+                                        <span className="text-[10px] text-slate-400 font-medium">Estimated Total</span>
+                                        <span className="text-sm font-black text-[#2d5a47]">{formatINR(total)}</span>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Collapsed total pill */}
+                                  {!isExpanded && (
+                                    <div className="flex justify-end">
+                                      <span className="bg-[#2d5a47]/8 text-[#2d5a47] text-xs font-black px-3 py-1 rounded-full">{formatINR(total)}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })()}
 
                             {/* Roommate details */}
                             {isShared && (

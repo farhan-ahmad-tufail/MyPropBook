@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { api, isLocalMode } from '../services/api';
 import { supabase } from '../services/supabase';
+import { seedDemoData, resetDemoData, DEMO_OWNER_ID } from '../services/demoSeed';
 
 const AuthContext = createContext(null);
 
@@ -12,6 +13,32 @@ export const AuthProvider = ({ children }) => {
     // Initial fetch of active session
     const initializeAuth = async () => {
       try {
+        if (isLocalMode()) {
+          // Pre-seed realistic demo data for portfolio & interview presentation
+          seedDemoData();
+
+          let activeToken = localStorage.getItem('mock_token');
+          let users = JSON.parse(localStorage.getItem('mock_users') || '[]');
+
+          // If no local session exists yet, auto-sign in as Demo user
+          if (!activeToken || users.length === 0) {
+            const demoUser = {
+              id: DEMO_OWNER_ID,
+              email: 'demo@mypropbook.app',
+              fullName: 'Demo',
+              user_metadata: {
+                full_name: 'Demo',
+                workspace_name: 'Demo Workspace'
+              }
+            };
+            localStorage.setItem('mock_token', 'mock_demo_token');
+            localStorage.setItem('mock_users', JSON.stringify([demoUser]));
+            setUser(demoUser);
+            setLoading(false);
+            return;
+          }
+        }
+
         const currentUser = await api.auth.getCurrentUser();
         setUser(currentUser);
       } catch (err) {
@@ -45,7 +72,7 @@ export const AuthProvider = ({ children }) => {
           setUser(null);
         } else {
           const users = JSON.parse(localStorage.getItem('mock_users') || '[]');
-          setUser(users[0] || { id: 'mock_owner_id', email: 'owner@example.com', fullName: 'Demo Property Owner' });
+          setUser(users[0] || { id: DEMO_OWNER_ID, email: 'demo@mypropbook.app', fullName: 'Demo' });
         }
       };
 
@@ -150,6 +177,15 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const resetDemo = () => {
+    if (isLocalMode()) {
+      resetDemoData();
+      seedDemoData(true);
+      localStorage.removeItem('mypropbook_user_profile');
+      window.location.reload();
+    }
+  };
+
   const value = {
     user,
     loading,
@@ -158,6 +194,7 @@ export const AuthProvider = ({ children }) => {
     signOut,
     signInWithGoogle,
     updateProfile,
+    resetDemo,
     isLocal: isLocalMode()
   };
 

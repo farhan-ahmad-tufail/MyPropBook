@@ -30,7 +30,8 @@ import {
   Sparkles,
   Home,
   Search,
-  Command
+  Command,
+  RotateCcw
 } from 'lucide-react';
 import Logo from './Logo';
 import ProfileModal from './ProfileModal';
@@ -129,7 +130,7 @@ const GUIDE_STEPS = [
 ];
 
 export default function Layout({ children }) {
-  const { user, signOut, isLocal } = useAuth();
+  const { user, signOut, isLocal, resetDemo } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -195,9 +196,9 @@ export default function Layout({ children }) {
   }
 
   const savedProfile = JSON.parse(localStorage.getItem('mypropbook_user_profile') || '{}');
-  const rawName = savedProfile.fullName || user?.user_metadata?.full_name || user?.fullName || user?.email?.split('@')[0] || 'Farhan';
-  const displayName = (rawName === 'Google Demo User' || rawName === 'Google') ? 'Farhan Ahmad Tufail' : rawName;
-  const avatarLetter = (displayName[0] || 'F').toUpperCase() + (displayName.split(' ')[1]?.[0] || 'A').toUpperCase();
+  const rawName = savedProfile.fullName || user?.user_metadata?.full_name || user?.fullName || (isLocal ? 'Demo' : user?.email?.split('@')[0]) || 'Demo';
+  const displayName = rawName;
+  const avatarLetter = (displayName[0] || 'D').toUpperCase() + (displayName.split(' ')[1]?.[0] || '').toUpperCase();
 
   const breadcrumbMap = {
     '/dashboard': 'Overview',
@@ -252,23 +253,19 @@ export default function Layout({ children }) {
               {avatarLetter}
             </div>
             <div className="min-w-0">
-              <p className="font-bold text-xs text-slate-800 truncate">{displayName}</p>
-              <p className="text-[10px] text-slate-400 truncate">{savedProfile.workspaceName || 'Landlord workspace'}</p>
+              <div className="flex items-center gap-1.5">
+                <p className="font-bold text-xs text-slate-800 truncate">{displayName}</p>
+                {isLocal && (
+                  <span className="px-1.5 py-0.2 rounded-md bg-[#edf5f1] border border-[#2d5a47]/20 text-[#2d5a47] text-[9px] font-extrabold tracking-wide uppercase">
+                    Demo
+                  </span>
+                )}
+              </div>
+              <p className="text-[10px] text-slate-400 truncate">{savedProfile.workspaceName || (isLocal ? 'Demo Workspace' : 'Landlord workspace')}</p>
             </div>
           </div>
           <ChevronDown size={14} className="text-slate-400 flex-shrink-0 mr-1 group-hover:text-[#2d5a47] transition-colors" />
         </div>
-
-        {/* Local Mode / Status Banner */}
-        {isLocal && (
-          <div className="mt-3 px-3 py-1.5 bg-[#edf5f1] border border-[#2d5a47]/20 rounded-xl flex items-center justify-between text-xs shadow-2xs">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[11px] text-[#2d5a47] font-bold">Local Demo Mode</span>
-            </div>
-            <span className="text-[9px] font-extrabold text-slate-400 uppercase">Offline</span>
-          </div>
-        )}
 
         {/* Navigation Sections */}
         <nav className="flex-1 py-4 space-y-5 overflow-y-auto pr-1">
@@ -305,7 +302,7 @@ export default function Layout({ children }) {
           ))}
         </nav>
 
-        {/* Sign Out Button */}
+        {/* Bottom Actions */}
         {user && (
           <div className="pt-3 border-t border-slate-100">
             <button

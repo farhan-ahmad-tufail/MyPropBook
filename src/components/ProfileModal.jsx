@@ -16,7 +16,8 @@ import {
   BarChart3,
   Calculator,
   LogOut,
-  ArrowRight
+  ArrowRight,
+  RotateCcw
 } from 'lucide-react';
 
 const avatarColors = [
@@ -28,7 +29,7 @@ const avatarColors = [
 ];
 
 export default function ProfileModal({ isOpen, onClose }) {
-  const { user, updateProfile, signOut } = useAuth();
+  const { user, updateProfile, signOut, isLocal, resetDemo } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
 
@@ -46,12 +47,12 @@ export default function ProfileModal({ isOpen, onClose }) {
   useEffect(() => {
     if (user) {
       const sp = JSON.parse(localStorage.getItem('mypropbook_user_profile') || '{}');
-      const defaultName = sp.fullName || user?.user_metadata?.full_name || user?.fullName || 'Landlord Owner';
-      setFullName(defaultName === 'Google Demo User' || defaultName === 'Google' ? 'Farhan Ahmad Tufail' : defaultName);
+      const defaultName = sp.fullName || user?.user_metadata?.full_name || user?.fullName || (isLocal ? 'Demo' : 'Landlord Owner');
+      setFullName(defaultName);
       setPhone(sp.phone || user?.user_metadata?.phone || '');
       setAvatarColor(sp.avatarColor || user?.user_metadata?.avatar_color || 'sage');
     }
-  }, [user]);
+  }, [user, isLocal]);
 
   const initials = fullName
     .split(' ')
@@ -109,10 +110,10 @@ export default function ProfileModal({ isOpen, onClose }) {
               {initials}
             </div>
             <div>
-              <h4 className="font-extrabold text-slate-900 text-sm">{fullName || 'Landlord Owner'}</h4>
+              <h4 className="font-extrabold text-slate-900 text-sm">{fullName || (isLocal ? 'Demo' : 'Landlord Owner')}</h4>
               <div className="flex items-center gap-1 mt-1 text-[10px] text-emerald-700 font-bold">
                 <ShieldCheck size={12} />
-                <span>Verified Landlord</span>
+                <span>{isLocal ? 'Demo Workspace' : 'Verified Landlord'}</span>
               </div>
             </div>
           </div>
@@ -193,6 +194,25 @@ export default function ProfileModal({ isOpen, onClose }) {
                 Cancel
               </button>
             </div>
+
+            {/* Local Mode: Discreet Reset Sample Data */}
+            {isLocal && (
+              <div className="pt-2 text-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (window.confirm('Restore original sample data? This will reset all sample rooms, tenants, and bills back to their initial state.')) {
+                      resetDemo();
+                      onClose();
+                    }
+                  }}
+                  className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 hover:text-[#2d5a47] transition-colors py-1 px-2.5 rounded-lg hover:bg-[#edf5f1] cursor-pointer"
+                >
+                  <RotateCcw size={12} />
+                  <span>Restore sample portfolio data</span>
+                </button>
+              </div>
+            )}
 
             {/* ── Mobile-Only "More" Navigation & Logout ── */}
             <div className="block lg:hidden mt-6 space-y-1 pt-6 border-t border-slate-100">
