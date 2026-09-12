@@ -440,20 +440,20 @@ export default function Dashboard() {
         </div>
 
         {/* Mobile & Tablet buttons row */}
-        <div className="flex sm:hidden items-center gap-2 w-full">
+        <div className="flex sm:hidden items-center gap-2.5 w-full">
           <button
             onClick={() => navigate('/analytics')}
-            className="flex-1 px-3.5 py-2.5 rounded-2xl bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200/80 font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+            className="flex-1 px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200/90 font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs active:scale-[0.98]"
           >
-            <BarChart3 size={14} className="text-purple-600 shrink-0" />
+            <BarChart3 size={14} className="text-[#2d5a47] shrink-0" />
             <span>Analytics</span>
           </button>
           <button
             onClick={() => navigate('/properties?tab=bulk')}
-            className="flex-1 px-3.5 py-2.5 rounded-2xl bg-amber-500/10 text-amber-900 border border-amber-500/30 font-bold text-xs hover:bg-amber-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+            className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#2d5a47] hover:bg-[#234738] text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm active:scale-[0.98]"
           >
-            <Zap size={14} className="text-amber-600 shrink-0" />
-            <span>⚡ Bulk Bill</span>
+            <Zap size={14} className="text-emerald-300 shrink-0" />
+            <span>Bulk Bill</span>
           </button>
         </div>
       </div>
