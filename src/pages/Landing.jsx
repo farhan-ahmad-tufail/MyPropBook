@@ -498,66 +498,64 @@ export default function Landing() {
               </div>
 
               {/* Inner Dashboard */}
-              <div className="p-5 sm:p-8 space-y-5 bg-[#f8faf9]">
+              <div className="p-3.5 sm:p-8 space-y-3.5 sm:space-y-5 bg-[#f8faf9]">
 
                 {/* App Header Bar */}
-                <div className="flex items-center justify-between pb-4 border-b border-slate-200/70">
-                  <div className="flex items-center gap-3">
-                    <Logo size={24} />
-                    <span className="text-xs font-bold text-slate-400 tracking-wide">Overview</span>
+                <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-slate-200/70">
+                  <div className="flex items-center gap-2">
+                    <Logo size={22} className="shrink-0" />
                   </div>
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="flex items-center gap-1.5 text-emerald-700 font-semibold bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200/60 text-[10px]">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      All changes saved
-                    </span>
-                    <div className="hidden sm:block px-2.5 py-1 bg-white border border-slate-200 rounded-lg font-semibold text-slate-700 text-[11px]">August 2026 ▾</div>
-                    <button className="px-3 py-1.5 bg-[#2d5a47] text-white rounded-lg font-bold text-[11px] flex items-center gap-1 shadow-sm">
-                      <Plus size={11} /> Create bill
+                  <div className="flex items-center gap-1.5 sm:gap-2 text-xs">
+                    <div className="px-2 sm:px-2.5 py-1 bg-white border border-slate-200/80 rounded-lg font-semibold text-slate-700 text-[10px] sm:text-[11px] shadow-2xs">
+                      August 2026 ▾
+                    </div>
+                    <button className="px-2.5 sm:px-3 py-1 bg-[#2d5a47] text-white rounded-lg font-bold text-[10px] sm:text-[11px] flex items-center gap-1 shadow-sm">
+                      <Plus size={11} />
+                      <span>Create bill</span>
                     </button>
                   </div>
                 </div>
 
                 {/* Greeting */}
-                <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-sm">
+                <div className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 border border-slate-100 shadow-sm">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h3 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">Good morning, Farhan</h3>
-                      <p className="text-[11px] text-slate-400 mt-0.5">Here's what's happening across your properties.</p>
+                      <h3 className="text-sm sm:text-lg font-extrabold text-slate-900 tracking-tight">Good morning, Farhan</h3>
+                      <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">Here's what's happening across your properties.</p>
                     </div>
                     <span className="text-[10px] font-bold text-slate-400 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg hidden sm:inline">Thursday, 28 Aug</span>
                   </div>
 
                   {/* 4 KPI Stat Pills inside greeting card */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-slate-100">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-slate-100">
                     {[
                       { label: 'Properties', value: '3', sub: '↑ 1 this month', subColor: 'text-emerald-600' },
                       { label: 'Rooms / Units', value: '24', sub: '21 occupied', subColor: 'text-slate-400' },
                       { label: 'Tenants', value: '21', sub: '3 move-ins soon', subColor: 'text-slate-400' },
                       { label: 'Expected Rent', value: '₹1,24,500', sub: '↑ 8.4% collected', subColor: 'text-emerald-600' },
                     ].map((kpi, i) => (
-                      <div key={i}>
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">{kpi.label}</span>
-                        <div className="text-base sm:text-xl font-black text-slate-900 mt-0.5 leading-tight">{kpi.value}</div>
-                        <span className={`text-[9px] font-semibold block mt-0.5 ${kpi.subColor}`}>{kpi.sub}</span>
+                      <div key={i} className="p-2 sm:p-0 rounded-lg bg-slate-50/50 sm:bg-transparent">
+                        <span className="text-[8.5px] sm:text-[9px] font-bold text-slate-400 uppercase tracking-wider block">{kpi.label}</span>
+                        <div className="text-sm sm:text-xl font-black text-slate-900 mt-0.5 leading-tight">{kpi.value}</div>
+                        <span className={`text-[8.5px] sm:text-[9px] font-semibold block mt-0.5 ${kpi.subColor}`}>{kpi.sub}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 {/* Collections Chart + Needs Attention */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
 
                   {/* Collections Bar Chart */}
-                  <div className="sm:col-span-2 bg-white rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-sm">
-                    <div className="flex justify-between items-center mb-4 text-xs">
+                  <div className="sm:col-span-2 bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 border border-slate-100 shadow-sm">
+                    <div className="flex justify-between items-center mb-3 sm:mb-4 text-xs">
                       <div>
-                        <span className="font-extrabold text-slate-800 block">Collections</span>
-                        <span className="text-[10px] text-slate-400">Monthly billing revenue</span>
+                        <span className="font-extrabold text-slate-800 block text-xs sm:text-sm">Collections</span>
+                        <span className="text-[9px] sm:text-[10px] text-slate-400">Monthly billing revenue</span>
                       </div>
-                      <span className="font-bold text-[#2d5a47] bg-emerald-50 px-2 py-1 rounded-lg text-[10px] border border-emerald-100">₹1,16,050 received</span>
+                      <span className="font-bold text-[#2d5a47] bg-emerald-50 px-2 py-0.5 sm:py-1 rounded-lg text-[9.5px] sm:text-[10px] border border-emerald-100">₹1,16,050 received</span>
                     </div>
-                    <div className="h-28 flex items-end justify-between gap-1.5 sm:gap-2">
+                    <div className="h-24 sm:h-28 flex items-end justify-between gap-1 sm:gap-2">
                       {[
                         { month: 'Jan', height: '38%' },
                         { month: 'Feb', height: '62%' },
@@ -579,22 +577,22 @@ export default function Landing() {
                   </div>
 
                   {/* Needs Attention */}
-                  <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-sm flex flex-col justify-between">
-                    <span className="text-xs font-extrabold text-slate-800 block mb-3">Needs attention</span>
-                    <div className="space-y-2 text-xs font-medium flex-1">
+                  <div className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 border border-slate-100 shadow-sm flex flex-col justify-between">
+                    <span className="text-xs font-extrabold text-slate-800 block mb-2 sm:mb-3">Needs attention</span>
+                    <div className="space-y-1.5 sm:space-y-2 text-xs font-medium flex-1">
                       {[
                         { label: 'Pending bills', value: '₹8,450', color: 'text-amber-600 font-extrabold' },
                         { label: 'Receipts to share', value: '4', color: 'text-slate-800 font-extrabold' },
                         { label: 'Vacant rooms', value: '3', color: 'text-slate-800 font-extrabold' },
                       ].map((item, i, arr) => (
-                        <div key={i} className={`flex justify-between items-center py-1.5 ${i < arr.length - 1 ? 'border-b border-slate-100' : ''}`}>
-                          <span className="text-slate-500">{item.label}</span>
-                          <span className={item.color}>{item.value}</span>
+                        <div key={i} className={`flex justify-between items-center py-1 sm:py-1.5 ${i < arr.length - 1 ? 'border-b border-slate-100' : ''}`}>
+                          <span className="text-slate-500 text-[11px] sm:text-xs">{item.label}</span>
+                          <span className={`${item.color} text-[11px] sm:text-xs`}>{item.value}</span>
                         </div>
                       ))}
                     </div>
-                    <div className="mt-3 pt-3 border-t border-slate-100">
-                      <div className="w-full py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[10px] text-center font-bold text-slate-500">View all bills →</div>
+                    <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-slate-100">
+                      <div className="w-full py-1 sm:py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[9.5px] sm:text-[10px] text-center font-bold text-slate-500">View all bills →</div>
                     </div>
                   </div>
 
