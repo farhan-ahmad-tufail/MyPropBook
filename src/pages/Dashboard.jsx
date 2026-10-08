@@ -595,10 +595,7 @@ export default function Dashboard() {
         <div className="lg:col-span-2 bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between relative overflow-hidden">
           <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
             <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-extrabold text-slate-900 text-base">Revenue overview</h3>
-                <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-bold text-[9px] uppercase tracking-wider">LIVE</span>
-              </div>
+              <h3 className="font-extrabold text-slate-900 text-base">Revenue overview</h3>
               <p className="text-xs text-slate-400 mt-0.5">Collected vs expected across your portfolio</p>
             </div>
             

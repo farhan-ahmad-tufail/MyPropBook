@@ -389,8 +389,7 @@ export default function Billing() {
       {/* ── HERO HEADER SECTION ── */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-2">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+          <div>
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
               BILLING WORKSPACE
             </span>
@@ -530,10 +529,7 @@ export default function Billing() {
         {/* Table Header & Controls Toolbar */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-xl font-extrabold text-slate-900">Invoice ledger</h2>
-              <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-bold text-[9px] uppercase tracking-wider">LIVE</span>
-            </div>
+            <h2 className="text-xl font-extrabold text-slate-900">Invoice ledger</h2>
             <p className="text-xs text-slate-400 mt-0.5">All billing records and payment history</p>
           </div>
 
