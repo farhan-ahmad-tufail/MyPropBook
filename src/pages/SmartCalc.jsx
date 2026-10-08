@@ -31,6 +31,7 @@ import {
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { useToast } from '../components/Toast';
+import { getPreviousBillDue } from '../utils/formatters';
 
 /* ─────────────────────────────────────────────────────────────────────────
    Curated Professional Invoice Color Themes
@@ -403,9 +404,8 @@ export default function SmartCalc() {
       
       const initialGroupReadings = {};
       roomTenantsList.forEach(t => {
-        const autoArrears = bills
-          .filter(b => b.room_id === actualRoomId && b.tenant_id === t.id && (b.payment_status === 'Unpaid' || b.payment_status === 'Partially Paid'))
-          .reduce((sum, b) => sum + (parseFloat(b.total_payable || 0) - parseFloat(b.amount_paid || 0)), 0);
+        // Auto arrears: only the unpaid due from the most recent previous bill prior to current billing month
+        const autoArrears = getPreviousBillDue(bills, actualRoomId, t.id, billMonth, billYear);
         initialGroupReadings[t.id] = {
           arrears: autoArrears > 0 ? autoArrears.toString() : '',
           otherCharges: ''
@@ -432,13 +432,8 @@ export default function SmartCalc() {
     if (tenantObj) {
       setActiveTenant(tenantObj);
 
-      // Find all rooms occupied by this tenant
-      const allTenantLeases = leases.filter(l => l.tenant_id === tenantObj.id && l.is_active);
-      const allTenantRoomIds = allTenantLeases.map(l => l.room_id);
-
-      const roomArrears = bills
-        .filter(b => (allTenantRoomIds.includes(b.room_id) || b.tenant_id === tenantObj.id) && (b.payment_status === 'Unpaid' || b.payment_status === 'Partially Paid'))
-        .reduce((sum, b) => sum + (parseFloat(b.total_payable || 0) - parseFloat(b.amount_paid || 0)), 0);
+      // Auto arrears: only the unpaid due from the most recent previous bill prior to current billing month
+      const roomArrears = getPreviousBillDue(bills, actualRoomId, tenantObj.id, billMonth, billYear);
       setCalculatedArrears(roomArrears);
       setCustomArrears(roomArrears.toString());
     } else {
@@ -446,7 +441,7 @@ export default function SmartCalc() {
       setCalculatedArrears(0);
       setCustomArrears('');
     }
-  }, [selectedSelectionKey, rooms, leases, tenants, bills]);
+  }, [selectedSelectionKey, rooms, leases, tenants, bills, billMonth, billYear]);
 
   // Compute active tenant's multi-room list
   const tenantActiveRooms = React.useMemo(() => {

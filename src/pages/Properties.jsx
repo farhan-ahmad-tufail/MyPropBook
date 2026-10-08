@@ -37,7 +37,7 @@ import {
   Share2
 } from 'lucide-react';
 import { useConfirm, useToast } from '../components/Toast';
-import { formatINR, formatINRShort } from '../utils/formatters';
+import { formatINR, formatINRShort, getPreviousBillDue } from '../utils/formatters';
 import RoomDrawer from '../components/RoomDrawer';
 import CreateRoomTypeModal from '../components/CreateRoomTypeModal';
 import RoomDetailsModal from '../components/RoomDetailsModal';
@@ -989,9 +989,9 @@ export default function Properties() {
                             if (!isShared) {
                               // Standard Single Tenant Row
                               const singleTenant = roomTenants[0] || null;
-                              const autoArrears = singleTenant ? bills
-                                .filter(b => b.room_id === room.id && b.tenant_id === singleTenant.id && (b.payment_status === 'Unpaid' || b.payment_status === 'Partially Paid'))
-                                .reduce((sum, b) => sum + (parseFloat(b.total_payable || 0) - parseFloat(b.amount_paid || 0)), 0) : 0;
+                              const autoArrears = singleTenant
+                                ? getPreviousBillDue(bills, room.id, singleTenant.id, bulkMonth, bulkYear)
+                                : getPreviousBillDue(bills, room.id, null, bulkMonth, bulkYear);
                               const arrears = readings.arrears !== undefined && readings.arrears !== '' ? parseFloat(readings.arrears || 0) : autoArrears;
                               const other = parseFloat(readings.otherCharges || 0);
                               const total = rent + totalRoomElec + arrears + other;
@@ -1124,9 +1124,7 @@ export default function Properties() {
                                 {roomTenants.map((t, tIdx) => {
                                   const tKey = `${room.id}__${t.id}`;
                                   const tReadings = bulkReadings[tKey] || {};
-                                  const autoArrears = bills
-                                    .filter(b => b.room_id === room.id && b.tenant_id === t.id && (b.payment_status === 'Unpaid' || b.payment_status === 'Partially Paid'))
-                                    .reduce((sum, b) => sum + (parseFloat(b.total_payable || 0) - parseFloat(b.amount_paid || 0)), 0);
+                                  const autoArrears = getPreviousBillDue(bills, room.id, t.id, bulkMonth, bulkYear);
 
                                   const tArrears = tReadings.arrears !== undefined && tReadings.arrears !== ''
                                     ? parseFloat(tReadings.arrears || 0)
@@ -1272,9 +1270,10 @@ export default function Properties() {
 
                             {/* Single-tenant: Extra Charges expandable panel */}
                             {!isShared && (() => {
-                              const autoArrears = bills
-                                .filter(b => b.room_id === room.id && (b.payment_status === 'Unpaid' || b.payment_status === 'Partially Paid'))
-                                .reduce((sum, b) => sum + (parseFloat(b.total_payable || 0) - parseFloat(b.amount_paid || 0)), 0);
+                              const singleTenant = roomTenants[0] || null;
+                              const autoArrears = singleTenant
+                                ? getPreviousBillDue(bills, room.id, singleTenant.id, bulkMonth, bulkYear)
+                                : getPreviousBillDue(bills, room.id, null, bulkMonth, bulkYear);
                               const arrears = readings.arrears !== undefined && readings.arrears !== '' ? parseFloat(readings.arrears || 0) : autoArrears;
                               const other = parseFloat(readings.otherCharges || 0);
                               const total = rent + totalRoomElec + arrears + other;
@@ -1360,9 +1359,7 @@ export default function Properties() {
                                 {roomTenants.map((t, tIdx) => {
                                   const tKey = `${room.id}__${t.id}`;
                                   const tReadings = bulkReadings[tKey] || {};
-                                  const autoArrears = bills
-                                    .filter(b => b.room_id === room.id && b.tenant_id === t.id && (b.payment_status === 'Unpaid' || b.payment_status === 'Partially Paid'))
-                                    .reduce((sum, b) => sum + (parseFloat(b.total_payable || 0) - parseFloat(b.amount_paid || 0)), 0);
+                                  const autoArrears = getPreviousBillDue(bills, room.id, t.id, bulkMonth, bulkYear);
                                   const tArrears = tReadings.arrears !== undefined && tReadings.arrears !== '' ? parseFloat(tReadings.arrears || 0) : autoArrears;
                                   const tOther = parseFloat(tReadings.otherCharges || 0);
                                   const tTotal = rent + tenantElecShare + tArrears + tOther;

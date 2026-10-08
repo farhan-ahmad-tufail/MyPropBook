@@ -1,4 +1,5 @@
 import { api } from './api';
+import { getPreviousBillDue } from '../utils/formatters';
 
 /**
  * Generate bulk bills for a set of occupied rooms.
@@ -105,10 +106,8 @@ export async function generateBulkBills(propertyId, occupiedRooms, bulkReadings,
           const tenantKey = `${room.id}__${tenant.id}`;
           const tenantSpecificReadings = bulkReadings[tenantKey] || {};
 
-          // Auto arrears for this specific tenant in this room
-          const autoArrears = allBills
-            .filter(b => b.room_id === room.id && b.tenant_id === tenant.id && (b.payment_status === 'Unpaid' || b.payment_status === 'Partially Paid'))
-            .reduce((sum, b) => sum + (parseFloat(b.total_payable || 0) - parseFloat(b.amount_paid || 0)), 0);
+          // Auto arrears: only the unpaid due from the most recent previous bill (prevents stacking earlier months)
+          const autoArrears = getPreviousBillDue(allBills, room.id, tenant.id, month, year);
 
           const customArrearsRaw = tenantSpecificReadings.arrears !== undefined ? tenantSpecificReadings.arrears : roomReadings.arrears;
           const arrears = (customArrearsRaw !== '' && customArrearsRaw !== null && customArrearsRaw !== undefined && !isNaN(customArrearsRaw))
