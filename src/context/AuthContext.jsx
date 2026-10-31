@@ -55,6 +55,10 @@ export const AuthProvider = ({ children }) => {
       const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
         if (session?.user) {
           setUser(session.user);
+          // Remove OAuth token from URL bar after Google login
+          if (window.location.hash.includes('access_token')) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
         } else {
           setUser(null);
         }
